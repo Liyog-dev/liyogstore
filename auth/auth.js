@@ -1,164 +1,105 @@
-// auth/auth.js
-import { supabase } from "../config/supabase.js";
+// Add this inside a <script type="module"> or in a JS file
+import { supabase } from './config/supabase.js';
 
-// --------------------- Utilities ---------------------
+// DOM Elements
+const signupForm = document.getElementById('signup-form');
+const messageBox = document.getElementById('auth-message');
 
-function validateEmail(email) {
-  const regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
-  return regex.test(email);
+// UTIL: Generate Unique Referral Code
+function generateReferralCode(name) {
+  const base = name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  const random = Math.floor(1000 + Math.random() * 9000); // 4-digit random
+  return `${base}${random}`;
 }
 
-function validatePassword(password) {
-  return password.length >= 6;
-}
+// ✅ Sign-Up Function
+signupForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-function formatName(name) {
-  return name
-    .toLowerCase()
-    .split(" ")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
+  // Clear message
+  messageBox.textContent = '';
 
-function showError(message) {
-  const msgBox = document.getElementById("auth-message");
-  if (msgBox) {
-    msgBox.innerText = message;
-    msgBox.style.color = "red";
-  } else {
-    alert(message);
+  // Gather input values
+  const name = document.getElementById('signup-username').value.trim();
+  const email = document.getElementById('signup-email').value.trim().toLowerCase();
+  const password = document.getElementById('signup-password').value.trim();
+  const phone = document.getElementById('signup-phone').value.trim();
+  const location = document.getElementById('signup-location').value.trim();
+  const referralCodeInput = document.getElementById('signup-referral').value.trim();
+
+  // Step 1: Create Auth User
+  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+    email,
+    password
+  });
+
+  if (signUpError) {
+    messageBox.textContent = signUpError.message;
+    return;
   }
-}
 
-function clearMessage() {
-  const msgBox = document.getElementById("auth-message");
-  if (msgBox) msgBox.innerText = "";
-}
+  const userId = signUpData.user.id;
 
-// --------------------- Register ---------------------
+  // Step 2: Resolve referred_by if referral code provided
+  let referredBy = null;
+  if (referralCodeInput !== '') {
+    const { data: refUser, error: refError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('referral_code', referralCodeInput)
+      .single();
 
-async function registerUser({ full_name, email, password, phone, location, referred_by }) {
-  if (!validateEmail(email)) return { error: { message: "Invalid email address" } };
-  if (!validatePassword(password)) return { error: { message: "Password must be at least 6 characters" } };
+    if (refError || !refUser) {
+      messageBox.textContent = 'Invalid referral code.';
+      return;
+    }
 
-  const formattedName = formatName(full_name);
+    referredBy = refUser.id;
+  }
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: formattedName,
-        phone,
-        location,
-        referred_by,
-        joined_at: new Date().toISOString(),
-      },
-    },
-  });
+  // Step 3: Generate unique referral code for new user
+  let newReferralCode = generateReferralCode(name);
+  let isUnique = false;
 
-  return { data, error };
-}
+  while (!isUnique) {
+    const { data: existing, error } = await supabase
+      .from('users')
+      .select('id')
+      .eq('referral_code', newReferralCode)
+      .single();
 
-// --------------------- Login ---------------------
-
-async function loginUser({ email, password }) {
-  if (!validateEmail(email)) return { error: { message: "Invalid email address" } };
-  if (!password) return { error: { message: "Password is required" } };
-
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  return { data, error };
-}
-
-// --------------------- Reset Password ---------------------
-
-async function resetPassword(email) {
-  if (!validateEmail(email)) return { error: { message: "Invalid email address" } };
-
-  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/auth/auth.html`,
-  });
-
-  return { data, error };
-}
-
-// --------------------- Session Check ---------------------
-
-async function checkSession() {
-  const { data } = await supabase.auth.getSession();
-  const session = data.session;
-
-  if (session && session.user) {
-    // Redirect to dashboard if already logged in
-    if (window.location.pathname.includes("/auth")) {
-      window.location.href = "/user/dashboard.html";
+    if (!existing) {
+      isUnique = true;
+    } else {
+      newReferralCode = generateReferralCode(name);
     }
   }
-}
 
-// --------------------- DOM Handlers ---------------------
+  // Step 4: Insert into Custom Users Table
+  const { error: insertError } = await supabase
+    .from('users')
+    .insert([
+      {
+        id: userId,
+        name,
+        email,
+        phone,
+        location,
+        role: 'user',
+        referred_by: referredBy,
+        referral_code: newReferralCode,
+        is_active: true
+      }
+    ]);
 
-document.addEventListener("DOMContentLoaded", () => {
-  checkSession();
-
-  const signupForm = document.getElementById("signup-form");
-  const loginForm = document.getElementById("login-form");
-  const forgotForm = document.getElementById("forgot-form");
-
-  // Register
-  if (signupForm) {
-    signupForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      clearMessage();
-
-      const full_name = document.getElementById("signup-username").value.trim();
-      const email = document.getElementById("signup-email").value.trim().toLowerCase();
-      const password = document.getElementById("signup-password").value;
-      const phone = document.getElementById("signup-phone").value.trim();
-      const location = document.getElementById("signup-location").value.trim();
-      const referred_by = document.getElementById("signup-referral").value.trim();
-
-      const { error } = await registerUser({ full_name, email, password, phone, location, referred_by });
-
-      if (error) return showError(error.message);
-
-      alert("Registration successful! Please check your email to verify.");
-      window.location.href = "/auth/auth.html";
-    });
+  if (insertError) {
+    messageBox.textContent = 'Error saving user details: ' + insertError.message;
+    return;
   }
 
-  // Login
-  if (loginForm) {
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      clearMessage();
-
-      const email = document.getElementById("login-email").value.trim().toLowerCase();
-      const password = document.getElementById("login-password").value;
-
-      const { error } = await loginUser({ email, password });
-
-      if (error) return showError(error.message);
-
-      window.location.href = "/user/dashboard.html";
-    });
-  }
-
-  // Forgot Password
-  if (forgotForm) {
-    forgotForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      clearMessage();
-
-      const email = document.getElementById("forgot-email").value.trim().toLowerCase();
-      const { error } = await resetPassword(email);
-
-      if (error) return showError(error.message);
-      alert("Password reset email sent. Please check your inbox.");
-    });
-  }
+  // Step 5: Redirect to Dashboard
+  window.location.href = 'https://liyogworld.com.ng';
 });
+
+// ✅ Fill referral from URL param (already handled in your HTML script)
+// So we don’t need to repeat it here
