@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Liyog World | Auth</title>
+  <title>#DLiyog World | Auth</title>
   <style>
     body {
       margin: 0;
@@ -12,6 +12,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
       height: 100vh;
     }
 
@@ -72,6 +73,17 @@
       font-size: 14px;
       color: red;
     }
+
+    footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+    }
+
+    footer span {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -81,10 +93,12 @@
 
     <!-- Sign Up Form -->
     <form id="signup-form" class="hidden">
-      <input type="text" id="signup-username" placeholder="Username" required />
-      <input type="text" id="signup-phone" placeholder="Phone Number" required />
-      <input type="email" id="signup-email" placeholder="Email" required />
+      <input type="text" id="signup-username" placeholder="Full Name" required />
+      <input type="email" id="signup-email" placeholder="Email Address" required />
       <input type="password" id="signup-password" placeholder="Password" required />
+      <input type="text" id="signup-phone" placeholder="Phone Number" required />
+      <input type="text" id="signup-location" placeholder="Your Location" required />
+      <input type="text" id="signup-referral" placeholder="Referral Code (Optional)" />
       <button type="submit">Sign Up</button>
     </form>
 
@@ -109,139 +123,60 @@
       <div><a id="toggle-forgot">Forgot Password?</a></div>
     </div>
   </div>
+
+  <footer>
+    <span>© <b>LiyX</b></span>
+    <span>Powered by LiyX</span>
+  </footer>
+
   <script>
-  
-// Form containers
-const loginForm = document.getElementById("login-form");
-const signupForm = document.getElementById("signup-form");
-const forgotForm = document.getElementById("forgot-form");
+    // Form containers
+    const loginForm = document.getElementById("login-form");
+    const signupForm = document.getElementById("signup-form");
+    const forgotForm = document.getElementById("forgot-form");
 
-// Toggle buttons
-const toggleSignup = document.getElementById("toggle-signup");
-const toggleLogin = document.getElementById("toggle-login");
-const toggleForgot = document.getElementById("toggle-forgot");
-const formTitle = document.getElementById("form-title");
+    // Toggle buttons
+    const toggleSignup = document.getElementById("toggle-signup");
+    const toggleLogin = document.getElementById("toggle-login");
+    const toggleForgot = document.getElementById("toggle-forgot");
+    const formTitle = document.getElementById("form-title");
 
-// -------------------- Form Switching -----------------------
-toggleSignup.addEventListener("click", () => {
-  loginForm.classList.add("hidden");
-  forgotForm.classList.add("hidden");
-  signupForm.classList.remove("hidden");
-  formTitle.innerText = "Sign Up";
-  toggleSignup.classList.add("hidden");
-  toggleLogin.classList.remove("hidden");
-});
+    // -------------------- Form Switching -----------------------
+    toggleSignup.addEventListener("click", () => {
+      loginForm.classList.add("hidden");
+      forgotForm.classList.add("hidden");
+      signupForm.classList.remove("hidden");
+      formTitle.innerText = "Sign Up";
+      toggleSignup.classList.add("hidden");
+      toggleLogin.classList.remove("hidden");
+    });
 
-toggleLogin.addEventListener("click", () => {
-  signupForm.classList.add("hidden");
-  forgotForm.classList.add("hidden");
-  loginForm.classList.remove("hidden");
-  formTitle.innerText = "Login";
-  toggleSignup.classList.remove("hidden");
-  toggleLogin.classList.add("hidden");
-});
+    toggleLogin.addEventListener("click", () => {
+      signupForm.classList.add("hidden");
+      forgotForm.classList.add("hidden");
+      loginForm.classList.remove("hidden");
+      formTitle.innerText = "Login";
+      toggleSignup.classList.remove("hidden");
+      toggleLogin.classList.add("hidden");
+    });
 
-toggleForgot.addEventListener("click", () => {
-  signupForm.classList.add("hidden");
-  loginForm.classList.add("hidden");
-  forgotForm.classList.remove("hidden");
-  formTitle.innerText = "Reset Password";
-  toggleSignup.classList.remove("hidden");
-  toggleLogin.classList.remove("hidden");
-});
+    toggleForgot.addEventListener("click", () => {
+      signupForm.classList.add("hidden");
+      loginForm.classList.add("hidden");
+      forgotForm.classList.remove("hidden");
+      formTitle.innerText = "Reset Password";
+      toggleSignup.classList.remove("hidden");
+      toggleLogin.classList.remove("hidden");
+    });
 
+    // Optional: Pre-fill referral from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');
+    if (ref && document.getElementById("signup-referral")) {
+      document.getElementById("signup-referral").value = ref;
+    }
   </script>
-  
-  <script type="module">
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-const SUPABASE_URL = "https://snwwlewjriuqrodpjhry.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3dsZXdqcml1cXJvZHBqaHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDY3MDAsImV4cCI6MjA2ODE4MjcwMH0.WxOmEHxLcEHmMKFjsgrzcb22mPs-sJwW_G3GOuXX2c8";
-// replace with your actual anon key
-const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-const messageBox = document.getElementById("auth-message");
-
-// Helper to show message
-function showMessage(msg, isError = true) {
-  messageBox.style.color = isError ? "red" : "green";
-  messageBox.textContent = msg;
-}
-
-// -------------------- Sign Up -----------------------
-document.getElementById("signup-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  showMessage("");
-
-  const username = document.getElementById("signup-username").value;
-  const phone = document.getElementById("signup-phone").value;
-  const email = document.getElementById("signup-email").value;
-  const password = document.getElementById("signup-password").value;
-
-  const { data, error } = await client.auth.signUp({
-    email,
-    password,
-    options: { data: { username, phone } }
-  });
-
-  console.log("Signup result:", data, error);
-
-  if (error) {
-    showMessage(error.message);
-  } else {
-    showMessage("Signup successful! Redirecting…", false);
-    setTimeout(() => window.location.href = "dashboard.html", 1500);
-  }
-});
-
-// -------------------- Login -----------------------
-document.getElementById("login-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  showMessage("");
-
-  const email = document.getElementById("login-email").value;
-  const password = document.getElementById("login-password").value;
-
-  const { data, error } = await client.auth.signInWithPassword({ email, password });
-
-  console.log("Login result:", data, error);
-
-  if (error) {
-    showMessage("Login failed: " + error.message);
-  } else {
-    showMessage("Login successful! Redirecting…", false);
-    setTimeout(() => window.location.href = "dashboard.html", 1500);
-  }
-});
-
-// -------------------- Password Reset -----------------------
-document.getElementById("forgot-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  showMessage("");
-
-  const email = document.getElementById("forgot-email").value;
-  const { data, error } = await client.auth.resetPasswordForEmail(email, {
-    redirectTo: "https://liyog-dev.github.io/liyog-pharmacy-cms/admin/auth.html"
-  });
-
-  console.log("Reset request:", data, error);
-
-  if (error) {
-    showMessage(error.message);
-  } else {
-    showMessage("Password reset email sent!", false);
-  }
-});
-
-// -------------------- Auto-Redirect if Already Logged In -----------------------
-document.addEventListener("DOMContentLoaded", async () => {
-  const { data: { session } } = await client.auth.getSession();
-  console.log("Session on load:", session);
-  if (session) {
-    window.location.href = "dashboard.html";
-  }
-});
-</script>
-  
+  <script type="module" src="auth.js"></script>
 </body>
-  </html>
+</html>
