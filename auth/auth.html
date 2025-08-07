@@ -1,56 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login / Sign Up</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="./auth.css" />
-  </head>
-  <body class="bg-green-50 min-h-screen flex items-center justify-center">
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 space-y-6">
-      <div class="flex justify-center">
-        <img src="/assets/images/logo-placeholder.png" alt="LiyX Logo" class="w-24 h-24" />
-      </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LiyX Auth</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-green-50 min-h-screen flex items-center justify-center">
 
-      <div class="flex justify-center gap-4">
-        <button id="loginTab" class="text-green-700 font-semibold border-b-2 border-green-500">Login</button>
-        <button id="signupTab" class="text-gray-500 hover:text-green-700">Sign Up</button>
-        <button id="resetTab" class="text-gray-500 hover:text-green-700">Reset</button>
-      </div>
-
-      <!-- LOGIN FORM -->
-      <form id="loginForm" class="space-y-4">
-        <input type="email" id="loginEmail" placeholder="Email" required class="w-full px-4 py-2 border rounded-lg" />
-        <input type="password" id="loginPassword" placeholder="Password" required class="w-full px-4 py-2 border rounded-lg" />
-        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Login</button>
-      </form>
-
-      <!-- SIGNUP FORM -->
-      <form id="signupForm" class="space-y-4 hidden">
-        <input type="text" id="signupName" placeholder="Full Name" required class="w-full px-4 py-2 border rounded-lg" />
-        <input type="email" id="signupEmail" placeholder="Email" required class="w-full px-4 py-2 border rounded-lg" />
-        <input type="password" id="signupPassword" placeholder="Password" required class="w-full px-4 py-2 border rounded-lg" />
-        <input type="text" id="signupPhone" placeholder="Phone (Optional)" class="w-full px-4 py-2 border rounded-lg" />
-        <input type="text" id="signupLocation" placeholder="Location" required class="w-full px-4 py-2 border rounded-lg" />
-        <input type="text" id="signupReferral" placeholder="Referral Code (Optional)" class="w-full px-4 py-2 border rounded-lg" />
-        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Sign Up</button>
-      </form>
-
-      <!-- RESET FORM -->
-      <form id="resetForm" class="space-y-4 hidden">
-        <input type="email" id="resetEmail" placeholder="Enter your email" required class="w-full px-4 py-2 border rounded-lg" />
-        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Reset Password</button>
-      </form>
-
-      <p id="message" class="text-center text-sm text-red-500"></p>
-
-      <footer class="text-center text-gray-500 text-xs pt-4">
-        Powered by <span class="text-green-600 font-semibold">LiyX</span>
-      </footer>
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 space-y-6">
+    <div class="flex justify-center">
+      <img src="https://via.placeholder.com/96" alt="LiyX Logo" class="w-24 h-24" />
     </div>
 
-    
-    <script src="./auth.js"></script>
-  </body>
+    <div class="flex justify-center gap-4">
+      <button id="loginTab" class="tab-btn text-green-700 font-semibold border-b-2 border-green-500">Login</button>
+      <button id="signupTab" class="tab-btn text-gray-500 hover:text-green-700">Sign Up</button>
+      <button id="resetTab" class="tab-btn text-gray-500 hover:text-green-700">Reset</button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm" class="form-tab space-y-4">
+      <input type="email" id="loginEmail" placeholder="Email" required class="w-full px-4 py-2 border rounded-lg"/>
+      <input type="password" id="loginPassword" placeholder="Password" required class="w-full px-4 py-2 border rounded-lg"/>
+      <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Login</button>
+    </form>
+
+    <!-- Sign Up Form -->
+    <form id="signupForm" class="form-tab space-y-4 hidden">
+      <input type="text" id="signupName" placeholder="Full Name" required class="w-full px-4 py-2 border rounded-lg"/>
+      <input type="email" id="signupEmail" placeholder="Email" required class="w-full px-4 py-2 border rounded-lg"/>
+      <input type="password" id="signupPassword" placeholder="Password" required class="w-full px-4 py-2 border rounded-lg"/>
+      <input type="text" id="signupPhone" placeholder="Phone (Optional)" class="w-full px-4 py-2 border rounded-lg"/>
+      <input type="text" id="signupLocation" placeholder="Location" required class="w-full px-4 py-2 border rounded-lg"/>
+      <input type="text" id="signupReferral" placeholder="Referral Code (Optional)" class="w-full px-4 py-2 border rounded-lg"/>
+      <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Sign Up</button>
+    </form>
+
+    <!-- Reset Form -->
+    <form id="resetForm" class="form-tab space-y-4 hidden">
+      <input type="email" id="resetEmail" placeholder="Enter your email" required class="w-full px-4 py-2 border rounded-lg"/>
+      <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Reset Password</button>
+    </form>
+
+    <p id="message" class="text-center text-sm text-red-500"></p>
+
+    <footer class="text-center text-gray-500 text-xs pt-4">
+      Powered by <span class="text-green-600 font-semibold">LiyX</span>
+    </footer>
+  </div>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+  <!-- Script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Supabase config
+      const SUPABASE_URL = "https://snwwlewjriuqrodpjhry.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3dsZXdqcml1cXJvZHBqaHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDY3MDAsImV4cCI6MjA2ODE4MjcwMH0.WxOmEHxLcEHmMKFjsgrzcb22mPs-sJwW_G3GOuXX2c8";
+      const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // Tab logic
+      const loginTab = document.getElementById("loginTab");
+      const signupTab = document.getElementById("signupTab");
+      const resetTab = document.getElementById("resetTab");
+      const loginForm = document.getElementById("loginForm");
+      const signupForm = document.getElementById("signupForm");
+      const resetForm = document.getElementById("resetForm");
+
+      loginTab.onclick = () => {
+        loginForm.classList.remove("hidden");
+        signupForm.classList.add("hidden");
+        resetForm.classList.add("hidden");
+        highlightTab(loginTab);
+      };
+      signupTab.onclick = () => {
+        loginForm.classList.add("hidden");
+        signupForm.classList.remove("hidden");
+        resetForm.classList.add("hidden");
+        highlightTab(signupTab);
+      };
+      resetTab.onclick = () => {
+        loginForm.classList.add("hidden");
+        signupForm.classList.add("hidden");
+        resetForm.classList.remove("hidden");
+        highlightTab(resetTab);
+      };
+
+      function highlightTab(tab) {
+        document.querySelectorAll(".tab-btn").forEach(btn => {
+          btn.classList.remove("text-green-700", "border-b-2", "border-green-500");
+          btn.classList.add("text-gray-500");
+        });
+        tab.classList.remove("text-gray-500");
+        tab.classList.add("text-green-700", "border-b-2", "border-green-500");
+      }
+
+      // Toast
+      function showToast(msg, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `fixed top-5 right-5 z-50 px-4 py-2 rounded shadow-md text-white ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+        toast.innerText = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+      }
+
+      // Autofill referral code
+      const urlParams = new URLSearchParams(window.location.search);
+      const referralCode = urlParams.get('ref');
+      if (referralCode) {
+        document.getElementById('signupReferral').value = referralCode;
+      }
+
+      // Sign Up
+      signupForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("signupEmail").value;
+        const password = document.getElementById("signupPassword").value;
+        const name = document.getElementById("signupName").value;
+        const phone = document.getElementById("signupPhone").value;
+        const location = document.getElementById("signupLocation").value;
+        const referral = document.getElementById("signupReferral").value || null;
+
+        if (!email || !password || !name || !location) {
+          return showToast("All required fields must be filled", "error");
+        }
+
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
+        if (signUpError) return showToast(signUpError.message, "error");
+
+        const user = signUpData.user;
+        if (user) {
+          const { error: insertError } = await supabase.from("users").insert([{
+            id: user.id,
+            email,
+            name,
+            location,
+            phone,
+            referral,
+            role: "user"
+          }]);
+
+          if (insertError) return showToast("Signup succeeded, but user details save failed.", "error");
+          showToast("Signup successful! Verify email.");
+        }
+      });
+
+      // Login
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) return showToast(error.message, "error");
+
+        const user = data.user;
+        if (user) {
+          const { data: userDetails, error: fetchError } = await supabase
+            .from("users")
+            .select("role")
+            .eq("id", user.id)
+            .single();
+
+          if (fetchError) return showToast("Login ok, but role fetch failed", "error");
+
+          const role = userDetails?.role || "user";
+          showToast(`Welcome ${role}`);
+          setTimeout(() => {
+            window.location.href = role === "admin" ? "/admin" : "/dashboard";
+          }, 1000);
+        }
+      });
+
+      // Reset
+      resetForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("resetEmail").value;
+
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + "/reset.html"
+        });
+
+        if (error) return showToast(error.message, "error");
+        showToast("Password reset email sent");
+      });
+    });
+  </script>
+</body>
 </html>
