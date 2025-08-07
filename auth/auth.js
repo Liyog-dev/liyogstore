@@ -1,5 +1,5 @@
 // auth.js
-import { supabase } from './config/supabase.js';
+import { supabase } from 'liyogstore/config/supabase.js';
 
 const signupForm = document.getElementById('signup-form');
 const loginForm = document.getElementById('login-form');
