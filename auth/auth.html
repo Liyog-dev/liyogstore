@@ -3,190 +3,245 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LiyX Auth</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Liyog World | Auth</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .auth-container {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      padding: 30px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #0c8a2d;
+      margin-bottom: 20px;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #0c8a2d;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0a6f24;
+    }
+
+    .toggle {
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .toggle a {
+      color: #0c8a2d;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .message {
+      text-align: center;
+      font-size: 14px;
+      color: red;
+    }
+  </style>
 </head>
-<body class="bg-green-50 min-h-screen flex items-center justify-center">
+<body>
 
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 space-y-6">
-    <div class="flex justify-center">
-      <img src="https://via.placeholder.com/96" alt="LiyX Logo" class="w-24 h-24" />
-    </div>
-
-    <div class="flex justify-center gap-4">
-      <button id="loginTab" class="tab-btn text-green-700 font-semibold border-b-2 border-green-500">Login</button>
-      <button id="signupTab" class="tab-btn text-gray-500 hover:text-green-700">Sign Up</button>
-      <button id="resetTab" class="tab-btn text-gray-500 hover:text-green-700">Reset</button>
-    </div>
-
-    <!-- Login Form -->
-    <form id="loginForm" class="form-tab space-y-4">
-      <input type="email" id="loginEmail" placeholder="Email" required class="w-full px-4 py-2 border rounded-lg"/>
-      <input type="password" id="loginPassword" placeholder="Password" required class="w-full px-4 py-2 border rounded-lg"/>
-      <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Login</button>
-    </form>
+  <div class="auth-container">
+    <h2 id="form-title">Login</h2>
 
     <!-- Sign Up Form -->
-    <form id="signupForm" class="form-tab space-y-4 hidden">
-      <input type="text" id="signupName" placeholder="Full Name" required class="w-full px-4 py-2 border rounded-lg"/>
-      <input type="email" id="signupEmail" placeholder="Email" required class="w-full px-4 py-2 border rounded-lg"/>
-      <input type="password" id="signupPassword" placeholder="Password" required class="w-full px-4 py-2 border rounded-lg"/>
-      <input type="text" id="signupPhone" placeholder="Phone (Optional)" class="w-full px-4 py-2 border rounded-lg"/>
-      <input type="text" id="signupLocation" placeholder="Location" required class="w-full px-4 py-2 border rounded-lg"/>
-      <input type="text" id="signupReferral" placeholder="Referral Code (Optional)" class="w-full px-4 py-2 border rounded-lg"/>
-      <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Sign Up</button>
+    <form id="signup-form" class="hidden">
+      <input type="text" id="signup-username" placeholder="Username" required />
+      <input type="text" id="signup-phone" placeholder="Phone Number" required />
+      <input type="email" id="signup-email" placeholder="Email" required />
+      <input type="password" id="signup-password" placeholder="Password" required />
+      <button type="submit">Sign Up</button>
     </form>
 
-    <!-- Reset Form -->
-    <form id="resetForm" class="form-tab space-y-4 hidden">
-      <input type="email" id="resetEmail" placeholder="Enter your email" required class="w-full px-4 py-2 border rounded-lg"/>
-      <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Reset Password</button>
+    <!-- Login Form -->
+    <form id="login-form">
+      <input type="email" id="login-email" placeholder="Email" required />
+      <input type="password" id="login-password" placeholder="Password" required />
+      <button type="submit">Login</button>
     </form>
 
-    <p id="message" class="text-center text-sm text-red-500"></p>
+    <!-- Forgot Password Form -->
+    <form id="forgot-form" class="hidden">
+      <input type="email" id="forgot-email" placeholder="Enter your email" required />
+      <button type="submit">Send Reset Link</button>
+    </form>
 
-    <footer class="text-center text-gray-500 text-xs pt-4">
-      Powered by <span class="text-green-600 font-semibold">LiyX</span>
-    </footer>
+    <div class="message" id="auth-message"></div>
+
+    <div class="toggle" id="toggle-links">
+      <div><a id="toggle-signup">Don't have an account? Sign Up</a></div>
+      <div><a id="toggle-login" class="hidden">Already have an account? Login</a></div>
+      <div><a id="toggle-forgot">Forgot Password?</a></div>
+    </div>
   </div>
-
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
-  <!-- Script -->
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      // Supabase config
-      const SUPABASE_URL = "https://snwwlewjriuqrodpjhry.supabase.co";
-      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3dsZXdqcml1cXJvZHBqaHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDY3MDAsImV4cCI6MjA2ODE4MjcwMH0.WxOmEHxLcEHmMKFjsgrzcb22mPs-sJwW_G3GOuXX2c8";
-      const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
+// Form containers
+const loginForm = document.getElementById("login-form");
+const signupForm = document.getElementById("signup-form");
+const forgotForm = document.getElementById("forgot-form");
 
-      // Tab logic
-      const loginTab = document.getElementById("loginTab");
-      const signupTab = document.getElementById("signupTab");
-      const resetTab = document.getElementById("resetTab");
-      const loginForm = document.getElementById("loginForm");
-      const signupForm = document.getElementById("signupForm");
-      const resetForm = document.getElementById("resetForm");
+// Toggle buttons
+const toggleSignup = document.getElementById("toggle-signup");
+const toggleLogin = document.getElementById("toggle-login");
+const toggleForgot = document.getElementById("toggle-forgot");
+const formTitle = document.getElementById("form-title");
 
-      loginTab.onclick = () => {
-        loginForm.classList.remove("hidden");
-        signupForm.classList.add("hidden");
-        resetForm.classList.add("hidden");
-        highlightTab(loginTab);
-      };
-      signupTab.onclick = () => {
-        loginForm.classList.add("hidden");
-        signupForm.classList.remove("hidden");
-        resetForm.classList.add("hidden");
-        highlightTab(signupTab);
-      };
-      resetTab.onclick = () => {
-        loginForm.classList.add("hidden");
-        signupForm.classList.add("hidden");
-        resetForm.classList.remove("hidden");
-        highlightTab(resetTab);
-      };
+// -------------------- Form Switching -----------------------
+toggleSignup.addEventListener("click", () => {
+  loginForm.classList.add("hidden");
+  forgotForm.classList.add("hidden");
+  signupForm.classList.remove("hidden");
+  formTitle.innerText = "Sign Up";
+  toggleSignup.classList.add("hidden");
+  toggleLogin.classList.remove("hidden");
+});
 
-      function highlightTab(tab) {
-        document.querySelectorAll(".tab-btn").forEach(btn => {
-          btn.classList.remove("text-green-700", "border-b-2", "border-green-500");
-          btn.classList.add("text-gray-500");
-        });
-        tab.classList.remove("text-gray-500");
-        tab.classList.add("text-green-700", "border-b-2", "border-green-500");
-      }
+toggleLogin.addEventListener("click", () => {
+  signupForm.classList.add("hidden");
+  forgotForm.classList.add("hidden");
+  loginForm.classList.remove("hidden");
+  formTitle.innerText = "Login";
+  toggleSignup.classList.remove("hidden");
+  toggleLogin.classList.add("hidden");
+});
 
-      // Toast
-      function showToast(msg, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `fixed top-5 right-5 z-50 px-4 py-2 rounded shadow-md text-white ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
-        toast.innerText = msg;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 4000);
-      }
+toggleForgot.addEventListener("click", () => {
+  signupForm.classList.add("hidden");
+  loginForm.classList.add("hidden");
+  forgotForm.classList.remove("hidden");
+  formTitle.innerText = "Reset Password";
+  toggleSignup.classList.remove("hidden");
+  toggleLogin.classList.remove("hidden");
+});
 
-      // Autofill referral code
-      const urlParams = new URLSearchParams(window.location.search);
-      const referralCode = urlParams.get('ref');
-      if (referralCode) {
-        document.getElementById('signupReferral').value = referralCode;
-      }
-
-      // Sign Up
-      signupForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const email = document.getElementById("signupEmail").value;
-        const password = document.getElementById("signupPassword").value;
-        const name = document.getElementById("signupName").value;
-        const phone = document.getElementById("signupPhone").value;
-        const location = document.getElementById("signupLocation").value;
-        const referral = document.getElementById("signupReferral").value || null;
-
-        if (!email || !password || !name || !location) {
-          return showToast("All required fields must be filled", "error");
-        }
-
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
-        if (signUpError) return showToast(signUpError.message, "error");
-
-        const user = signUpData.user;
-        if (user) {
-          const { error: insertError } = await supabase.from("users").insert([{
-            id: user.id,
-            email,
-            name,
-            location,
-            phone,
-            referral,
-            role: "user"
-          }]);
-
-          if (insertError) return showToast("Signup succeeded, but user details save failed.", "error");
-          showToast("Signup successful! Verify email.");
-        }
-      });
-
-      // Login
-      loginForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const email = document.getElementById("loginEmail").value;
-        const password = document.getElementById("loginPassword").value;
-
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) return showToast(error.message, "error");
-
-        const user = data.user;
-        if (user) {
-          const { data: userDetails, error: fetchError } = await supabase
-            .from("users")
-            .select("role")
-            .eq("id", user.id)
-            .single();
-
-          if (fetchError) return showToast("Login ok, but role fetch failed", "error");
-
-          const role = userDetails?.role || "user";
-          showToast(`Welcome ${role}`);
-          setTimeout(() => {
-            window.location.href = role === "admin" ? "/admin" : "/dashboard";
-          }, 1000);
-        }
-      });
-
-      // Reset
-      resetForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const email = document.getElementById("resetEmail").value;
-
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin + "/reset.html"
-        });
-
-        if (error) return showToast(error.message, "error");
-        showToast("Password reset email sent");
-      });
-    });
   </script>
+  
+  <script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+const SUPABASE_URL = "https://snwwlewjriuqrodpjhry.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3dsZXdqcml1cXJvZHBqaHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDY3MDAsImV4cCI6MjA2ODE4MjcwMH0.WxOmEHxLcEHmMKFjsgrzcb22mPs-sJwW_G3GOuXX2c8";
+// replace with your actual anon key
+const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const messageBox = document.getElementById("auth-message");
+
+// Helper to show message
+function showMessage(msg, isError = true) {
+  messageBox.style.color = isError ? "red" : "green";
+  messageBox.textContent = msg;
+}
+
+// -------------------- Sign Up -----------------------
+document.getElementById("signup-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  showMessage("");
+
+  const username = document.getElementById("signup-username").value;
+  const phone = document.getElementById("signup-phone").value;
+  const email = document.getElementById("signup-email").value;
+  const password = document.getElementById("signup-password").value;
+
+  const { data, error } = await client.auth.signUp({
+    email,
+    password,
+    options: { data: { username, phone } }
+  });
+
+  console.log("Signup result:", data, error);
+
+  if (error) {
+    showMessage(error.message);
+  } else {
+    showMessage("Signup successful! Redirecting…", false);
+    setTimeout(() => window.location.href = "dashboard.html", 1500);
+  }
+});
+
+// -------------------- Login -----------------------
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  showMessage("");
+
+  const email = document.getElementById("login-email").value;
+  const password = document.getElementById("login-password").value;
+
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
+
+  console.log("Login result:", data, error);
+
+  if (error) {
+    showMessage("Login failed: " + error.message);
+  } else {
+    showMessage("Login successful! Redirecting…", false);
+    setTimeout(() => window.location.href = "dashboard.html", 1500);
+  }
+});
+
+// -------------------- Password Reset -----------------------
+document.getElementById("forgot-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  showMessage("");
+
+  const email = document.getElementById("forgot-email").value;
+  const { data, error } = await client.auth.resetPasswordForEmail(email, {
+    redirectTo: "https://liyog-dev.github.io/liyog-pharmacy-cms/admin/auth.html"
+  });
+
+  console.log("Reset request:", data, error);
+
+  if (error) {
+    showMessage(error.message);
+  } else {
+    showMessage("Password reset email sent!", false);
+  }
+});
+
+// -------------------- Auto-Redirect if Already Logged In -----------------------
+document.addEventListener("DOMContentLoaded", async () => {
+  const { data: { session } } = await client.auth.getSession();
+  console.log("Session on load:", session);
+  if (session) {
+    window.location.href = "dashboard.html";
+  }
+});
+</script>
+  
 </body>
-</html>
+  </html>
