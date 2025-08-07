@@ -9,152 +9,65 @@
       rel="stylesheet"
     />
   </head>
-  <body class="bg-gray-50 flex items-center justify-center min-h-screen">
+  <body class="bg-gray-100 flex items-center justify-center min-h-screen">
     <div
-      class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 space-y-6 border border-gray-200"
+      class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6 border border-gray-200"
     >
+      <!-- Logo & Title -->
       <div class="text-center">
         <img
           src="/assets/images/logo.png"
           alt="Liyogstore Logo"
           class="mx-auto h-12 w-auto"
         />
-        <h2
-          id="form-title"
-          class="mt-4 text-2xl font-bold text-green-700"
-        >
+        <h2 id="form-title" class="mt-4 text-2xl font-bold text-green-700">
           Login to Liyogstore
         </h2>
       </div>
 
-      <!-- Sign Up Form -->
+      <!-- Signup Form -->
       <form id="signup-form" class="space-y-4 hidden">
-        <input
-          type="text"
-          id="signup-username"
-          placeholder="Full Name"
-          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-          required
-        />
-        <input
-          type="text"
-          id="signup-location"
-          placeholder="Location-"
-          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-          required
-        />
-        <input
-          type="text"
-          id="signup-phone"
-          placeholder="Phone Number"
-          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
-        <input
-          type="email"
-          id="signup-email"
-          placeholder="Email"
-          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-          required
-        />
-        <input
-          type="password"
-          id="signup-password"
-          placeholder="Password"
-          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-          required
-        />
-        
-        <input
-  type="text"
-  id="signup-referral"
-  placeholder="Referral Code (optional)"
-  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-/>
-        <button
-          type="submit"
-          class="w-full bg-green-700 text-white font-semibold py-2 rounded-md hover:bg-green-800 transition"
-        >
-          Create Account
-        </button>
+        <input type="text" id="signup-username" placeholder="Full Name" required class="form-input" />
+        <input type="text" id="signup-location" placeholder="Location" required class="form-input" />
+        <input type="text" id="signup-phone" placeholder="Phone Number" class="form-input" />
+        <input type="email" id="signup-email" placeholder="Email" required class="form-input" />
+        <input type="password" id="signup-password" placeholder="Password" required class="form-input" />
+        <input type="text" id="signup-referral" placeholder="Referral Code (optional)" class="form-input" />
+        <button type="submit" class="submit-btn">Create Account</button>
       </form>
 
       <!-- Login Form -->
       <form id="login-form" class="space-y-4">
-        <input
-          type="email"
-          id="login-email"
-          placeholder="Email"
-          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-          required
-        />
-        <input
-          type="password"
-          id="login-password"
-          placeholder="Password"
-          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-          required
-        />
-        <button
-          type="submit"
-          class="w-full bg-green-700 text-white font-semibold py-2 rounded-md hover:bg-green-800 transition"
-        >
-          Login
-        </button>
+        <input type="email" id="login-email" placeholder="Email" required class="form-input" />
+        <input type="password" id="login-password" placeholder="Password" required class="form-input" />
+        <button type="submit" class="submit-btn">Login</button>
       </form>
 
-      <!-- Forgot Password Form -->
+      <!-- Forgot Password -->
       <form id="forgot-form" class="space-y-4 hidden">
-        <input
-          type="email"
-          id="forgot-email"
-          placeholder="Enter your email"
-          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-          required
-        />
-        <button
-          type="submit"
-          class="w-full bg-green-700 text-white font-semibold py-2 rounded-md hover:bg-green-800 transition"
-        >
-          Send Reset Link
-        </button>
+        <input type="email" id="forgot-email" placeholder="Enter your email" required class="form-input" />
+        <button type="submit" class="submit-btn">Send Reset Link</button>
       </form>
 
-      <div
-        id="auth-message"
-        class="text-center text-sm text-red-600 font-medium"
-      ></div>
+      <div id="auth-message" class="text-center text-sm font-medium"></div>
 
+      <!-- Toggle Links -->
       <div id="toggle-links" class="text-center space-y-2">
-        <p>
-          <a
-            id="toggle-signup"
-            class="text-green-700 font-semibold cursor-pointer"
-            >Don't have an account? Sign Up</a
-          >
-        </p>
-        <p>
-          <a
-            id="toggle-login"
-            class="text-green-700 font-semibold cursor-pointer hidden"
-            >Already have an account? Login</a
-          >
-        </p>
-        <p>
-          <a
-            id="toggle-forgot"
-            class="text-sm text-gray-500 underline cursor-pointer"
-            >Forgot Password?</a
-          >
-        </p>
+        <p><a id="toggle-signup" class="text-green-700 font-semibold cursor-pointer">Don't have an account? Sign Up</a></p>
+        <p><a id="toggle-login" class="text-green-700 font-semibold cursor-pointer hidden">Already have an account? Login</a></p>
+        <p><a id="toggle-forgot" class="text-sm text-gray-500 underline cursor-pointer">Forgot Password?</a></p>
       </div>
 
+      <!-- Footer -->
       <div class="text-xs text-center text-gray-400 pt-4">
         <p>© <span id="year"></span> LiyX. Powered by LiyX.</p>
       </div>
     </div>
 
+    <!-- Autofill Referral Code -->
     <script>
       document.getElementById("year").textContent = new Date().getFullYear();
+
       const loginForm = document.getElementById("login-form");
       const signupForm = document.getElementById("signup-form");
       const forgotForm = document.getElementById("forgot-form");
@@ -189,17 +102,27 @@
         toggleSignup.classList.remove("hidden");
         toggleLogin.classList.remove("hidden");
       });
-    </script>
-    <script type="module" src="auth/auth.js"></script>
-    <script>
-    // Autofill referral code from URL param
-const referralInput = document.getElementById("signup-referral");
-const urlParams = new URLSearchParams(window.location.search);
-const refCode = urlParams.get("ref");
 
-if (refCode && referralInput) {
-  referralInput.value = refCode;
-}
+      // Autofill referral code
+      const referralInput = document.getElementById("signup-referral");
+      const urlParams = new URLSearchParams(window.location.search);
+      const refCode = urlParams.get("ref");
+      if (refCode && referralInput) {
+        referralInput.value = refCode;
+      }
     </script>
+
+    <!-- ✅ Main JS -->
+    <script type="module" src="auth/auth.js"></script>
+
+    <!-- ✅ Styling shortcuts -->
+    <style>
+      .form-input {
+        @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600;
+      }
+      .submit-btn {
+        @apply w-full bg-green-700 text-white font-semibold py-2 rounded-md hover:bg-green-800 transition;
+      }
+    </style>
   </body>
 </html>
