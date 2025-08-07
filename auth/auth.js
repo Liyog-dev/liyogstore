@@ -1,101 +1,127 @@
-import { supabase } from './config/supabase.js' // ensure supabase is correctly initialized
-import { toast } from 'react-toastify' // or replace with your own toast handler
-import { v4 as uuidv4 } from 'uuid'
+// auth.js
+import { supabase } from './config/supabase.js';
 
-// Utility to generate a short unique referral code
-function generateReferralCode(name = '') {
-  const code = name?.slice(0, 3).toUpperCase() + Math.random().toString(36).substring(2, 7).toUpperCase()
-  return code
+const signupForm = document.getElementById('signup-form');
+const loginForm = document.getElementById('login-form');
+const resetForm = document.getElementById('reset-form');
+const tabs = document.querySelectorAll('[data-tab]');
+
+// === Referral code from URL ===
+const urlParams = new URLSearchParams(window.location.search);
+const referralCode = urlParams.get('ref');
+if (referralCode) {
+  document.getElementById('referral').value = referralCode;
 }
 
-/**
- * Sign up a new user with optional referral code
- * @param {Object} userData - User data
- * @param {string} userData.name
- * @param {string} userData.email
- * @param {string} userData.password
- * @param {string} userData.phone
- * @param {string} userData.location
- * @param {string} [userData.referral_code] - optional
- */
-export const signUpUser = async (userData) => {
-  const {
-    name,
+// === Show Toast ===
+function showToast(msg, type = 'success') {
+  const toast = document.createElement('div');
+  toast.className = `fixed top-5 right-5 z-50 px-4 py-2 rounded shadow-md text-white ${
+    type === 'success' ? 'bg-green-600' : 'bg-red-600'
+  }`;
+  toast.innerText = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// === Tab Switch Logic ===
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('[data-tab-content]').forEach(el => el.classList.add('hidden'));
+    document.querySelector(tab.dataset.tabTarget).classList.remove('hidden');
+  });
+});
+
+// === Sign Up ===
+signupForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = signupForm['email'].value;
+  const password = signupForm['password'].value;
+  const name = signupForm['name'].value;
+  const location = signupForm['location'].value;
+  const phone = signupForm['phone'].value;
+  const referral = signupForm['referral'].value || null;
+
+  if (!email || !password || !name || !location || !phone) {
+    return showToast('All fields are required', 'error');
+  }
+
+  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
     email,
     password,
-    phone,
-    location,
-    referral_code
-  } = userData
+  });
 
-  // === VALIDATION ===
-  if (!name || !email || !password || !phone || !location) {
-    toast.error("All fields are required.")
-    return { success: false, message: "Missing fields" }
-  }
+  if (signUpError) return showToast(signUpError.message, 'error');
 
-  try {
-    // === HANDLE REFERRAL LOOKUP ===
-    let referredBy = null
-    if (referral_code) {
-      const { data: refData, error: refError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('referral_code', referral_code)
-        .single()
+  const user = signUpData.user;
 
-      if (refError || !refData) {
-        toast.error("Invalid referral code provided.")
-        return { success: false, message: "Invalid referral code" }
+  if (user) {
+    const { error: insertError } = await supabase.from('users').insert([
+      {
+        id: user.id,
+        email,
+        name,
+        location,
+        phone,
+        referral,
+        role: 'user',
       }
+    ]);
 
-      referredBy = refData.id
-    }
+    if (insertError) return showToast('Signup succeeded but failed to save user details.', 'error');
 
-    // === CREATE USER ACCOUNT ===
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    })
-
-    if (authError) {
-      toast.error(authError.message || "Failed to sign up.")
-      return { success: false, message: authError.message }
-    }
-
-    const userId = authData.user.id
-    const referralCode = generateReferralCode(name)
-
-    // === INSERT USER PROFILE ===
-    const { error: insertError } = await supabase.from('users').insert({
-      id: userId,
-      name,
-      email,
-      phone,
-      location,
-      wallet_balance: 0,
-      total_liyog_coins: 0,
-      role: 'user',
-      referred_by: referredBy,
-      referral_code: referralCode,
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      profile_image: '',
-      bio: '',
-    })
-
-    if (insertError) {
-      toast.error("Sign up succeeded, but failed to save profile.")
-      return { success: false, message: "Profile creation failed" }
-    }
-
-    toast.success("Account created successfully. Please check your email to verify your account.")
-    return { success: true }
-
-  } catch (err) {
-    toast.error("An unexpected error occurred.")
-    console.error("SignUp Error:", err)
-    return { success: false, message: "Unexpected error" }
+    showToast('Signup successful! Please check your email to verify.');
   }
-}
+});
+
+// === Login ===
+loginForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = loginForm['email'].value;
+  const password = loginForm['password'].value;
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) return showToast(error.message, 'error');
+
+  const user = data.user;
+
+  if (user) {
+    const { data: userDetails, error: fetchError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (fetchError) return showToast('Login succeeded, but could not fetch user role.', 'error');
+
+    const role = userDetails?.role || 'user';
+
+    showToast(`Welcome ${role}!`);
+
+    setTimeout(() => {
+      if (role === 'admin') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/dashboard';
+      }
+    }, 1000);
+  }
+});
+
+// === Password Reset ===
+resetForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = resetForm['email'].value;
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/reset.html',
+  });
+
+  if (error) return showToast(error.message, 'error');
+
+  showToast('Password reset email sent!');
+});
