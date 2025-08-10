@@ -6,7 +6,7 @@
   <title>BatoLiyog World | Auth</title>
   <style>
     :root{
-      --bg: #f5f7f4;
+      --bg: #1C352D;
       --card: #ffffff;
       --accent: #00b140;
       --accent-dark: #009435;
@@ -151,6 +151,34 @@
     .fade-in { animation: fadeIn .6s ease both }
     @keyframes fadeIn { from { opacity:0; transform: translateY(6px) } to { opacity:1; transform: translateY(0) } }
     .pw-toggle { background:transparent; border:none; cursor:pointer; padding:6px; color:var(--muted) }
+  /* === Toast Notifications === */
+#toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  min-width: 260px;
+  max-width: 320px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #F2C464;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translateY(20px);
+  transition: all 0.35s ease;
+  background: #333; /* Default background color */
+}
+#toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+#toast.success { background: var(--toast-success, #27ae60); }
+#toast.error { background: var(--toast-error, #c0392b); }
+  
   </style>
 </head>
 <body>
@@ -173,8 +201,8 @@
           <div style="font-size:13px; opacity:0.95">Alternate names: <i>LiyX Marketplace</i>, <i>LiyX Mall</i></div>
         </div>
         <div style="display:flex; gap:8px; text-align:right">
-          <button id="mute-voice" title="Toggle voice greeting">🎙️</button>
-          <button class="theme-toggle" id="theme-toggle">Toggle Theme</button>
+          
+         
         </div>
       </div>
     </section>
