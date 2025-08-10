@@ -201,8 +201,8 @@
           <div style="font-size:13px; opacity:0.95">Alternate names: <i>LiyX Marketplace</i>, <i>LiyX Mall</i></div>
         </div>
         <div style="display:flex; gap:8px; text-align:right">
-          
-         
+     <button id="mute-voice" title="Toggle voice greeting">🎙️</button>
+          <button class="theme-toggle" id="theme-toggle">Toggle Theme</button>
         </div>
       </div>
     </section>
@@ -305,8 +305,8 @@
     const toggleForgot = document.getElementById("toggle-forgot");
     const formTitle = document.getElementById("form-title");
     const toastEl = document.getElementById("toast");
-    const themeToggle = document.getElementById("theme-toggle");
-    const muteVoiceBtn = document.getElementById("mute-voice");
+   const themeToggle = document.getElementById("theme-toggle");
+   const muteVoiceBtn = document.getElementById("mute-voice");
 
     /* --------------------------
        UI helpers: Toast & loading
@@ -323,9 +323,13 @@
       toastEl.appendChild(icon);
       toastEl.appendChild(txt);
       toastEl.classList.add('show');
+      // 🔊 Speak toast text if voice is enabled
+      speak(message);
       clearTimeout(showToast._to);
       showToast._to = setTimeout(() => toastEl.classList.remove('show'), duration);
     }
+  
+  
 
     function setFormLoading(form, isLoading = true) {
       [...form.elements].forEach(el => el.disabled = isLoading);
