@@ -349,8 +349,11 @@
     }
     // initialize theme
     applyTheme(getTheme());
-    themeToggle.addEventListener('click', () => applyTheme(getTheme() === 'dark' ? 'light' : 'dark'));
-
+    themeToggle.addEventListener('click', () => {
+  const newTheme = getTheme() === 'dark' ? 'light' : 'dark';
+  applyTheme(newTheme);
+  showToast(`Theme set to ${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)}`);
+});
     /* --------------------------
        Toggle between forms (keeps your logic)
        -------------------------- */
