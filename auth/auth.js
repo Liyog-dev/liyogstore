@@ -1,105 +1,334 @@
-// Add this inside a <script type="module"> or in a JS file
-import { supabase } from './config/supabase.js';
+// ============================
+// Imports
+// ============================
+import { supabase } from '../config/supabase.js';
+import { countries, populateCountries, populateStates } from './countries.js';
 
-// DOM Elements
-const signupForm = document.getElementById('signup-form');
-const messageBox = document.getElementById('auth-message');
+// ============================
+// DOM References
+// ============================
+const loginForm = document.getElementById("login-form");
+const signupForm = document.getElementById("signup-form");
+const forgotForm = document.getElementById("forgot-form");
+const authMessage = document.getElementById("auth-message");
+const toggleSignup = document.getElementById("toggle-signup");
+const toggleLogin = document.getElementById("toggle-login");
+const toggleForgot = document.getElementById("toggle-forgot");
+const formTitle = document.getElementById("form-title");
+const toastEl = document.getElementById("toast");
+const themeToggle = document.getElementById("theme-toggle");
+const muteVoiceBtn = document.getElementById("mute-voice");
+const countryEl = document.getElementById('signup-country');
+const stateEl = document.getElementById('signup-state');
 
-// UTIL: Generate Unique Referral Code
-function generateReferralCode(name) {
-  const base = name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-  const random = Math.floor(1000 + Math.random() * 9000); // 4-digit random
-  return `${base}${random}`;
+// ============================
+// UI Helpers
+// ============================
+function showToast(message, type = 'info', duration = 4000) {
+  toastEl.innerHTML = '';
+  const icon = document.createElement('div');
+  icon.className = 'icon';
+  icon.style.background = (type === 'error') ? 'var(--toast-error)' : 'var(--toast-success)';
+  icon.textContent = (type === 'error') ? '!' : '✓';
+  const txt = document.createElement('div');
+  txt.style.flex = '1';
+  txt.textContent = message;
+  toastEl.appendChild(icon);
+  toastEl.appendChild(txt);
+  toastEl.classList.add('show');
+  speak(message);
+  clearTimeout(showToast._to);
+  showToast._to = setTimeout(() => toastEl.classList.remove('show'), duration);
 }
 
-// ✅ Sign-Up Function
-signupForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
+function setFormLoading(form, isLoading = true) {
+  [...form.elements].forEach(el => el.disabled = isLoading);
+  const submit = form.querySelector('button[type="submit"]');
+  if (submit) submit.textContent = isLoading ? 'Please wait...' : (submit.dataset.orig || (submit.dataset.orig = submit.textContent));
+}
 
-  // Clear message
-  messageBox.textContent = '';
+// ============================
+// Theme Toggle
+// ============================
+function getTheme() {
+  return document.documentElement.getAttribute('data-theme') || localStorage.getItem('theme') || 'light';
+}
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+  localStorage.setItem('theme', t);
+}
+applyTheme(getTheme());
+themeToggle.addEventListener('click', () => applyTheme(getTheme() === 'dark' ? 'light' : 'dark'));
 
-  // Gather input values
-  const name = document.getElementById('signup-username').value.trim();
-  const email = document.getElementById('signup-email').value.trim().toLowerCase();
-  const password = document.getElementById('signup-password').value.trim();
-  const phone = document.getElementById('signup-phone').value.trim();
-  const location = document.getElementById('signup-location').value.trim();
-  const referralCodeInput = document.getElementById('signup-referral').value.trim();
-
-  // Step 1: Create Auth User
-  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-    email,
-    password
-  });
-
-  if (signUpError) {
-    messageBox.textContent = signUpError.message;
-    return;
-  }
-
-  const userId = signUpData.user.id;
-
-  // Step 2: Resolve referred_by if referral code provided
-  let referredBy = null;
-  if (referralCodeInput !== '') {
-    const { data: refUser, error: refError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('referral_code', referralCodeInput)
-      .single();
-
-    if (refError || !refUser) {
-      messageBox.textContent = 'Invalid referral code.';
-      return;
-    }
-
-    referredBy = refUser.id;
-  }
-
-  // Step 3: Generate unique referral code for new user
-  let newReferralCode = generateReferralCode(name);
-  let isUnique = false;
-
-  while (!isUnique) {
-    const { data: existing, error } = await supabase
-      .from('users')
-      .select('id')
-      .eq('referral_code', newReferralCode)
-      .single();
-
-    if (!existing) {
-      isUnique = true;
-    } else {
-      newReferralCode = generateReferralCode(name);
-    }
-  }
-
-  // Step 4: Insert into Custom Users Table
-  const { error: insertError } = await supabase
-    .from('users')
-    .insert([
-      {
-        id: userId,
-        name,
-        email,
-        phone,
-        location,
-        role: 'user',
-        referred_by: referredBy,
-        referral_code: newReferralCode,
-        is_active: true
-      }
-    ]);
-
-  if (insertError) {
-    messageBox.textContent = 'Error saving user details: ' + insertError.message;
-    return;
-  }
-
-  // Step 5: Redirect to Dashboard
-  window.location.href = 'https://liyogworld.com.ng';
+// ============================
+// Form Toggles
+// ============================
+toggleSignup.addEventListener("click", () => {
+  loginForm.classList.add("hidden");
+  forgotForm.classList.add("hidden");
+  signupForm.classList.remove("hidden");
+  formTitle.innerText = "Sign Up";
+  toggleSignup.classList.add("hidden");
+  toggleLogin.classList.remove("hidden");
+  authMessage.textContent = '';
 });
 
-// ✅ Fill referral from URL param (already handled in your HTML script)
-// So we don’t need to repeat it here
+toggleLogin.addEventListener("click", () => {
+  signupForm.classList.add("hidden");
+  forgotForm.classList.add("hidden");
+  loginForm.classList.remove("hidden");
+  formTitle.innerText = "Login";
+  toggleSignup.classList.remove("hidden");
+  toggleLogin.classList.add("hidden");
+  authMessage.textContent = '';
+});
+
+toggleForgot.addEventListener("click", () => {
+  signupForm.classList.add("hidden");
+  loginForm.classList.add("hidden");
+  forgotForm.classList.remove("hidden");
+  formTitle.innerText = "Reset Password";
+  toggleSignup.classList.remove("hidden");
+  toggleLogin.classList.remove("hidden");
+  authMessage.textContent = '';
+});
+
+// ============================
+// Password Visibility Toggle
+// ============================
+document.querySelectorAll('.pw-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const input = document.getElementById(btn.dataset.target);
+    if (!input) return;
+    input.type = input.type === 'password' ? 'text' : 'password';
+    btn.textContent = input.type === 'password' ? '👁' : '🙈';
+  });
+});
+
+// ============================
+// Voice Greeting
+// ============================
+let voiceEnabled = true;
+muteVoiceBtn.addEventListener('click', () => {
+  voiceEnabled = !voiceEnabled;
+  muteVoiceBtn.textContent = voiceEnabled ? '🎙️' : '🔕';
+});
+function speak(text) {
+  if (!voiceEnabled || !("speechSynthesis" in window)) return;
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.rate = 0.95;
+  msg.pitch = 1;
+  msg.lang = 'en-US';
+  speechSynthesis.cancel();
+  speechSynthesis.speak(msg);
+}
+
+// ============================
+// Country & State Selection
+// ============================
+populateCountries(countryEl);
+countryEl.addEventListener('change', e => populateStates(stateEl, e.target.value));
+
+// ============================
+// Referral Code Helpers
+// ============================
+async function generateUniqueReferralCode(namePrefix) {
+  const prefix = (namePrefix || 'liyog').replace(/[^a-zA-Z]/g, '').substring(0, 5).toLowerCase() || 'liyx';
+  let attempt = 0;
+  while (attempt < 10) {
+    attempt++;
+    const suffix = Math.random().toString(36).slice(2, 8);
+    const candidate = (prefix + suffix).toLowerCase();
+    const { data, error } = await supabase.from('users').select('id').eq('referral_code', candidate).maybeSingle();
+    if (!data) return candidate;
+  }
+  return prefix + crypto.randomUUID().split('-')[0];
+}
+
+async function resolveReferral(referredCode) {
+  if (!referredCode) return null;
+  const { data } = await supabase.from('users').select('id').eq('referral_code', referredCode).maybeSingle();
+  return data ? data.id : null;
+}
+
+// ============================
+// Session Handling
+// ============================
+function cacheProfile(profile) {
+  try { localStorage.setItem('liyx_profile', JSON.stringify(profile)); } catch {}
+}
+function getCachedProfile() {
+  try { return JSON.parse(localStorage.getItem('liyx_profile') || 'null'); } catch { return null }
+}
+supabase.auth.onAuthStateChange((event, session) => {
+  if (session?.user) {
+    const cached = getCachedProfile() || {};
+    cached.id = session.user.id;
+    cached.email = session.user.email;
+    cacheProfile(cached);
+  } else {
+    localStorage.removeItem('liyx_profile');
+  }
+});
+
+// ============================
+// Signup Flow
+// ============================
+signupForm?.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  authMessage.textContent = 'Creating account...';
+  setFormLoading(signupForm, true);
+
+  const name = document.getElementById('signup-username').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const phone = document.getElementById('signup-phone').value.trim();
+  const countryCode = document.getElementById('signup-country').value;
+  const state = document.getElementById('signup-state').value;
+  const referralInput = document.getElementById('signup-referral').value.trim();
+
+  if (!name || !email || !password || !countryCode) {
+    showToast('Please complete required fields', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast('Invalid email', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+  if (password.length < 6) {
+    showToast('Password too short', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  const location = countryCode + (state ? `, ${state}` : '');
+  let referred_by = referralInput ? await resolveReferral(referralInput) : null;
+  if (referralInput && !referred_by) {
+    showToast('Invalid referral code', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  const { data: authData, error: signUpError } = await supabase.auth.signUp({ email, password });
+  if (signUpError || !authData?.user) {
+    showToast('Signup error: ' + (signUpError?.message || 'Unknown'), 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  const referral_code = await generateUniqueReferralCode(name);
+  const { error: insertError } = await supabase.from('users').insert([{
+    id: authData.user.id,
+    name,
+    email,
+    phone: phone || null,
+    wallet_balance: 0,
+    total_liyog_coins: 0,
+    referred_by,
+    role: 'user',
+    location,
+    is_active: true,
+    referral_code
+  }]);
+  if (insertError) {
+    showToast('User insert error: ' + insertError.message, 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  showToast('Signup successful! Check your email for verification.');
+  signupForm.reset();
+  setFormLoading(signupForm, false);
+  speak('Welcome to LiyX!');
+});
+
+// ============================
+// Login Flow
+// ============================
+loginForm?.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  authMessage.textContent = 'Logging in...';
+  setFormLoading(loginForm, true);
+
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  if (!email || !password) {
+    showToast('Enter email and password', 'error');
+    setFormLoading(loginForm, false);
+    return;
+  }
+
+  const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+  if (loginError || !loginData?.user) {
+    showToast('Invalid credentials', 'error');
+    setFormLoading(loginForm, false);
+    return;
+  }
+
+  const { data: userDetails } = await supabase.from('users').select('role, name, is_active').eq('id', loginData.user.id).single();
+  if (!userDetails || userDetails.is_active === false) {
+    showToast('Account deactivated', 'error');
+    setFormLoading(loginForm, false);
+    return;
+  }
+
+  cacheProfile({ id: loginData.user.id, email: loginData.user.email, name: userDetails.name, role: userDetails.role });
+  showToast(`Welcome back, ${userDetails.name || ''}!`);
+  speak(`Welcome back ${userDetails.name || 'friend'}`);
+
+  await supabase.from('users').update({ last_login: new Date() }).eq('id', loginData.user.id);
+  setTimeout(() => {
+    window.location.href = userDetails.role === 'admin' ? '/admin/dashboard.html' : `/user/profile.html?id=${loginData.user.id}`;
+  }, 900);
+});
+
+// ============================
+// Forgot Password
+// ============================
+forgotForm?.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  setFormLoading(forgotForm, true);
+  const email = document.getElementById('forgot-email').value.trim();
+  if (!email) {
+    showToast('Please enter your email', 'error');
+    setFormLoading(forgotForm, false);
+    return;
+  }
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  if (error) showToast(error.message, 'error');
+  else showToast('Reset link sent');
+  setFormLoading(forgotForm, false);
+});
+
+// ============================
+// Phone Verify Placeholder
+// ============================
+document.getElementById('signup-verify-phone')?.addEventListener('click', async () => {
+  const phone = document.getElementById('signup-phone').value.trim();
+  if (!phone) {
+    showToast('Enter phone first', 'error');
+    return;
+  }
+  const { error } = await supabase.auth.signInWithOtp({ phone });
+  if (error) showToast('Phone OTP error: ' + error.message, 'error');
+  else showToast(`OTP sent to ${phone}`);
+});
+
+// ============================
+// Init from Cache
+// ============================
+(function initFromCache() {
+  const profile = getCachedProfile();
+  if (profile?.email) document.getElementById('login-email').value = profile.email;
+})();
+
+// ============================
+// Handle Referral from URL
+// ============================
+(function handleRefParam() {
+  const r = new URLSearchParams(window.location.search).get('ref');
+  if (r) document.getElementById('signup-referral').value = r;
+})();
