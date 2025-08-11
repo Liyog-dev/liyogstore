@@ -290,7 +290,6 @@ countryEl.addEventListener('change', e => populateStates(stateEl, e.target.value
           name,
           email,
           phone: phone || null,
-          profile_image: null,
           wallet_balance: 0,
           total_liyog_coins: 0,
           referred_by,
