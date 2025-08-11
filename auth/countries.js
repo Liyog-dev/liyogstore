@@ -373,7 +373,8 @@ export const countries = [
       "Razavi Khorasan", "Semnan", "Sistan and Baluchestan", "South Khorasan",
       "Tehran", "West Azerbaijan", "Yazd", "Zanjan"
     ]
-  }
+  },
+  ];
 
   // ============================
 // Populate Country Select
