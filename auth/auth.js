@@ -130,6 +130,30 @@ populateCountries(countryEl);
 countryEl.addEventListener('change', e => populateStates(stateEl, e.target.value));
 
 // ============================
+// Phone Validation & Uniqueness Helpers
+// ============================
+function validatePhoneFormat(phone) {
+  const phoneRegex = /^\+?[1-9]\d{6,14}$/; // E.164 format basic check
+  return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
+}
+
+async function isPhoneUnique(phone) {
+  if (!phone) return true;
+  const cleanedPhone = phone.replace(/[\s\-\(\)]/g, '');
+  const { data, error } = await supabase
+    .from('users')
+    .select('id')
+    .eq('phone', cleanedPhone)
+    .maybeSingle();
+  if (error) {
+    console.error("Error checking phone uniqueness:", error.message);
+    showToast('Error checking phone number. Try again.', 'error');
+    return false;
+  }
+  return !data;
+}
+
+// ============================
 // Referral Code Helpers
 // ============================
 async function generateUniqueReferralCode(namePrefix) {
@@ -172,52 +196,10 @@ supabase.auth.onAuthStateChange((event, session) => {
 });
 
 // ============================
-// Phone Validation & Uniqueness Helper
-// ============================
-async function isPhoneUnique(phone) {
-  if (!phone) return true; // allow empty if optional
-  // Normalize phone format: remove spaces, hyphens, parentheses
-  const cleanedPhone = phone.replace(/[\s\-\(\)]/g, '');
-  
-  const { data, error } = await supabase
-    .from('users')
-    .select('id')
-    .eq('phone', cleanedPhone)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Error checking phone uniqueness:", error.message);
-    showToast('Error checking phone number. Try again.', 'error');
-    return false;
-  }
-
-  return !data; // true if no match found
-}
-
-function validatePhoneFormat(phone) {
-  // Basic format: allows +countryCode and 7–15 digits
-  const phoneRegex = /^\+?[1-9]\d{6,14}$/;
-  return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
-}
-
-// ============================
 // Signup Flow
 // ============================
 signupForm?.addEventListener('submit', async ev => {
   ev.preventDefault();
-  // Validate phone format if provided
-if (phone && !validatePhoneFormat(phone)) {
-  showToast('Invalid phone number format', 'error');
-  setFormLoading(signupForm, false);
-  return;
-}
-
-// Check phone uniqueness if provided
-if (phone && !(await isPhoneUnique(phone))) {
-  showToast('Phone number already registered', 'error');
-  setFormLoading(signupForm, false);
-  return;
-}
   authMessage.textContent = 'Creating account...';
   setFormLoading(signupForm, true);
 
@@ -244,6 +226,16 @@ if (phone && !(await isPhoneUnique(phone))) {
     setFormLoading(signupForm, false);
     return;
   }
+  if (phone && !validatePhoneFormat(phone)) {
+    showToast('Invalid phone number format', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+  if (phone && !(await isPhoneUnique(phone))) {
+    showToast('Phone number already registered', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
 
   const location = countryCode + (state ? `, ${state}` : '');
   let referred_by = referralInput ? await resolveReferral(referralInput) : null;
@@ -265,7 +257,7 @@ if (phone && !(await isPhoneUnique(phone))) {
     id: authData.user.id,
     name,
     email,
-    phone: phone || null,
+    phone: phone ? phone.replace(/[\s\-\(\)]/g, '') : null,
     wallet_balance: 0,
     total_liyog_coins: 0,
     referred_by,
@@ -375,3 +367,4 @@ document.getElementById('signup-verify-phone')?.addEventListener('click', async 
   if (r) document.getElementById('signup-referral').value = r;
 })();
 
+                   
