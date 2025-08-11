@@ -51,15 +51,29 @@ function setFormLoading(form, isLoading = true) {
 // ============================
 // Theme Toggle
 // ============================
+function updateThemeIcon(theme) {
+  if (!themeToggle) return;
+  themeToggle.textContent = theme === 'dark' ? '🌞' : '🌓';
+}
+
 function getTheme() {
   return document.documentElement.getAttribute('data-theme') || localStorage.getItem('theme') || 'light';
 }
+
 function applyTheme(t) {
-  document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
-  localStorage.setItem('theme', t);
+  const theme = t === 'dark' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+  updateThemeIcon(theme);
 }
+
 applyTheme(getTheme());
-themeToggle.addEventListener('click', () => applyTheme(getTheme() === 'dark' ? 'light' : 'dark'));
+
+themeToggle.addEventListener('click', () => {
+  const current = getTheme();
+  const next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+});
 
 // ============================
 // Form Toggles
