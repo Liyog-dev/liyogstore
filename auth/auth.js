@@ -132,9 +132,31 @@ countryEl.addEventListener('change', e => populateStates(stateEl, e.target.value
 // ============================
 // Phone Validation & Uniqueness Helpers
 // ============================
+
+// Country-specific phone length rules
+const phoneLengths = {
+  '+234': { min: 13, max: 13 }, // Nigeria
+  '+1':   { min: 12, max: 12 }, // US/Canada
+  '+44':  { min: 13, max: 13 }, // UK
+  '+91':  { min: 13, max: 13 }, // India
+  '+61':  { min: 12, max: 12 }, // Australia
+  '+55':  { min: 13, max: 13 }, // Brazil
+};
+
 function validatePhoneFormat(phone) {
+  const cleaned = phone.replace(/[\s\-\(\)]/g, '');
   const phoneRegex = /^\+?[1-9]\d{6,14}$/; // E.164 format basic check
-  return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
+  if (!phoneRegex.test(cleaned)) return false;
+
+  // Country-specific length check
+  for (const code in phoneLengths) {
+    if (cleaned.startsWith(code)) {
+      const len = cleaned.length;
+      const { min, max } = phoneLengths[code];
+      return len >= min && len <= max;
+    }
+  }
+  return true; // Pass if no specific length rule for the code
 }
 
 async function isPhoneUnique(phone) {
@@ -227,7 +249,7 @@ signupForm?.addEventListener('submit', async ev => {
     return;
   }
   if (phone && !validatePhoneFormat(phone)) {
-    showToast('Invalid phone number format', 'error');
+    showToast('Invalid or incomplete phone number for selected country', 'error');
     setFormLoading(signupForm, false);
     return;
   }
@@ -366,5 +388,3 @@ document.getElementById('signup-verify-phone')?.addEventListener('click', async 
   const r = new URLSearchParams(window.location.search).get('ref');
   if (r) document.getElementById('signup-referral').value = r;
 })();
-
-                   
