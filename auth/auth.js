@@ -1,9 +1,20 @@
-
 // ============================
 // Imports
 // ============================
 import { supabase } from '../config/supabase.js';
 import { countries, populateCountries, populateStates } from './countries.js';
+// import { phoneMap } from './phoneMap.js'; // Uncomment later when ready to use external map
+
+// ============================
+// Hardcoded Phone Map (5 countries for now)
+// ============================
+const phoneMap = {
+  '+234': 'Nigeria',
+  '+1': 'United States',
+  '+44': 'United Kingdom',
+  '+91': 'India',
+  '+61': 'Australia'
+};
 
 // ============================
 // DOM References
@@ -21,6 +32,7 @@ const themeToggle = document.getElementById("theme-toggle");
 const muteVoiceBtn = document.getElementById("mute-voice");
 const countryEl = document.getElementById('signup-country');
 const stateEl = document.getElementById('signup-state');
+const phoneEl = document.getElementById('signup-phone');
 
 // ============================
 // UI Helpers
@@ -144,6 +156,18 @@ function speak(text) {
 populateCountries(countryEl);
 countryEl.addEventListener('change', e => populateStates(stateEl, e.target.value));
 
+// Auto-select country when phone matches a country code
+phoneEl.addEventListener('input', () => {
+  let phone = phoneEl.value.replace(/\s+/g, '');
+  for (const code in phoneMap) {
+    if (phone.startsWith(code)) {
+      countryEl.value = phoneMap[code];
+      populateStates(stateEl, phoneMap[code]);
+      break;
+    }
+  }
+});
+
 // ============================
 // Phone Validation & Uniqueness Helpers
 // ============================
@@ -178,7 +202,7 @@ async function generateUniqueReferralCode(namePrefix) {
     attempt++;
     const suffix = Math.random().toString(36).slice(2, 8);
     const candidate = (prefix + suffix).toLowerCase();
-    const { data, error } = await supabase.from('users').select('id').eq('referral_code', candidate).maybeSingle();
+    const { data } = await supabase.from('users').select('id').eq('referral_code', candidate).maybeSingle();
     if (!data) return candidate;
   }
   return prefix + crypto.randomUUID().split('-')[0];
@@ -187,11 +211,11 @@ async function generateUniqueReferralCode(namePrefix) {
 async function resolveReferral(referredCode) {
   if (!referredCode) return null;
   const { data, error } = await supabase.rpc('resolve_referral', { ref_code: referredCode });
-if (error) {
-  console.error('Error resolving referral:', error.message);
-  return null;
-}
-return data ?? null;
+  if (error) {
+    console.error('Error resolving referral:', error.message);
+    return null;
+  }
+  return data ?? null;
 }
 
 // ============================
@@ -225,9 +249,9 @@ signupForm?.addEventListener('submit', async ev => {
   const name = document.getElementById('signup-username').value.trim();
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
-  const phone = document.getElementById('signup-phone').value.trim();
-  const countryCode = document.getElementById('signup-country').value;
-  const state = document.getElementById('signup-state').value;
+  const phone = phoneEl.value.trim();
+  const countryCode = countryEl.value;
+  const state = stateEl.value;
   const referralInput = document.getElementById('signup-referral').value.trim();
 
   if (!name || !email || !password || !countryCode) {
@@ -360,7 +384,7 @@ forgotForm?.addEventListener('submit', async ev => {
 // Phone Verify Placeholder
 // ============================
 document.getElementById('signup-verify-phone')?.addEventListener('click', async () => {
-  const phone = document.getElementById('signup-phone').value.trim();
+  const phone = phoneEl.value.trim();
   if (!phone) {
     showToast('Enter phone first', 'error');
     return;
@@ -385,5 +409,3 @@ document.getElementById('signup-verify-phone')?.addEventListener('click', async 
   const r = new URLSearchParams(window.location.search).get('ref');
   if (r) document.getElementById('signup-referral').value = r;
 })();
-
-                   
