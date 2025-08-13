@@ -186,8 +186,12 @@ async function generateUniqueReferralCode(namePrefix) {
 
 async function resolveReferral(referredCode) {
   if (!referredCode) return null;
-  const { data } = await supabase.from('users').select('id').eq('referral_code', referredCode).maybeSingle();
-  return data ? data.id : null;
+  const { data, error } = await supabase.rpc('resolve_referral', { ref_code: referredCode });
+if (error) {
+  console.error('Error resolving referral:', error.message);
+  return null;
+}
+return data ?? null;
 }
 
 // ============================
