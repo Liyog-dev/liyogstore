@@ -153,22 +153,19 @@ function validatePhoneFormat(phone) {
 }
 
 async function isPhoneUnique(phone) {
-async function isPhoneUnique(phone) {
   if (!phone) return true;
-
-  // Match DB cleaning: remove spaces, dashes, parentheses, lowercase
-  const cleanedPhone = phone.replace(/[\s\-\(\)]/g, '').toLowerCase();
-
+  const cleanedPhone = phone.replace(/[\s\-\(\)]/g, '');
   const { data, error } = await supabase
-    .rpc('is_phone_unique', { cleaned: cleanedPhone }); // call the DB function
-
+    .from('users')
+    .select('id')
+    .eq('phone', cleanedPhone)
+    .maybeSingle();
   if (error) {
     console.error("Error checking phone uniqueness:", error.message);
     showToast('Error checking phone number. Try again.', 'error');
     return false;
   }
-  
-  return data === true;
+  return !data;
 }
 
 // ============================
