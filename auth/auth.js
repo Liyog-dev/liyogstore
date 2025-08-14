@@ -214,8 +214,23 @@ supabase.auth.onAuthStateChange((event, session) => {
   }
 });
 
+// Helper: detect country from phone code
+function detectCountryFromPhone(phone) {
+  const phoneMap = {
+    '+234': 'Nigeria',
+    '+44': 'United Kingdom',
+    '+1': 'United States',
+    '+91': 'India'
+    // Add more prefixes if needed
+  };
+  for (const code in phoneMap) {
+    if (phone.startsWith(code)) return phoneMap[code];
+  }
+  return null;
+}
+
 // ============================
-// Signup Flow
+// Signup Flow (Updated)
 // ============================
 signupForm?.addEventListener('submit', async ev => {
   ev.preventDefault();
@@ -230,27 +245,61 @@ signupForm?.addEventListener('submit', async ev => {
   const state = document.getElementById('signup-state').value;
   const referralInput = document.getElementById('signup-referral').value.trim();
 
+  // Required field checks
   if (!name || !email || !password || !countryCode) {
     showToast('Please complete required fields', 'error');
     setFormLoading(signupForm, false);
     return;
   }
+
+  // Email validation
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     showToast('Invalid email', 'error');
     setFormLoading(signupForm, false);
     return;
   }
+
+  // Password length check
   if (password.length < 6) {
     showToast('Password too short', 'error');
     setFormLoading(signupForm, false);
     return;
   }
-  if (phone && !validatePhoneFormat(phone)) {
+
+  // Phone required & format check
+  if (!phone) {
+    showToast('Phone number is required', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+  if (!validatePhoneFormat(phone)) {
     showToast('Invalid phone number format', 'error');
     setFormLoading(signupForm, false);
     return;
   }
-  if (phone && !(await isPhoneUnique(phone))) {
+
+  // Auto-detect country from phone & enforce match
+  const detectedCountry = detectCountryFromPhone(phone);
+  if (!detectedCountry) {
+    showToast('Could not detect country from phone number', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+  if (countryCode !== detectedCountry) {
+    showToast(`Phone number does not match selected country (${detectedCountry})`, 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  // State required check
+  if (!state) {
+    showToast('Please select your state/province', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  // Unique phone check
+  if (!(await isPhoneUnique(phone))) {
     showToast('Phone number already registered', 'error');
     setFormLoading(signupForm, false);
     return;
@@ -264,6 +313,7 @@ signupForm?.addEventListener('submit', async ev => {
     return;
   }
 
+  // Supabase signup
   const { data: authData, error: signUpError } = await supabase.auth.signUp({ email, password });
   if (signUpError || !authData?.user) {
     showToast('Signup error: ' + (signUpError?.message || 'Unknown'), 'error');
@@ -276,7 +326,7 @@ signupForm?.addEventListener('submit', async ev => {
     id: authData.user.id,
     name,
     email,
-    phone: phone ? phone.replace(/[\s\-\(\)]/g, '') : null,
+    phone: phone.replace(/[\s\-\(\)]/g, ''),
     wallet_balance: 0,
     total_liyog_coins: 0,
     referred_by,
@@ -294,8 +344,9 @@ signupForm?.addEventListener('submit', async ev => {
   showToast('Signup successful! Check your email for verification.');
   signupForm.reset();
   setFormLoading(signupForm, false);
-  speak('Welcome to LiyX!');
+  speak('Welcome to liyXStore!');
 });
+
 
 // ============================
 // Login Flow
