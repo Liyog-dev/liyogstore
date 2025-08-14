@@ -282,6 +282,88 @@ signupForm?.addEventListener('submit', async ev => {
     name,
     email,
     phone: phone ? phone.replace(/[\s-]/g, '') : null,
+signupForm?.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  authMessage.textContent = 'Creating account...';
+  setFormLoading(signupForm, true);
+
+  const name = document.getElementById('signup-username').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const phone = document.getElementById('signup-phone').value.trim();
+  const countryCode = document.getElementById('signup-country').value;
+  const state = document.getElementById('signup-state').value;
+  const referralInput = document.getElementById('signup-referral').value.trim();
+
+  // ======= 1️⃣ Required fields check =======
+  if (!name || !email || !password || !countryCode) {
+    showToast('Please complete all required fields.', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  // ======= 2️⃣ Email format =======
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    showToast('Invalid email address.', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  // ======= 3️⃣ Password length =======
+  if (password.length < 6) {
+    showToast('Password must be at least 6 characters long.', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  // ======= 4️⃣ Phone validation & global length =======
+  if (phone) {
+    const cleanedPhone = phone.replace(/[\s\-\(\)]/g, '');
+    if (!/^\+?[1-9]\d{6,15}$/.test(cleanedPhone)) { // min 7 digits, max 16 for global
+      showToast('Phone number is invalid or too short/long for global use.', 'error');
+      setFormLoading(signupForm, false);
+      return;
+    }
+
+    const unique = await isPhoneUnique(cleanedPhone);
+    if (!unique) {
+      showToast('This phone number has already been used.', 'error');
+      setFormLoading(signupForm, false);
+      return;
+    }
+  }
+
+  // ======= 5️⃣ Referral code check =======
+  let referred_by = null;
+  if (referralInput) {
+    referred_by = await resolveReferral(referralInput);
+    if (!referred_by) {
+      showToast('Referral code not found. Please check and try again.', 'error');
+      setFormLoading(signupForm, false);
+      return;
+    }
+  }
+
+  // ======= 6️⃣ Location & referral_code =======
+  const location = countryCode + (state ? `, ${state}` : '');
+  const referral_code = await generateUniqueReferralCode(name);
+
+  // ======= ✅ All validations passed, now create auth user =======
+  const { data: authData, error: signUpError } = await supabase.auth.signUp({ email, password });
+
+  if (signUpError || !authData?.user) {
+    showToast('Signup failed: ' + (signUpError?.message || 'Unknown error'), 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  // ======= 7️⃣ Insert into custom users table =======
+  const { error: insertError } = await supabase.from('users').insert([{
+    id: authData.user.id,
+    name,
+    email,
+    phone: phone ? phone.replace(/[\s\-\(\)]/g, '') : null,
     wallet_balance: 0,
     total_liyog_coins: 0,
     referred_by,
@@ -292,17 +374,18 @@ signupForm?.addEventListener('submit', async ev => {
   }]);
 
   if (insertError) {
-    // ⚠️ Rollback auth.users if custom table insert fails
+    // ⚠️ Rollback auth user if custom table fails
     await supabase.auth.admin.deleteUser(authData.user.id);
     showToast('Signup failed: ' + insertError.message, 'error');
     setFormLoading(signupForm, false);
     return;
   }
 
-  showToast('Signup successful! Check your email for verification.');
+  // ======= 8️⃣ Success =======
+  showToast('Signup successful! Please check your email for verification.');
   signupForm.reset();
   setFormLoading(signupForm, false);
-  speak('Welcome to liyXStore Global!');
+  speak('Welcome to LiyXStore Global!');
 });
 
 // ============================
