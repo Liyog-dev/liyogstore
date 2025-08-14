@@ -219,6 +219,7 @@ supabase.auth.onAuthStateChange((event, session) => {
 // ============================
 signupForm?.addEventListener('submit', async ev => {
   ev.preventDefault();
+  authMessage.textContent = 'Creating account...';
   setFormLoading(signupForm, true);
 
   const name = document.getElementById('signup-username').value.trim();
@@ -231,27 +232,26 @@ signupForm?.addEventListener('submit', async ev => {
 
   // Basic frontend validations
   if (!name || !email || !password || !countryCode) {
-    showToast('Please complete all required fields.', 'error');
+    showToast('Please complete required fields', 'error');
     setFormLoading(signupForm, false);
     return;
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showToast('Invalid email address.', 'error');
+    showToast('Invalid email', 'error');
     setFormLoading(signupForm, false);
     return;
   }
 
   if (password.length < 6) {
-    showToast('Password too short (min 6 chars).', 'error');
+    showToast('Password too short', 'error');
     setFormLoading(signupForm, false);
     return;
   }
 
-  // Build location string
   const location = countryCode + (state ? `, ${state}` : '');
 
-  // Call the RPC
+  // ✅ Call the atomic RPC
   const { data, error } = await supabase.rpc('full_signup', {
     p_name: name,
     p_email: email,
@@ -267,12 +267,11 @@ signupForm?.addEventListener('submit', async ev => {
     return;
   }
 
-  showToast('Signup successful! Check your email for verification.');
+  showToast(data.message || 'Signup successful! Check your email for verification.');
   signupForm.reset();
   setFormLoading(signupForm, false);
-  speak('Welcome to LiyXStore Global!');
+  speak('Welcome to Liyog World!');
 });
-
 // ============================
 // Login Flow
 // ============================
