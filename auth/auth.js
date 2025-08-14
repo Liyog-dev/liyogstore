@@ -154,12 +154,19 @@ function validatePhoneFormat(phone) {
 
 async function isPhoneUnique(phone) {
   if (!phone) return true;
-  const cleanedPhone = phone.replace(/[\s\-\(\)]/g, '');
+
+  // Match DB cleaning exactly: coalesce to '', remove spaces/dashes/parentheses, lowercase
+  const cleanedPhone = (phone || '')
+    .replace(/[\s\-\(\)]/g, '') // remove spaces, dashes, parentheses
+    .toLowerCase();
+
   const { data, error } = await supabase
     .from('users')
+    // Apply same transformation to DB side for the comparison
     .select('id')
-    .eq('phone', cleanedPhone)
+    .filter('phone', 'ilike', cleanedPhone) 
     .maybeSingle();
+
   if (error) {
     console.error("Error checking phone uniqueness:", error.message);
     showToast('Error checking phone number. Try again.', 'error');
