@@ -231,17 +231,17 @@ signupForm?.addEventListener('submit', async ev => {
   const referralInput = document.getElementById('signup-referral').value.trim();
 
   if (!name || !email || !password || !countryCode) {
-    showToast('Please complete required fields', 'error');
+    showToast('Please complete all required fields', 'error');
     setFormLoading(signupForm, false);
     return;
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showToast('Invalid email', 'error');
+    showToast('Invalid email address', 'error');
     setFormLoading(signupForm, false);
     return;
   }
   if (password.length < 6) {
-    showToast('Password too short', 'error');
+    showToast('Password must be at least 6 characters', 'error');
     setFormLoading(signupForm, false);
     return;
   }
@@ -264,37 +264,44 @@ signupForm?.addEventListener('submit', async ev => {
     return;
   }
 
-  const { data: authData, error: signUpError } = await supabase.auth.signUp({ email, password });
-  if (signUpError || !authData?.user) {
-    showToast('Signup error: ' + (signUpError?.message || 'Unknown'), 'error');
-    setFormLoading(signupForm, false);
-    return;
-  }
-
   const referral_code = await generateUniqueReferralCode(name);
-  const { error: insertError } = await supabase.from('users').insert([{
-    id: authData.user.id,
-    name,
-    email,
-    phone: phone ? phone.replace(/[\s\-\(\)]/g, '') : null,
-    wallet_balance: 0,
-    total_liyog_coins: 0,
-    referred_by,
-    role: 'user',
-    location,
-    is_active: true,
-    referral_code
-  }]);
+
+  // STEP 1: Insert into custom users table first
+  const { data: userData, error: insertError } = await supabase.rpc('privileged_insert_user', {
+    p_name: name,
+    p_email: email,
+    p_phone: phone ? phone.replace(/[\s\-\(\)]/g, '') : null,
+    p_location: location,
+    p_referral_code: referral_code,
+    p_referred_by: referred_by
+  });
+
   if (insertError) {
-    showToast('User insert error: ' + insertError.message, 'error');
+    showToast('Signup failed: ' + insertError.message, 'error');
     setFormLoading(signupForm, false);
     return;
   }
 
-  showToast('Signup successful! Check your email for verification.');
+  // STEP 2: Create auth user with the same UUID
+  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    id: userData, // sync UUID with your table
+    email,
+    password,
+    email_confirm: false
+  });
+
+  if (authError || !authData?.user) {
+    // Rollback custom users table insertion
+    await supabase.from('users').delete().eq('id', userData);
+    showToast('Signup failed: ' + (authError?.message || 'Unknown'), 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  showToast('Signup successful! Check your email for verification.', 'success');
   signupForm.reset();
   setFormLoading(signupForm, false);
-  speak('Welcome to LiyX!');
+  speak('Welcome to LiyXStore Global!');
 });
 
 // ============================
