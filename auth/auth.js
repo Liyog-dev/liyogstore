@@ -219,7 +219,7 @@ supabase.auth.onAuthStateChange((event, session) => {
 // ============================
 signupForm?.addEventListener('submit', async ev => {
   ev.preventDefault();
-  authMessage.textContent = 'Creating account...';
+  authMessage.textContent = 'Creating your account...';
   setFormLoading(signupForm, true);
 
   const name = document.getElementById('signup-username').value.trim();
@@ -230,44 +230,78 @@ signupForm?.addEventListener('submit', async ev => {
   const state = document.getElementById('signup-state').value;
   const referralInput = document.getElementById('signup-referral').value.trim();
 
-  // Basic frontend validations
-  if (!name || !email || !password || !countryCode) {
-    showToast('Please complete required fields', 'error');
-    setFormLoading(signupForm, false);
-    return;
+  // ====================
+  // Validate Required Fields
+  // ====================
+  if (!name) {
+    showToast('Your name is required 😅', 'error'); 
+    setFormLoading(signupForm, false); return;
+  }
+  if (!email) {
+    showToast('We need your email to create your account 📧', 'error'); 
+    setFormLoading(signupForm, false); return;
+  }
+  if (!password) {
+    showToast('Please choose a password 🔒', 'error'); 
+    setFormLoading(signupForm, false); return;
+  }
+  if (!countryCode) {
+    showToast('Select your country 🌍', 'error'); 
+    setFormLoading(signupForm, false); return;
   }
 
+  // ====================
+  // Validate Format
+  // ====================
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showToast('Invalid email', 'error');
-    setFormLoading(signupForm, false);
-    return;
+    showToast('Hmm… that email looks invalid. Please check 🧐', 'error'); 
+    setFormLoading(signupForm, false); return;
   }
-
   if (password.length < 6) {
-    showToast('Password too short', 'error');
-    setFormLoading(signupForm, false);
-    return;
+    showToast('Password too short! Minimum 6 characters 🔑', 'error'); 
+    setFormLoading(signupForm, false); return;
+  }
+  if (phone && !validatePhoneFormat(phone)) {
+    showToast('Phone number invalid. Include country code, e.g., +2348012345678 📱', 'error'); 
+    setFormLoading(signupForm, false); return;
   }
 
+  // ====================
+  // Prepare Data
+  // ====================
   const location = countryCode + (state ? `, ${state}` : '');
-
-  // ✅ Call the atomic RPC
-  const { data, error } = await supabase.rpc('full_signup', {
+  const rpcParams = {
     p_name: name,
     p_email: email,
     p_password: password,
     p_phone: phone || null,
     p_location: location,
     p_referral_code: referralInput || null
-  });
+  };
+
+  // ====================
+  // Call Atomic RPC
+  // ====================
+  const { data, error } = await supabase.rpc('full_signup', rpcParams);
 
   if (error || data?.status === 'error') {
-    showToast(data?.message || error?.message || 'Signup failed', 'error');
+    // === Detect Field-Specific Issues ===
+    let msg = data?.message || error?.message || 'Signup failed 😢';
+    
+    if (msg.toLowerCase().includes('phone')) msg = 'The phone number you entered is already used or invalid 📱';
+    else if (msg.toLowerCase().includes('email')) msg = 'That email is already registered or invalid 📧';
+    else if (msg.toLowerCase().includes('referral')) msg = 'Referral code not valid 🤔';
+    else if (msg.toLowerCase().includes('password')) msg = 'Password issue 🔑';
+    
+    showToast(msg, 'error');
     setFormLoading(signupForm, false);
     return;
   }
 
-  showToast(data.message || 'Signup successful! Check your email for verification.');
+  // ====================
+  // Success
+  // ====================
+  showToast(data.message || 'Signup successful! 🎉 Please verify your email to continue.', 'success');
   signupForm.reset();
   setFormLoading(signupForm, false);
   speak('Welcome to Liyog World!');
