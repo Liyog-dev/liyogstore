@@ -215,7 +215,7 @@ supabase.auth.onAuthStateChange((event, session) => {
 });
 
 // ============================
-// Signup Flow
+// Signup Flow (Atomic via DB Trigger)
 // ============================
 signupForm?.addEventListener('submit', async ev => {
   ev.preventDefault();
@@ -225,76 +225,85 @@ signupForm?.addEventListener('submit', async ev => {
   const name = document.getElementById('signup-username').value.trim();
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
-  const phone = document.getElementById('signup-phone').value.trim();
+  const phoneRaw = document.getElementById('signup-phone').value.trim();
   const countryCode = document.getElementById('signup-country').value;
   const state = document.getElementById('signup-state').value;
   const referralInput = document.getElementById('signup-referral').value.trim();
 
+  // === VALIDATIONS (UX) ===
   if (!name || !email || !password || !countryCode) {
     showToast('Please complete required fields', 'error');
-    setFormLoading(signupForm, false);
-    return;
+    return setFormLoading(signupForm, false);
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     showToast('Invalid email', 'error');
-    setFormLoading(signupForm, false);
-    return;
+    return setFormLoading(signupForm, false);
   }
   if (password.length < 6) {
     showToast('Password too short', 'error');
-    setFormLoading(signupForm, false);
-    return;
+    return setFormLoading(signupForm, false);
   }
+
+  const phone = phoneRaw ? phoneRaw.replace(/[\s\-\(\)]/g, '') : null;
   if (phone && !validatePhoneFormat(phone)) {
     showToast('Invalid phone number format', 'error');
-    setFormLoading(signupForm, false);
-    return;
+    return setFormLoading(signupForm, false);
   }
+
+  // Optional: pre-check for nicer UX. DB will still enforce.
   if (phone && !(await isPhoneUnique(phone))) {
     showToast('Phone number already registered', 'error');
-    setFormLoading(signupForm, false);
-    return;
+    return setFormLoading(signupForm, false);
   }
 
   const location = countryCode + (state ? `, ${state}` : '');
-  let referred_by = referralInput ? await resolveReferral(referralInput) : null;
-  if (referralInput && !referred_by) {
-    showToast('Invalid referral code', 'error');
-    setFormLoading(signupForm, false);
-    return;
-  }
 
-  const { data: authData, error: signUpError } = await supabase.auth.signUp({ email, password });
-  if (signUpError || !authData?.user) {
-    showToast('Signup error: ' + (signUpError?.message || 'Unknown'), 'error');
-    setFormLoading(signupForm, false);
-    return;
-  }
+  // We no longer resolve referral on the client; we pass the code to the DB trigger.
+  // If invalid, trigger raises and the whole signup fails (atomic).
+  try {
+    const { data: authData, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+          phone,
+          location,
+          role: 'user',
+          referral_input: referralInput || null
+        }
+      }
+    });
 
-  const referral_code = await generateUniqueReferralCode(name);
-  const { error: insertError } = await supabase.from('users').insert([{
-    id: authData.user.id,
-    name,
-    email,
-    phone: phone ? phone.replace(/[\s\-\(\)]/g, '') : null,
-    wallet_balance: 0,
-    total_liyog_coins: 0,
-    referred_by,
-    role: 'user',
-    location,
-    is_active: true,
-    referral_code
-  }]);
-  if (insertError) {
-    showToast('User insert error: ' + insertError.message, 'error');
-    setFormLoading(signupForm, false);
-    return;
-  }
+    if (signUpError || !authData?.user) {
+      // Friendly error mapping for common DB-trigger messages bubbled through signUp
+      const msg = (signUpError?.message || 'Signup failed').toUpperCase();
 
-  showToast('Signup successful! Check your email for verification.');
-  signupForm.reset();
-  setFormLoading(signupForm, false);
-  speak('Welcome to LiyX!');
+      if (msg.includes('INVALID_REFERRAL_CODE')) {
+        showToast('Invalid referral code', 'error');
+      } else if (msg.includes('LOCATION_REQUIRED')) {
+        showToast('Please select your country/state', 'error');
+      } else if (msg.includes('users_phone_key')) {
+        showToast('Phone number already registered', 'error');
+      } else if (msg.includes('users_referral_code_key')) {
+        showToast('Referral code collision. Please try again.', 'error');
+      } else {
+        showToast('Signup error: ' + (signUpError?.message || 'Unknown'), 'error');
+      }
+
+      return setFormLoading(signupForm, false);
+    }
+
+    // Success path: both auth.users and public.users were created in one transaction
+    showToast('Signup successful! Check your email for verification.');
+    signupForm.reset();
+    speak('Welcome to LiyX!');
+  } catch (e) {
+    console.error(e);
+    showToast('Unexpected error. Please try again.', 'error');
+  } finally {
+    setFormLoading(signupForm, false);
+  }
 });
 
 // ============================
