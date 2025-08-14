@@ -230,7 +230,6 @@ signupForm?.addEventListener('submit', async ev => {
   const state = document.getElementById('signup-state').value;
   const referralInput = document.getElementById('signup-referral').value.trim();
 
-  // ✅ 1. Basic validations
   if (!name || !email || !password || !countryCode) {
     showToast('Please complete required fields', 'error');
     setFormLoading(signupForm, false);
@@ -257,7 +256,7 @@ signupForm?.addEventListener('submit', async ev => {
     return;
   }
 
-  // ✅ Referral check
+  const location = countryCode + (state ? `, ${state}` : '');
   let referred_by = referralInput ? await resolveReferral(referralInput) : null;
   if (referralInput && !referred_by) {
     showToast('Invalid referral code', 'error');
@@ -265,10 +264,6 @@ signupForm?.addEventListener('submit', async ev => {
     return;
   }
 
-  const location = countryCode + (state ? `, ${state}` : '');
-  const referral_code = await generateUniqueReferralCode(name);
-
-  // ✅ 2. Signup in auth.users
   const { data: authData, error: signUpError } = await supabase.auth.signUp({ email, password });
   if (signUpError || !authData?.user) {
     showToast('Signup error: ' + (signUpError?.message || 'Unknown'), 'error');
@@ -276,69 +271,22 @@ signupForm?.addEventListener('submit', async ev => {
     return;
   }
 
-  // ✅ 3. Insert into custom users table
+  const referral_code = await generateUniqueReferralCode(name);
   const { error: insertError } = await supabase.from('users').insert([{
     id: authData.user.id,
     name,
     email,
-    phone: phone ? phone.replace(/[\s-]/g, '') : null,
-signupForm?.addEventListener('submit', async ev => {
-  ev.preventDefault();
-  authMessage.textContent = 'Creating account...';
-  setFormLoading(signupForm, true);
-
-  const name = document.getElementById('signup-username').value.trim();
-  const email = document.getElementById('signup-email').value.trim();
-  const password = document.getElementById('signup-password').value;
-  const phone = document.getElementById('signup-phone').value.trim();
-  const countryCode = document.getElementById('signup-country').value;
-  const state = document.getElementById('signup-state').value;
-signupForm?.addEventListener('submit', async ev => {
-  ev.preventDefault();
-  setFormLoading(signupForm, true);
-
-  const name = document.getElementById('signup-username').value.trim();
-  const email = document.getElementById('signup-email').value.trim();
-  const password = document.getElementById('signup-password').value;
-  const phone = document.getElementById('signup-phone').value.trim();
-  const countryCode = document.getElementById('signup-country').value;
-  const state = document.getElementById('signup-state').value;
-  const referralInput = document.getElementById('signup-referral').value.trim();
-
-  // Basic frontend validations
-  if (!name || !email || !password || !countryCode) {
-    showToast('Please complete all required fields.', 'error');
-    setFormLoading(signupForm, false);
-    return;
-  }
-
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showToast('Invalid email address.', 'error');
-    setFormLoading(signupForm, false);
-    return;
-  }
-
-  if (password.length < 6) {
-    showToast('Password too short (min 6 chars).', 'error');
-    setFormLoading(signupForm, false);
-    return;
-  }
-
-  // Build location string
-  const location = countryCode + (state ? `, ${state}` : '');
-
-  // Call the RPC
-  const { data, error } = await supabase.rpc('full_signup', {
-    p_name: name,
-    p_email: email,
-    p_password: password,
-    p_phone: phone || null,
-    p_location: location,
-    p_referral_code: referralInput || null
-  });
-
-  if (error || data?.status === 'error') {
-    showToast(data?.message || error?.message || 'Signup failed', 'error');
+    phone: phone ? phone.replace(/[\s\-\(\)]/g, '') : null,
+    wallet_balance: 0,
+    total_liyog_coins: 0,
+    referred_by,
+    role: 'user',
+    location,
+    is_active: true,
+    referral_code
+  }]);
+  if (insertError) {
+    showToast('User insert error: ' + insertError.message, 'error');
     setFormLoading(signupForm, false);
     return;
   }
@@ -346,10 +294,8 @@ signupForm?.addEventListener('submit', async ev => {
   showToast('Signup successful! Check your email for verification.');
   signupForm.reset();
   setFormLoading(signupForm, false);
-  speak('Welcome to LiyXStore Global!');
+  speak('Welcome to LiyX!');
 });
-
-
 
 // ============================
 // Login Flow
