@@ -230,82 +230,56 @@ signupForm?.addEventListener('submit', async ev => {
   const state = document.getElementById('signup-state').value;
   const referralInput = document.getElementById('signup-referral').value.trim();
 
-  // ====================
-  // Validate Required Fields
-  // ====================
-  if (!name) {
-    showToast('Your name is required 😅', 'error'); 
-    setFormLoading(signupForm, false); return;
+  if (!name || !email || !password || !countryCode) {
+    showToast('Please fill all required fields ✍️','error');
+    setFormLoading(signupForm,false); return;
   }
-  if (!email) {
-    showToast('We need your email to create your account 📧', 'error'); 
-    setFormLoading(signupForm, false); return;
-  }
-  if (!password) {
-    showToast('Please choose a password 🔒', 'error'); 
-    setFormLoading(signupForm, false); return;
-  }
-  if (!countryCode) {
-    showToast('Select your country 🌍', 'error'); 
-    setFormLoading(signupForm, false); return;
-  }
-
-  // ====================
-  // Validate Format
-  // ====================
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showToast('Hmm… that email looks invalid. Please check 🧐', 'error'); 
-    setFormLoading(signupForm, false); return;
+    showToast('Invalid email format 📧','error');
+    setFormLoading(signupForm,false); return;
   }
   if (password.length < 6) {
-    showToast('Password too short! Minimum 6 characters 🔑', 'error'); 
-    setFormLoading(signupForm, false); return;
+    showToast('Password too short 🔒','error');
+    setFormLoading(signupForm,false); return;
   }
   if (phone && !validatePhoneFormat(phone)) {
-    showToast('Phone number invalid. Include country code, e.g., +2348012345678 📱', 'error'); 
-    setFormLoading(signupForm, false); return;
+    showToast('Phone number invalid 📱','error');
+    setFormLoading(signupForm,false); return;
+  }
+  if (phone && !(await isPhoneUnique(phone))) {
+    showToast('Phone already registered 📱','error');
+    setFormLoading(signupForm,false); return;
   }
 
-  // ====================
-  // Prepare Data
-  // ====================
   const location = countryCode + (state ? `, ${state}` : '');
-  const rpcParams = {
+  const referred_by = referralInput ? await resolveReferral(referralInput) : null;
+  if (referralInput && !referred_by) {
+    showToast('Referral code not valid 🤔','error');
+    setFormLoading(signupForm,false); return;
+  }
+
+  // ===== Call Supabase Function =====
+  const { data, error } = await supabase.rpc('full_signup', {
     p_name: name,
     p_email: email,
     p_password: password,
     p_phone: phone || null,
     p_location: location,
     p_referral_code: referralInput || null
-  };
-
-  // ====================
-  // Call Atomic RPC
-  // ====================
-  const { data, error } = await supabase.rpc('full_signup', rpcParams);
+  });
 
   if (error || data?.status === 'error') {
-    // === Detect Field-Specific Issues ===
-    let msg = data?.message || error?.message || 'Signup failed 😢';
-    
-    if (msg.toLowerCase().includes('phone')) msg = 'The phone number you entered is already used or invalid 📱';
-    else if (msg.toLowerCase().includes('email')) msg = 'That email is already registered or invalid 📧';
-    else if (msg.toLowerCase().includes('referral')) msg = 'Referral code not valid 🤔';
-    else if (msg.toLowerCase().includes('password')) msg = 'Password issue 🔑';
-    
-    showToast(msg, 'error');
-    setFormLoading(signupForm, false);
-    return;
+    showToast('Signup failed: ' + (error?.message || data?.message),'error');
+    setFormLoading(signupForm,false); return;
   }
 
-  // ====================
-  // Success
-  // ====================
-  showToast(data.message || 'Signup successful! 🎉 Please verify your email to continue.', 'success');
+  showToast('Signup successful! 🎉 You can verify your email later if you want.','success');
   signupForm.reset();
-  setFormLoading(signupForm, false);
+  setFormLoading(signupForm,false);
   speak('Welcome to Liyog World!');
 });
+
+
 // ============================
 // Login Flow
 // ============================
