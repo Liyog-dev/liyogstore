@@ -214,7 +214,6 @@ supabase.auth.onAuthStateChange((event, session) => {
   }
 });
 
-
 // ============================
 // Signup Flow (with debugging)
 // ============================
@@ -327,6 +326,7 @@ signupForm?.addEventListener('submit', async ev => {
     setFormLoading(signupForm, false);
   }
 });
+
 
 // ============================
 // Login Flow
