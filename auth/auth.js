@@ -249,7 +249,7 @@ signupForm?.addEventListener('submit', async ev => {
   const location = countryCode + (state ? `, ${state}` : '');
 
   try {
-    const res = await fetch("https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/full-signup", {
+    const res = await fetch('https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/full-signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password, phone, location, referralInput })
