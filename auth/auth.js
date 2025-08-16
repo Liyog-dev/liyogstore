@@ -215,70 +215,88 @@ supabase.auth.onAuthStateChange((event, session) => {
 });
 
 // ============================
-// Signup Flow
+// Signup Flow (no partials; email verification optional)
 // ============================
 signupForm?.addEventListener('submit', async ev => {
   ev.preventDefault();
   authMessage.textContent = 'Creating your account...';
   setFormLoading(signupForm, true);
 
-  const name = document.getElementById('signup-username').value.trim();
-  const email = document.getElementById('signup-email').value.trim();
-  const password = document.getElementById('signup-password').value;
-  const phone = document.getElementById('signup-phone').value.trim();
-  const countryCode = document.getElementById('signup-country').value;
-  const state = document.getElementById('signup-state').value;
-  const referralInput = document.getElementById('signup-referral').value.trim();
+  try {
+    const name = document.getElementById('signup-username').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const phone = document.getElementById('signup-phone').value.trim();
+    const countryCode = document.getElementById('signup-country').value;
+    const state = document.getElementById('signup-state').value;
+    const referralInput = document.getElementById('signup-referral').value.trim();
 
-  if (!name || !email || !password || !countryCode) {
-    showToast('Please fill all required fields ✍️','error');
-    setFormLoading(signupForm,false); return;
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showToast('Invalid email format 📧','error');
-    setFormLoading(signupForm,false); return;
-  }
-  if (password.length < 6) {
-    showToast('Password too short 🔒','error');
-    setFormLoading(signupForm,false); return;
-  }
-  if (phone && !validatePhoneFormat(phone)) {
-    showToast('Phone number invalid 📱','error');
-    setFormLoading(signupForm,false); return;
-  }
-  if (phone && !(await isPhoneUnique(phone))) {
-    showToast('Phone already registered 📱','error');
-    setFormLoading(signupForm,false); return;
-  }
+    // ---------- Frontend checks (quick feedback) ----------
+    if (!name || !email || !password || !countryCode) {
+      showToast('Please fill all required fields ✍️', 'error'); setFormLoading(signupForm,false); return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showToast('That email looks invalid. Please check and try again 📧', 'error'); setFormLoading(signupForm,false); return;
+    }
+    if (password.length < 6) {
+      showToast('Password is too short (min 6 chars) 🔒', 'error'); setFormLoading(signupForm,false); return;
+    }
+    if (phone && !validatePhoneFormat(phone)) {
+      showToast('Phone number format is not valid for global use 📱', 'error'); setFormLoading(signupForm,false); return;
+    }
 
-  const location = countryCode + (state ? `, ${state}` : '');
-  const referred_by = referralInput ? await resolveReferral(referralInput) : null;
-  if (referralInput && !referred_by) {
-    showToast('Referral code not valid 🤔','error');
-    setFormLoading(signupForm,false); return;
+    const location = countryCode + (state ? `, ${state}` : '');
+
+    // ---------- Server-side validation & prep (no side effects) ----------
+    const { data: prep, error: prepError } = await supabase.rpc('full_signup_validate', {
+      p_name: name,
+      p_email: email,
+      p_phone: phone || null,
+      p_location: location,
+      p_referral_input: referralInput || null
+    });
+
+    if (prepError || prep?.status === 'error') {
+      const msg = prepError?.message || prep?.message || 'We could not validate your details. Please try again.';
+      showToast(msg, 'error'); setFormLoading(signupForm,false); return;
+    }
+
+    // ---------- Atomic signup via Edge Function (service role) ----------
+    const payload = {
+      name,
+      email,
+      password,
+      cleaned_phone: prep.cleaned_phone || null,
+      location: prep.location || null,
+      referred_by: prep.referred_by || null,
+      referral_code: prep.referral_code,
+      role: 'user'
+    };
+
+    const resp = await fetch('/functions/v1/full-signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await resp.json();
+
+    if (!resp.ok || !result?.ok) {
+      showToast(result?.error || 'Signup failed while creating your account. Please try again.', 'error');
+      setFormLoading(signupForm, false);
+      return;
+    }
+
+    // ✅ Success: auth user + profile created
+    showToast('Signup successful! 🎉 You can verify your email later if you want.', 'success');
+    signupForm.reset();
+    setFormLoading(signupForm, false);
+    speak('Welcome to LiyXStore!');
+  } catch (e) {
+    showToast('Something went wrong. Please try again.', 'error');
+    setFormLoading(signupForm, false);
   }
-
-  // ===== Call Supabase Function =====
-  const { data, error } = await supabase.rpc('full_signup', {
-    p_name: name,
-    p_email: email,
-    p_password: password,
-    p_phone: phone || null,
-    p_location: location,
-    p_referral_code: referralInput || null
-  });
-
-  if (error || data?.status === 'error') {
-    showToast('Signup failed: ' + (error?.message || data?.message),'error');
-    setFormLoading(signupForm,false); return;
-  }
-
-  showToast('Signup successful! 🎉 You can verify your email later if you want.','success');
-  signupForm.reset();
-  setFormLoading(signupForm,false);
-  speak('Welcome to Liyog World!');
 });
-
 
 // ============================
 // Login Flow
