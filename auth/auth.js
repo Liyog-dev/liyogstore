@@ -214,9 +214,12 @@ supabase.auth.onAuthStateChange((event, session) => {
   }
 });
 
+// ============================
+// Signup Flow
+// ============================
 signupForm?.addEventListener('submit', async ev => {
   ev.preventDefault();
-  authMessage.textContent = '';
+  authMessage.textContent = 'Creating account...';
   setFormLoading(signupForm, true);
 
   const name = document.getElementById('signup-username').value.trim();
@@ -227,62 +230,73 @@ signupForm?.addEventListener('submit', async ev => {
   const state = document.getElementById('signup-state').value;
   const referralInput = document.getElementById('signup-referral').value.trim();
 
-  // -------------------------
-  // Frontend Validations
-  // -------------------------
   if (!name || !email || !password || !countryCode) {
-    showToast('Please complete all required fields', 'error');
+    showToast('Please complete required fields', 'error');
     setFormLoading(signupForm, false);
     return;
   }
-
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     showToast('Invalid email', 'error');
     setFormLoading(signupForm, false);
     return;
   }
-
   if (password.length < 6) {
-    showToast('Password must be at least 6 characters', 'error');
+    showToast('Password too short', 'error');
     setFormLoading(signupForm, false);
     return;
   }
-
-  if (phone && !/^\+?[1-9]\d{6,14}$/.test(phone.replace(/[\s\-\(\)]/g, ''))) {
-    showToast('Invalid phone number', 'error');
+  if (phone && !validatePhoneFormat(phone)) {
+    showToast('Invalid phone number format', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+  if (phone && !(await isPhoneUnique(phone))) {
+    showToast('Phone number already registered', 'error');
     setFormLoading(signupForm, false);
     return;
   }
 
   const location = countryCode + (state ? `, ${state}` : '');
-  const payload = { name, email, password, phone, location, referralInput };
-
-  try {
-    const response = await fetch('https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/full-signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok || result.error) {
-      showToast(result.error || 'Signup failed. Try again.', 'error');
-      setFormLoading(signupForm, false);
-      return;
-    }
-
-    showToast('Signup successful! Check your email for verification.', 'success');
-    signupForm.reset();
-    speak('Welcome to Liyog World!');
-
-  } catch (err) {
-    console.error('Signup fetch error:', err);
-    showToast('Network error. Try again.', 'error');
-  } finally {
+  let referred_by = referralInput ? await resolveReferral(referralInput) : null;
+  if (referralInput && !referred_by) {
+    showToast('Invalid referral code', 'error');
     setFormLoading(signupForm, false);
+    return;
   }
+
+  const { data: authData, error: signUpError } = await supabase.auth.signUp({ email, password });
+  if (signUpError || !authData?.user) {
+    showToast('Signup error: ' + (signUpError?.message || 'Unknown'), 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  const referral_code = await generateUniqueReferralCode(name);
+  const { error: insertError } = await supabase.from('users').insert([{
+    id: authData.user.id,
+    name,
+    email,
+    phone: phone ? phone.replace(/[\s\-\(\)]/g, '') : null,
+    wallet_balance: 0,
+    total_liyog_coins: 0,
+    referred_by,
+    role: 'user',
+    location,
+    is_active: true,
+    referral_code
+  }]);
+  if (insertError) {
+    showToast('User insert error: ' + insertError.message, 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  showToast('Signup successful! Check your email for verification.');
+  signupForm.reset();
+  setFormLoading(signupForm, false);
+  speak('Welcome to LiyX!');
 });
+
 // ============================
 // Login Flow
 // ============================
