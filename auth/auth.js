@@ -214,17 +214,11 @@ supabase.auth.onAuthStateChange((event, session) => {
   }
 });
 
-// ============================
-// Signup Flow (Frontend - Edge Function)
-// ============================
 signupForm?.addEventListener('submit', async ev => {
   ev.preventDefault();
   authMessage.textContent = '';
   setFormLoading(signupForm, true);
 
-  // -------------------------
-  // Collect form values
-  // -------------------------
   const name = document.getElementById('signup-username').value.trim();
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
@@ -234,7 +228,7 @@ signupForm?.addEventListener('submit', async ev => {
   const referralInput = document.getElementById('signup-referral').value.trim();
 
   // -------------------------
-  // Validation
+  // Frontend Validations
   // -------------------------
   if (!name || !email || !password || !countryCode) {
     showToast('Please complete all required fields', 'error');
@@ -243,7 +237,7 @@ signupForm?.addEventListener('submit', async ev => {
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showToast('Invalid email address', 'error');
+    showToast('Invalid email', 'error');
     setFormLoading(signupForm, false);
     return;
   }
@@ -255,25 +249,19 @@ signupForm?.addEventListener('submit', async ev => {
   }
 
   if (phone && !/^\+?[1-9]\d{6,14}$/.test(phone.replace(/[\s\-\(\)]/g, ''))) {
-    showToast('Invalid phone number format', 'error');
+    showToast('Invalid phone number', 'error');
     setFormLoading(signupForm, false);
     return;
   }
 
-  // -------------------------
-  // Prepare payload
-  // -------------------------
   const location = countryCode + (state ? `, ${state}` : '');
   const payload = { name, email, password, phone, location, referralInput };
 
   try {
-    // -------------------------
-    // Call Edge Function
-    // -------------------------
     const response = await fetch('https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/full-signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     const result = await response.json();
@@ -284,13 +272,10 @@ signupForm?.addEventListener('submit', async ev => {
       return;
     }
 
-    // -------------------------
-    // Success
-    // -------------------------
     showToast('Signup successful! Check your email for verification.', 'success');
     signupForm.reset();
     speak('Welcome to Liyog World!');
-    
+
   } catch (err) {
     console.error('Signup fetch error:', err);
     showToast('Network error. Try again.', 'error');
@@ -298,8 +283,6 @@ signupForm?.addEventListener('submit', async ev => {
     setFormLoading(signupForm, false);
   }
 });
-
-
 // ============================
 // Login Flow
 // ============================
