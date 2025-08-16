@@ -289,7 +289,7 @@ signupForm?.addEventListener('submit', async ev => {
 
     console.log("📌 Step 2: Sending payload to Edge Function:", payload);
 
-    const resp = await fetch('/functions/v1/full-signup', {
+    const resp = await fetch('https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/full-signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
