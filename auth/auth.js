@@ -215,12 +215,16 @@ supabase.auth.onAuthStateChange((event, session) => {
 });
 
 // ============================
-// Signup Flow
+// Signup Flow (Frontend - Edge Function)
 // ============================
 signupForm?.addEventListener('submit', async ev => {
   ev.preventDefault();
+  authMessage.textContent = '';
   setFormLoading(signupForm, true);
 
+  // -------------------------
+  // Collect form values
+  // -------------------------
   const name = document.getElementById('signup-username').value.trim();
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
@@ -229,43 +233,73 @@ signupForm?.addEventListener('submit', async ev => {
   const state = document.getElementById('signup-state').value;
   const referralInput = document.getElementById('signup-referral').value.trim();
 
-  // --- Client-side validation ---
+  // -------------------------
+  // Validation
+  // -------------------------
   if (!name || !email || !password || !countryCode) {
-    showToast('Please fill all required fields', 'error');
-    setFormLoading(signupForm, false);
-    return;
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showToast('Invalid email', 'error');
-    setFormLoading(signupForm, false);
-    return;
-  }
-  if (password.length < 6) {
-    showToast('Password too short', 'error');
+    showToast('Please complete all required fields', 'error');
     setFormLoading(signupForm, false);
     return;
   }
 
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast('Invalid email address', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  if (password.length < 6) {
+    showToast('Password must be at least 6 characters', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  if (phone && !/^\+?[1-9]\d{6,14}$/.test(phone.replace(/[\s\-\(\)]/g, ''))) {
+    showToast('Invalid phone number format', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+
+  // -------------------------
+  // Prepare payload
+  // -------------------------
   const location = countryCode + (state ? `, ${state}` : '');
+  const payload = { name, email, password, phone, location, referralInput };
 
   try {
-    const res = await fetch('https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/full-signup', {
+    // -------------------------
+    // Call Edge Function
+    // -------------------------
+    const response = await fetch('https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/full-signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, phone, location, referralInput })
+      body: JSON.stringify(payload)
     });
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.error || 'Signup failed');
 
-    showToast('Signup successful! Check your email for verification.');
+    const result = await response.json();
+
+    if (!response.ok || result.error) {
+      showToast(result.error || 'Signup failed. Try again.', 'error');
+      setFormLoading(signupForm, false);
+      return;
+    }
+
+    // -------------------------
+    // Success
+    // -------------------------
+    showToast('Signup successful! Check your email for verification.', 'success');
     signupForm.reset();
-    speak('Welcome to LiyX!');
+    speak('Welcome to Liyog World!');
+    
   } catch (err) {
-    showToast(err.message, 'error');
+    console.error('Signup fetch error:', err);
+    showToast('Network error. Try again.', 'error');
   } finally {
     setFormLoading(signupForm, false);
   }
 });
+
+
 // ============================
 // Login Flow
 // ============================
