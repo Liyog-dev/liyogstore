@@ -214,10 +214,8 @@ supabase.auth.onAuthStateChange((event, session) => {
   }
 });
 
-
-    
 // ============================
-// Signup Flow (with frontend + backend logs)
+// Signup Flow (no partials; email verification optional)
 // ============================
 signupForm?.addEventListener("submit", async (ev) => {
   ev.preventDefault();
@@ -233,14 +231,7 @@ signupForm?.addEventListener("submit", async (ev) => {
     const state = document.getElementById("signup-state").value;
     const referralInput = document.getElementById("signup-referral").value.trim();
 
-    console.log("📤 Signup form values:", {
-      name,
-      email,
-      phone,
-      countryCode,
-      state,
-      referralInput,
-    });
+    console.log("📤 Signup form values:", { name, email, phone, countryCode, state, referralInput });
 
     // ---------- Frontend validation ----------
     if (!name || !email || !password || !countryCode) {
@@ -266,32 +257,27 @@ signupForm?.addEventListener("submit", async (ev) => {
 
     const location = countryCode + (state ? `, ${state}` : "");
 
-    // ---------- Call Postgres validation (RPC) ----------
-    console.log("📡 Calling validation RPC...");
-    const { data: prep, error: prepError } = await supabase.rpc(
-      "full_signup_validate",
-      {
-        p_name: name,
-        p_email: email,
-        p_phone: phone || null,
-        p_location: location,
-        p_referral_input: referralInput || null,
-      }
-    );
+    // ---------- Server-side validation (RPC) ----------
+    console.log("📡 Calling validation RPC full_signup_validate...");
+    const { data: prep, error: prepError } = await supabase.rpc("https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/full-signup", {
+      p_name: name,
+      p_email: email,
+      p_phone: phone || null,
+      p_location: location,
+      p_referral_input: referralInput || null
+    });
 
     console.log("📥 RPC response:", { prep, prepError });
 
     if (prepError || prep?.status === "error") {
-      const msg =
-        prepError?.message ||
-        prep?.message ||
-        "Validation failed. Please try again.";
+      const msg = prepError?.message || prep?.message || "Validation failed. Please check your details and try again.";
+      console.warn("⚠️ Validation problem:", { prepError, prep });
       showToast(msg, "error");
       setFormLoading(signupForm, false);
       return;
     }
 
-    // ---------- Call Edge Function ----------
+    // ---------- Atomic signup via Edge Function ----------
     const payload = {
       name,
       email,
@@ -300,42 +286,48 @@ signupForm?.addEventListener("submit", async (ev) => {
       location: prep.location || null,
       referred_by: prep.referred_by || null,
       referral_code: prep.referral_code,
-      role: "user",
+      role: "user"
     };
 
     console.log("📡 Sending payload to Edge Function:", payload);
 
-    const resp = await fetch("https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/full-signup", {
+    const resp = await fetch("/functions/v1/full-signup", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" }, // MUST be plain strings
+      body: JSON.stringify(payload)
     });
 
-    const result = await resp.json();
+    let result;
+    try {
+      result = await resp.json();
+    } catch (parseErr) {
+      console.error("❌ Could not parse JSON from function:", parseErr);
+      showToast("Signup failed (invalid response). Please try again.", "error");
+      setFormLoading(signupForm, false);
+      return;
+    }
+
     console.log("📥 Edge Function response:", result);
 
     if (!resp.ok || !result?.ok) {
-      showToast(
-        result?.error ||
-          "Signup failed while creating your account. Please try again.",
-        "error"
-      );
+      const idHint = result?.request_id ? ` (ref: ${result.request_id})` : "";
+      const msg = result?.error || "Signup failed while creating your account. Please try again.";
+      showToast(msg + idHint, "error");
       setFormLoading(signupForm, false);
       return;
     }
 
     // ✅ Success
-    showToast("Signup successful! 🎉", "success");
+    showToast("Signup successful! 🎉 You can verify your email later if you want.", "success");
     signupForm.reset();
     setFormLoading(signupForm, false);
     speak("Welcome to LiyXStore!");
   } catch (e) {
-    console.error("🔥 Frontend unexpected error:", e.message);
+    console.error("🔥 Frontend unexpected error:", e);
     showToast("Something went wrong. Please try again.", "error");
     setFormLoading(signupForm, false);
   }
 });
-
 
 // ============================
 // Login Flow
