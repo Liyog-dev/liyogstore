@@ -248,7 +248,7 @@ signupForm?.addEventListener('submit', async ev => {
     const location = countryCode + (state ? `, ${state}` : '');
 
     // ---------- Server-side validation & prep (no side effects) ----------
-    const { data: prep, error: prepError } = await supabase.rpc('full_signup_validate', {
+    const { data: prep, error: prepError } = await supabase.rpc('https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/full-signup', {
       p_name: name,
       p_email: email,
       p_phone: phone || null,
