@@ -214,67 +214,84 @@ supabase.auth.onAuthStateChange((event, session) => {
   }
 });
 
+
+    
 // ============================
-// Signup Flow (with debugging)
+// Signup Flow (with frontend + backend logs)
 // ============================
-signupForm?.addEventListener('submit', async ev => {
+signupForm?.addEventListener("submit", async (ev) => {
   ev.preventDefault();
-  authMessage.textContent = 'Creating your account...';
+  authMessage.textContent = "Creating your account...";
   setFormLoading(signupForm, true);
 
   try {
-    const name = document.getElementById('signup-username').value.trim();
-    const email = document.getElementById('signup-email').value.trim();
-    const password = document.getElementById('signup-password').value;
-    const phone = document.getElementById('signup-phone').value.trim();
-    const countryCode = document.getElementById('signup-country').value;
-    const state = document.getElementById('signup-state').value;
-    const referralInput = document.getElementById('signup-referral').value.trim();
+    const name = document.getElementById("signup-username").value.trim();
+    const email = document.getElementById("signup-email").value.trim();
+    const password = document.getElementById("signup-password").value;
+    const phone = document.getElementById("signup-phone").value.trim();
+    const countryCode = document.getElementById("signup-country").value;
+    const state = document.getElementById("signup-state").value;
+    const referralInput = document.getElementById("signup-referral").value.trim();
 
-    // ---------- Frontend checks ----------
+    console.log("📤 Signup form values:", {
+      name,
+      email,
+      phone,
+      countryCode,
+      state,
+      referralInput,
+    });
+
+    // ---------- Frontend validation ----------
     if (!name || !email || !password || !countryCode) {
-      showToast('Please fill all required fields ✍️', 'error');
+      showToast("Please fill all required fields ✍️", "error");
       setFormLoading(signupForm, false);
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showToast('That email looks invalid. Please check and try again 📧', 'error');
+      showToast("That email looks invalid 📧", "error");
       setFormLoading(signupForm, false);
       return;
     }
     if (password.length < 6) {
-      showToast('Password is too short (min 6 chars) 🔒', 'error');
+      showToast("Password too short (min 6 chars) 🔒", "error");
       setFormLoading(signupForm, false);
       return;
     }
     if (phone && !validatePhoneFormat(phone)) {
-      showToast('Phone number format is not valid for global use 📱', 'error');
+      showToast("Phone number invalid 📱", "error");
       setFormLoading(signupForm, false);
       return;
     }
 
-    const location = countryCode + (state ? `, ${state}` : '');
+    const location = countryCode + (state ? `, ${state}` : "");
 
-    console.log("📌 Step 1: Validating via RPC full_signup_validate…");
-    const { data: prep, error: prepError } = await supabase.rpc('full_signup_validate', {
-      p_name: name,
-      p_email: email,
-      p_phone: phone || null,
-      p_location: location,
-      p_referral_input: referralInput || null
-    });
+    // ---------- Call Postgres validation (RPC) ----------
+    console.log("📡 Calling validation RPC...");
+    const { data: prep, error: prepError } = await supabase.rpc(
+      "full_signup_validate",
+      {
+        p_name: name,
+        p_email: email,
+        p_phone: phone || null,
+        p_location: location,
+        p_referral_input: referralInput || null,
+      }
+    );
 
-    if (prepError || prep?.status === 'error') {
-      const msg = prepError?.message || prep?.message || 'We could not validate your details. Please try again.';
-      console.error("❌ RPC validation error:", prepError || prep);
-      showToast(msg, 'error');
+    console.log("📥 RPC response:", { prep, prepError });
+
+    if (prepError || prep?.status === "error") {
+      const msg =
+        prepError?.message ||
+        prep?.message ||
+        "Validation failed. Please try again.";
+      showToast(msg, "error");
       setFormLoading(signupForm, false);
       return;
     }
 
-    console.log("✅ RPC validated:", prep);
-
-    // ---------- Atomic signup via Edge Function ----------
+    // ---------- Call Edge Function ----------
     const payload = {
       name,
       email,
@@ -283,46 +300,38 @@ signupForm?.addEventListener('submit', async ev => {
       location: prep.location || null,
       referred_by: prep.referred_by || null,
       referral_code: prep.referral_code,
-      role: 'user'
+      role: "user",
     };
 
-    console.log("📌 Step 2: Sending payload to Edge Function:", payload);
+    console.log("📡 Sending payload to Edge Function:", payload);
 
-    const resp = await fetch('https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/full-signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+    const resp = await fetch("https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/full-signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
 
-    const resultText = await resp.text();
-    let result;
-    try {
-      result = JSON.parse(resultText);
-    } catch (parseErr) {
-      console.error("❌ Failed to parse Edge Function response:", resultText);
-      showToast("Server returned invalid response", 'error');
-      setFormLoading(signupForm, false);
-      return;
-    }
-
-    console.log("📌 Step 3: Edge Function response:", result);
+    const result = await resp.json();
+    console.log("📥 Edge Function response:", result);
 
     if (!resp.ok || !result?.ok) {
-      console.error("❌ Edge Function error:", result);
-      showToast(result?.error || 'Signup failed while creating your account. Please try again.', 'error');
+      showToast(
+        result?.error ||
+          "Signup failed while creating your account. Please try again.",
+        "error"
+      );
       setFormLoading(signupForm, false);
       return;
     }
 
     // ✅ Success
-    showToast('Signup successful! 🎉 You can verify your email later if you want.', 'success');
+    showToast("Signup successful! 🎉", "success");
     signupForm.reset();
     setFormLoading(signupForm, false);
-    speak('Welcome to LiyXStore!');
-
+    speak("Welcome to LiyXStore!");
   } catch (e) {
-    console.error("❌ Unexpected signup error:", e);
-    showToast('Something went wrong. Please try again.', 'error');
+    console.error("🔥 Frontend unexpected error:", e.message);
+    showToast("Something went wrong. Please try again.", "error");
     setFormLoading(signupForm, false);
   }
 });
