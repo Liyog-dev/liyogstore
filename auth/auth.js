@@ -273,7 +273,7 @@ signupForm?.addEventListener('submit', async ev => {
       role: 'user'
     };
 
-    const resp = await fetch('/functions/v1/full-signup', {
+    const resp = await fetch('https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/full-signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
