@@ -316,18 +316,28 @@ signupForm?.addEventListener('submit', async ev => {
     }]);
 
     if (insertError) {
-  // ===== Rollback Auth User via Edge Function =====
+  console.error("Custom users table insertion failed:", insertError.message);
+
   try {
-    await fetch('https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/rollback-user', {
+    const rollbackResp = await fetch('https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/rollback-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         user_id: authData.user.id,
-        secret_key: 'liyog@12#32##'  // Must match edge function secret
+        secret_key: 'liyog@12#32##'
       })
     });
+
+    const rollbackData = await rollbackResp.json();
+    console.log("Rollback response:", rollbackData);
+
+    if (!rollbackData.success) {
+      showToast('Could not rollback partially created account. Contact support', 'error', 5000);
+    }
+
   } catch (rollbackErr) {
     console.error("Rollback request failed:", rollbackErr);
+    showToast('Unexpected error during account cleanup. Contact support', 'error', 5000);
   }
 
   showToast('Something went wrong while creating your account. Please try again', 'error');
