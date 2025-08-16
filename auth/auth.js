@@ -215,50 +215,57 @@ supabase.auth.onAuthStateChange((event, session) => {
 });
 
 // ============================
-// Signup Flow via Edge Function
+// Signup Flow
 // ============================
-signupForm?.addEventListener("submit", async ev => {
+signupForm?.addEventListener('submit', async ev => {
   ev.preventDefault();
-  authMessage.textContent = "Creating account...";
   setFormLoading(signupForm, true);
 
-  const name = document.getElementById("signup-username").value.trim();
-  const email = document.getElementById("signup-email").value.trim();
-  const password = document.getElementById("signup-password").value;
-  const phone = document.getElementById("signup-phone").value.trim();
-  const countryCode = document.getElementById("signup-country").value;
-  const state = document.getElementById("signup-state").value;
-  const referralInput = document.getElementById("signup-referral").value.trim();
+  const name = document.getElementById('signup-username').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const phone = document.getElementById('signup-phone').value.trim();
+  const countryCode = document.getElementById('signup-country').value;
+  const state = document.getElementById('signup-state').value;
+  const referralInput = document.getElementById('signup-referral').value.trim();
 
+  // --- Client-side validation ---
   if (!name || !email || !password || !countryCode) {
-    showToast("Please complete required fields", "error");
+    showToast('Please fill all required fields', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast('Invalid email', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+  if (password.length < 6) {
+    showToast('Password too short', 'error');
     setFormLoading(signupForm, false);
     return;
   }
 
-  const location = countryCode + (state ? `, ${state}` : "");
+  const location = countryCode + (state ? `, ${state}` : '');
 
-  // Call Edge Function
-  const resp = await fetch("https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/full-signup", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password, phone, location, referralInput })
-  });
+  try {
+    const res = await fetch('https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/full-signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password, phone, location, referralInput })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Signup failed');
 
-  const result = await resp.json();
-
-  if (!resp.ok || result.error) {
-    showToast("Signup failed: " + result.error, "error");
+    showToast('Signup successful! Check your email for verification.');
+    signupForm.reset();
+    speak('Welcome to LiyX!');
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
     setFormLoading(signupForm, false);
-    return;
   }
-
-  showToast("Signup successful! Check your email for verification.");
-  signupForm.reset();
-  setFormLoading(signupForm, false);
-  speak("Welcome to LiyXStore!");
 });
-
 // ============================
 // Login Flow
 // ============================
