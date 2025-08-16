@@ -215,7 +215,7 @@ supabase.auth.onAuthStateChange((event, session) => {
 });
 
 // ============================
-// Signup Flow with Full Pre-Check
+// Signup Flow with Two-Step Verification + Spinner + Rollback
 // ============================
 signupForm?.addEventListener('submit', async ev => {
   ev.preventDefault();
@@ -232,91 +232,41 @@ signupForm?.addEventListener('submit', async ev => {
   const state = document.getElementById('signup-state').value;
   const referralInput = document.getElementById('signup-referral').value.trim();
 
-  // ===== Step 1: Frontend Verification =====
-  if (!name || !email || !password || !countryCode) {
-    showToast('Please fill in all required fields', 'error');
-    setFormLoading(signupForm, false);
-    return;
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showToast('Oops! Your email seems invalid', 'error');
-    setFormLoading(signupForm, false);
-    return;
-  }
-  if (password.length < 6) {
-    showToast('Password too short! Must be at least 6 characters', 'error');
-    setFormLoading(signupForm, false);
-    return;
-  }
-  if (phone && !validatePhoneFormat(phone)) {
-    showToast('Phone number format is incorrect', 'error');
-    setFormLoading(signupForm, false);
-    return;
-  }
-
-  // ===== Step 2: Check duplicates BEFORE signup =====
   try {
-    // Check email uniqueness
-    const { data: emailCheck, error: emailErr } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .maybeSingle();
-
-    if (emailErr) throw emailErr;
-    if (emailCheck) {
-      showToast('This email is already registered. Try logging in', 'error');
-      setFormLoading(signupForm, false);
-      return;
-    }
-
-    // Check phone uniqueness
+    // ===== Step 1: Frontend Verification =====
+    if (!name || !email || !password || !countryCode) throw new Error('Please fill in all required fields');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Oops! Your email seems invalid');
+    if (password.length < 6) throw new Error('Password too short! Must be at least 6 characters');
     if (phone) {
-      const phoneCleaned = phone.replace(/[\s-]/g, '');
-      const { data: phoneCheck, error: phoneErr } = await supabase
-        .from('users')
-        .select('id')
-        .eq('phone', phoneCleaned)
-        .maybeSingle();
-
-      if (phoneErr) throw phoneErr;
-      if (phoneCheck) {
-        showToast('This phone number is already registered', 'error');
-        setFormLoading(signupForm, false);
-        return;
-      }
+      if (!validatePhoneFormat(phone)) throw new Error('Phone number format is incorrect');
+      if (!(await isPhoneUnique(phone))) throw new Error('This phone number is already registered');
     }
 
-  } catch (dupErr) {
-    console.error("Duplicate check failed:", dupErr);
-    showToast('Error checking existing accounts. Please try again', 'error');
-    setFormLoading(signupForm, false);
-    return;
-  }
-
-  // ===== Step 3: Referral Code =====
-  let referred_by = null;
-  if (referralInput) {
-    referred_by = await resolveReferral(referralInput);
-    if (!referred_by) {
-      showToast('Hmm, the referral code seems invalid', 'error');
-      setFormLoading(signupForm, false);
-      return;
+    // Referral code validation
+    let referred_by = null;
+    if (referralInput) {
+      referred_by = await resolveReferral(referralInput);
+      if (!referred_by) throw new Error('Hmm, the referral code seems invalid');
     }
-  }
 
-  showToast('All checks passed! Preparing to create your account...', 'success', 2000);
+    // ===== Show verification passed spinner =====
+    showToast('All checks passed! Preparing to create your account...', 'success', 3000);
+    const verificationSpinner = document.createElement('div');
+    verificationSpinner.className = 'verification-spinner';
+    verificationSpinner.textContent = '🔄 Verifying your information...';
+    signupForm.appendChild(verificationSpinner);
 
-  // ===== Step 4: Backend Signup =====
-  const location = countryCode + (state ? `, ${state}` : '');
-  try {
-    // Create auth user
+    // ===== Step 2: Signup =====
+    const location = countryCode + (state ? `, ${state}` : '');
+    // Show signup spinner
+    const signupSpinner = document.createElement('div');
+    signupSpinner.className = 'signup-spinner';
+    signupSpinner.textContent = '🚀 Signing up on LiyXStore...';
+    signupForm.appendChild(signupSpinner);
+
+    // Insert into auth.users
     const { data: authData, error: signUpError } = await supabase.auth.signUp({ email, password });
-    if (signUpError || !authData?.user) {
-      showToast('Oops! Could not create your account. Please try again', 'error');
-      setFormLoading(signupForm, false);
-      return;
-    }
+    if (signUpError || !authData?.user) throw new Error('Oops! Could not create your account. Please try again');
 
     // Insert into custom users table
     const referral_code = await generateUniqueReferralCode(name);
@@ -335,37 +285,42 @@ signupForm?.addEventListener('submit', async ev => {
     }]);
 
     if (insertError) {
-      // Rollback auth user via edge function
-      await fetch('https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/rollback-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: authData.user.id,
-          secret_key: 'liyog@12#32##'
-        })
-      });
-
-      showToast('Something went wrong while creating your account. Please try again', 'error');
-      setFormLoading(signupForm, false);
-      return;
+      // Rollback auth.user via Edge Function
+      try {
+        await fetch('https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/rollback-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: authData.user.id,
+            secret_key: 'liyog@12#32##'
+          })
+        });
+      } catch (rollbackErr) {
+        console.error("Rollback request failed:", rollbackErr);
+      }
+      throw new Error('Something went wrong while creating your account. Please try again');
     }
 
     // ===== Success =====
-    showToast('Account created successfully! Check your email to verify your account', 'success');
+    showToast('🎉 Account created successfully! Check your email to verify your account', 'success');
     signupForm.reset();
     speak('Welcome to LiyX!');
-    setFormLoading(signupForm, false);
-
     setTimeout(() => {
       window.location.href = `/user/profile.html?id=${authData.user.id}`;
     }, 900);
 
   } catch (err) {
-    console.error('Unexpected signup error:', err);
-    showToast('Unexpected error occurred. Please try again later', 'error');
+    // Friendly error message
+    showToast(err.message || 'Unexpected error occurred. Please try again later', 'error');
+  } finally {
     setFormLoading(signupForm, false);
+    // Remove all spinners
+    document.querySelectorAll('.verification-spinner, .signup-spinner').forEach(el => el.remove());
   }
 });
+        
+
+  
 
 // ============================
 // Login Flow
