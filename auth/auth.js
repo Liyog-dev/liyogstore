@@ -215,98 +215,78 @@ supabase.auth.onAuthStateChange((event, session) => {
 });
 
 // ============================
-// Signup Flow with Two-Step Verification + Spinner + Rollback
+// Signup Flow
 // ============================
 signupForm?.addEventListener('submit', async ev => {
   ev.preventDefault();
-  authMessage.textContent = '';
+  authMessage.textContent = 'Creating account...';
   setFormLoading(signupForm, true);
 
-  // ===== Collect Input Values =====
   const name = document.getElementById('signup-username').value.trim();
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
-  const phone = document.getElementById('signup-phone').value.trim();
   const countryCode = document.getElementById('signup-country').value;
   const state = document.getElementById('signup-state').value;
   const referralInput = document.getElementById('signup-referral').value.trim();
 
-  try {
-    // ===== Frontend Verification =====
-    if (!name || !email || !password || !countryCode) throw new Error('Please fill in all required fields');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Oops! Your email seems invalid');
-    if (password.length < 6) throw new Error('Password too short! Must be at least 6 characters');
-    if (phone) {
-      if (!validatePhoneFormat(phone)) throw new Error('Phone number format is incorrect');
-      if (!(await isPhoneUnique(phone))) throw new Error('This phone number is already registered');
-    }
+  if (!name || !email || !password || !countryCode) {
+    showToast('Please complete required fields', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast('Invalid email', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+  if (password.length < 6) {
+    showToast('Password too short', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
+  
+  const location = countryCode + (state ? `, ${state}` : '');
+  let referred_by = referralInput ? await resolveReferral(referralInput) : null;
+  if (referralInput && !referred_by) {
+    showToast('Invalid referral code', 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
 
-    // Referral code
-    let referred_by = null;
-    if (referralInput) {
-      referred_by = await resolveReferral(referralInput);
-      if (!referred_by) throw new Error('Hmm, the referral code seems invalid');
-    }
+  const { data: authData, error: signUpError } = await supabase.auth.signUp({ email, password });
+  if (signUpError || !authData?.user) {
+    showToast('Signup error: ' + (signUpError?.message || 'Unknown'), 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
 
-    showToast('All checks passed! Preparing to create your account...', 'success', 3000);
-    const verificationSpinner = document.createElement('div');
-    verificationSpinner.className = 'verification-spinner';
-    verificationSpinner.textContent = '🔄 Verifying...';
-    signupForm.appendChild(verificationSpinner);
+  const referral_code = await generateUniqueReferralCode(name);
+  const { error: insertError } = await supabase.from('users').insert([{
+    id: authData.user.id,
+    name,
+    email,
+    wallet_balance: 0,
+    total_liyog_coins: 0,
+    referred_by,
+    role: 'user',
+    location,
+    is_active: true,
+    referral_code
+  }]);
+  if (insertError) {
+    showToast('User insert error: ' + insertError.message, 'error');
+    setFormLoading(signupForm, false);
+    return;
+  }
 
-    // ===== Backend Signup =====
-    const location = countryCode + (state ? `, ${state}` : '');
-    const { data: authData, error: signUpError } = await supabase.auth.signUp({ email, password });
-
-    if (signUpError || !authData?.user) throw new Error('Oops! Could not create your account. Please try again');
-
-    // ===== Insert into Custom Users Table =====
-    const referral_code = await generateUniqueReferralCode(name);
-    const { error: insertError } = await supabase.from('users').insert([{
-      id: authData.user.id,
-      name,
-      email,
-      phone: phone ? phone.replace(/[\s-]/g, '') : null,
-      wallet_balance: 0,
-      total_liyog_coins: 0,
-      referred_by,
-      role: 'user',
-      location,
-      is_active: true,
-      referral_code
-    }]);
-
-    if (insertError) {
-      // ===== Rollback Auth User via Edge Function =====
-      const rollbackResponse = await fetch('https://snwwlewjriuqrodpjhry.supabase.co/functions/v1/rollback-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: authData.user.id, secret_key: 'liyog@12#32##' })
-      });
-      const rollbackResult = await rollbackResponse.json();
-
-      if (rollbackResult.success) {
-        throw new Error('Something went wrong while creating your account. We have rolled back your registration. Please try again.');
-      } else {
-        throw new Error('Something went wrong while creating your account. Also, rollback failed. Please contact support.');
-      }
-    }
-
-    // ===== Success =====
-    showToast('Account created successfully! Check your email to verify your account', 'success');
-    signupForm.reset();
-    speak('Welcome to LiyX!');
-    setTimeout(() => {
+  showToast('Signup successful! Check your email for verification.');
+  signupForm.reset();
+  setFormLoading(signupForm, false);
+  speak('Welcome to liyXStore!');
+  setTimeout(() => {
       window.location.href = `/user/profile.html?id=${authData.user.id}`;
     }, 900);
 
-  } catch (err) {
-    console.error(err);
-    showToast(err.message || 'Unexpected error occurred. Please try again later', 'error');
-  } finally {
-    setFormLoading(signupForm, false);
-    document.querySelectorAll('.verification-spinner').forEach(el => el.remove());
-  }
 });
 
 // ============================
