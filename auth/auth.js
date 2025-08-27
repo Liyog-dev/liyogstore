@@ -266,7 +266,7 @@ signupForm?.addEventListener('submit', async ev => {
     name,
     email,
     wallet_balance: 0,
-    total_liyog_coins: 0,
+    total_liyogx_coins: 0,
     referred_by,
     role: 'user',
     location,
