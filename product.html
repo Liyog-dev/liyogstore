@@ -315,6 +315,7 @@ let state = {
     reviewsPage: 1,
     reviewsPerPage: 5,
     hasMoreReviews: true,
+    isLiked: false, // NEW: Track like status
 };
 
 // ===================================================================
@@ -371,11 +372,6 @@ const DOMElements = {
 // ===================================================================
 async function fetchProduct(slug) {
     try {
-        // Increment total_views on product fetch
-        await supabaseClient
-            .from('products')
-            .rpc('increment_product_views', { p_slug: slug }); // Call an RPC function if you have one, or use update
-
         const { data, error } = await supabaseClient
             .from('products')
             .select('*')
@@ -394,18 +390,27 @@ async function fetchProduct(slug) {
     }
 }
 
-// Example RPC for incrementing views (you'll need to create this in Supabase)
-/*
-CREATE OR REPLACE FUNCTION increment_product_views(p_slug text)
-RETURNS VOID AS $$
-BEGIN
-    UPDATE products
-    SET total_views = total_views + 1
-    WHERE slug = p_slug;
-END;
-$$ LANGUAGE plpgsql;
-*/
+// FIX 1. Corrected/Upgraded Function: Check for existing like AND return its ID for deletion.
+// This replaces the previous boolean check.
+async function getExistingLike(productId, userId) {
+    if (!userId) return null;
+    try {
+        const { data, error } = await supabaseClient
+            .from('likes')
+            .select('id')
+            .eq('product_id', productId)
+            .eq('user_id', userId)
+            .maybeSingle(); // Gets the single row or null
+        
+        if (error) throw error;
 
+        return data ? data.id : null; // Returns the UUID of the like row or null
+    } catch (error) {
+        if (error.code === 'PGRST116') return null; // No rows found
+        console.error("Error checking if product is liked:", error.message);
+        return null;
+    }
+}
 
 async function fetchSettings() {
     try {
@@ -516,22 +521,13 @@ async function fetchYouMayLikeProducts() {
     }
 }
 
-async function checkIfProductLikedByUser(productId, userId) {
-    if (!userId) return false;
-    try {
-        const { data, error } = await supabaseClient
-            .from('likes')
-            .select('id')
-            .eq('product_id', productId)
-            .eq('user_id', userId)
-            .single();
-        return data !== null;
-    } catch (error) {
-        if (error.code === 'PGRST116') return false; // No rows found
-        console.error("Error checking if product is liked:", error.message);
-        return false;
-    }
+// NOTE: The previous checkIfProductLikedByUser is replaced by getExistingLike.
+// This placeholder is kept here to show where the old function was.
+/* async function checkIfProductLikedByUser(productId, userId) {
+    // ... logic was here ...
 }
+*/
+
 
 // ===================================================================
 // RENDER FUNCTIONS
@@ -594,6 +590,13 @@ function renderProductDetails() {
     // Description
     // Ensure description is sanitized before rendering
     DOMElements.descriptionContent.innerHTML = DOMPurify.sanitize(p.description_html || '<p class="text-gray-500">No detailed description available.</p>');
+    
+    // Set initial like state
+    if (state.isLiked) {
+        DOMElements.likeIcon.classList.add('like-icon-filled');
+    } else {
+        DOMElements.likeIcon.classList.remove('like-icon-filled');
+    }
 }
 
 function renderMediaGallery() {
@@ -788,7 +791,7 @@ function setupEventHandlers() {
     DOMElements.mobileOrderNowBtn.addEventListener('click', handleOrderNow);
 
     // Like Button
-    DOMElements.likeBtn.addEventListener('click', handleLike);
+    DOMElements.likeBtn.addEventListener('click', handleToggleLike); // FIX: Pointing to the new toggle function
 
     // Share Button
     DOMElements.shareBtn.addEventListener('click', handleShare);
@@ -812,61 +815,75 @@ function setupEventHandlers() {
     DOMElements.loadMoreReviewsBtn.addEventListener('click', fetchReviews);
 }
 
-async function handleLike() {
+// FIX 2. Completely REWRITTEN handleLike function for toggle and DB-only counter update
+async function handleToggleLike() {
+    DOMElements.likeBtn.disabled = true; // Disable button immediately to prevent double-click
+
     if (!state.currentUser) {
         alert("Please log in to like products.");
-        // Optional: redirect to login page
-        // window.location.href = '/auth/auth.html';
+        DOMElements.likeBtn.disabled = false;
         return;
     }
     
-    // Check if the user already liked this product (prevent multiple likes)
-    const alreadyLiked = await checkIfProductLikedByUser(state.product.id, state.currentUser.id);
-    if (alreadyLiked) {
-        alert("You've already liked this product!");
-        return;
-    }
-
-    // Optimistic UI update
-    let currentLikes = parseInt(DOMElements.totalLikes.textContent.replace(/,/g, ''), 10);
-    DOMElements.totalLikes.textContent = (currentLikes + 1).toLocaleString();
-    DOMElements.likeIcon.classList.add('like-icon-filled');
-    DOMElements.likeBtn.disabled = true; // Disable to prevent double-click and multiple likes
+    const productId = state.product.id;
+    const userId = state.currentUser.id;
+    
+    // Check if a like already exists (we get the ID of the like row if it exists)
+    const existingLikeId = await getExistingLike(productId, userId);
+    
+    let action = '';
 
     try {
-        const { error } = await supabaseClient.from('likes').insert({
-            user_id: state.currentUser.id,
-            product_id: state.product.id
-        });
-        if (error) throw error;
+        if (existingLikeId) {
+            // UNLIKE action: DELETE the existing row
+            const { error } = await supabaseClient
+                .from('likes')
+                .delete()
+                .eq('id', existingLikeId);
+            
+            if (error) throw error;
+            action = 'unliked';
 
-        // Also update product's total_likes count
-        await supabaseClient
+        } else {
+            // LIKE action: INSERT a new row
+            const { error } = await supabaseClient
+                .from('likes')
+                .insert({ user_id: userId, product_id: productId });
+            
+            if (error) throw error;
+            action = 'liked';
+        }
+        
+        // **IMPORTANT:** The database trigger now handles updating products.total_likes.
+        // We must re-fetch the product to get the true, updated count.
+        const { data: updatedProduct, error: fetchError } = await supabaseClient
             .from('products')
-            .rpc('increment_product_likes', { p_product_id: state.product.id }); // Assuming you have this RPC
+            .select('total_likes')
+            .eq('id', productId)
+            .single();
 
-        // If successful, the UI is already updated.
+        if (fetchError) {
+             console.error("Failed to re-fetch likes count:", fetchError);
+             // Best effort: switch icon and let the number be slightly delayed
+             if (action === 'liked') state.isLiked = true; else state.isLiked = false;
+        } else {
+            // Update state and UI with the true, database-confirmed values
+            state.product.total_likes = updatedProduct.total_likes;
+            state.isLiked = (action === 'liked');
+        }
+        
+        renderProductDetails(); // Re-render to update the icon and the count number
+
     } catch (error) {
-        console.error("Failed to like product:", error);
-        // Revert on failure
-        DOMElements.totalLikes.textContent = currentLikes.toLocaleString();
-        DOMElements.likeIcon.classList.remove('like-icon-filled');
-        DOMElements.likeBtn.disabled = false;
-        alert("Couldn't save your like. Please try again.");
+        console.error(`Failed to ${action} product:`, error);
+        alert(`Could not save your action. Please try again. Error: ${error.message}`);
+    } finally {
+        DOMElements.likeBtn.disabled = false; // Re-enable the button
     }
 }
 
-// Example RPC for incrementing likes (you'll need to create this in Supabase)
-/*
-CREATE OR REPLACE FUNCTION increment_product_likes(p_product_id uuid)
-RETURNS VOID AS $$
-BEGIN
-    UPDATE products
-    SET total_likes = total_likes + 1
-    WHERE id = p_product_id;
-END;
-$$ LANGUAGE plpgsql;
-*/
+// NOTE: The previous RPC-based `handleLike` function is removed completely.
+
 
 async function handleShare() {
     // Fetch user's referral code if not already available
@@ -965,14 +982,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         ]);
         state.currentUser = sessionResponse.data?.session?.user || null;
         
-        state.product = await fetchProduct(slug);
+        // Removed RPC call from fetchProduct as it needs the ID, which is only available *after* the fetch
+        state.product = await fetchProduct(slug); 
+        
+        // FIX 3. Separated RPC call for views to run *after* product ID is available
+        // This ensures the RPC signature `increment_product_views(pid UUID)` is correctly used.
+        if (state.product) {
+             const { error: rpcError } = await supabaseClient
+                .rpc('increment_product_views', { pid: state.product.id }); 
+             if (rpcError) {
+                console.error("Failed to increment product views via RPC:", rpcError);
+             }
+        }
+
 
         // After product is loaded, check like status if a user is logged in
         if (state.currentUser && state.product) {
-            const liked = await checkIfProductLikedByUser(state.product.id, state.currentUser.id);
-            if (liked) {
-                DOMElements.likeIcon.classList.add('like-icon-filled');
-                DOMElements.likeBtn.disabled = true; // Prevent re-liking
+            const existingLikeId = await getExistingLike(state.product.id, state.currentUser.id);
+            if (existingLikeId) {
+                state.isLiked = true;
             }
         }
 
