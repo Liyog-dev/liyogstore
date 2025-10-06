@@ -236,18 +236,12 @@
      * @param {object} product The product data from Supabase.
      * @returns {string} The HTML string for the product card.
      */
-    function createProductCardHTML(product) {
-        // --- Data Preparation ---
-        const imageUrl = (product.image_urls && product.image_urls.length > 0)
-            ? product.image_urls[0]
-            : "https://via.placeholder.com/400?text=Liyog";
 
+   function createProductCardHTML(product) {
+        const imageUrl = (product.image_urls && product.image_urls.length > 0) ? product.image_urls[0] : "https://via.placeholder.com/400?text=Liyog";
         const isPublished = product.published;
         const outOfStockClass = !isPublished ? 'opacity-60 grayscale' : '';
-        // Removed `pointer-events-none` from `outOfStockPointer` to allow clicking out-of-stock products
-        const outOfStockPointer = ''; 
 
-        // --- Price Calculation ---
         let finalPrice = product.price;
         let originalPrice = product.price;
         let discountPercentage = product.discount_percent || 0;
@@ -262,88 +256,41 @@
             hasDiscount = true;
         }
 
-        // --- HTML Components ---
-        const discountBadge = hasDiscount
-            ? `<div class="absolute top-2 left-2 bg-gradient-to-r from-accent to-[#ffd700] text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-md">-${discountPercentage}%</div>`
-            : "";
-
-        const stockBadge = isPublished
-            ? `<div class="text-xs font-bold text-green-600">In Stock</div>`
-            : `<div class="text-xs font-bold text-red-600">Out of Stock</div>`;
-
-        const outOfStockOverlay = !isPublished
-            ? `<div class="absolute inset-0 bg-white/50 flex items-center justify-center"><span class="text-lg font-bold text-gray-700 bg-white/80 px-4 py-2 rounded-lg">Out of Stock</span></div>`
-            : "";
-        
-        const likesAndViews = `
-            <div class="absolute top-2 right-2 flex flex-col items-end gap-1 text-white text-xs">
-                <div class="bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>
-                    <span>${product.total_likes || 0}</span>
-                </div>
-                <div class="bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path><path fill-rule="evenodd" d="M.458 10C3.732 4.143 10 4.143 16.268 10c-3.273 5.857-9.536 5.857-12.81 0zM10 14a4 4 0 100-8 4 4 0 000 8z" clip-rule="evenodd"></path></svg>
-                    <span>${product.total_views || 0}</span>
-                </div>
-            </div>`;
+        const discountBadge = hasDiscount ? `<div class="absolute top-2 left-2 bg-gradient-to-r from-accent to-[#ffd700] text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-md">-${discountPercentage}%</div>` : "";
+        const stockBadge = isPublished ? `<div class="text-xs font-bold text-green-600">In Stock</div>` : `<div class="text-xs font-bold text-red-600">Out of Stock</div>`;
+        const outOfStockOverlay = !isPublished ? `<div class="absolute inset-0 bg-white/50 flex items-center justify-center"><span class="text-lg font-bold text-gray-700 bg-white/80 px-4 py-2 rounded-lg">Out of Stock</span></div>` : "";
         
         return `
             <div class="bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 group overflow-hidden flex flex-col border border-gray-200/80 ${outOfStockClass}" data-published="${isPublished}">
-                <a href="product.html?p=${product.slug}" class="block relative overflow-hidden ${outOfStockPointer}">
+                <a href="product.html?slug=${product.slug}" class="block relative overflow-hidden">
                     <div class="aspect-square w-full">
                         <img src="${imageUrl}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
                     </div>
                     ${discountBadge}
-                    ${likesAndViews}
                     ${outOfStockOverlay}
                 </a>
 
                 <div class="p-3 sm:p-4 flex flex-col flex-grow">
-                    <div class="flex justify-between items-center mb-2">
-                        ${stockBadge}
-                    </div>
-
                     <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 flex-grow mb-2">
-                        <a href="product.html?p=${product.slug}" class="hover:text-liyog-dark transition-colors">${product.name}</a>
+                        <a href="product.html?slug=${product.slug}" class="hover:text-liyog-dark transition-colors">${product.name}</a>
                     </h3>
-
-                    <div class="flex items-center gap-2 text-xs text-gray-500 mb-3">
-                        ${generateStarRatingHTML(product.avg_rating)}
-                        <span class="font-bold text-gray-700">${(product.avg_rating || 0).toFixed(1)}</span>
-                        <span>(${(product.total_reviews || 0).toLocaleString()})</span>
-                    </div>
 
                     <div class="mb-3">
                         <span class="text-xl font-extrabold text-liyog-dark">₦${finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         ${hasDiscount ? `<span class="text-sm line-through text-gray-400 ml-2">₦${originalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : ''}
                     </div>
                     
-                    <div class="border-t border-gray-100 pt-3 mt-auto space-y-2 text-xs">
-                        <div class="flex justify-between items-center text-gray-600">
-                           <span><strong class="font-semibold text-gray-800">${(product.total_orders || 0).toLocaleString()}</strong> sold</span>
-                           <span class="flex items-center gap-1 font-semibold text-amber-600">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM6.343 6.343a.5.5 0 01.707 0L10 9.293l2.95-2.95a.5.5 0 11.707.707L10.707 10l2.95 2.95a.5.5 0 01-.707.707L10 10.707l-2.95 2.95a.5.5 0 01-.707-.707L9.293 10 6.343 7.05a.5.5 0 010-.707z"></path></svg>
-                                Earn <strong class="text-base">${product.liyogx_coins || 0}</strong> LXC
-                           </span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="px-2 pb-2 mt-1 ${outOfStockPointer}">
-                    <div class="flex flex-col rounded-lg overflow-hidden shadow-inner font-bold text-sm text-center">
-                        <button class="w-full px-3 py-2.5 bg-liyog text-white hover:bg-liyog-dark transition-colors duration-300">
-                            Add to Cart
-                        </button>
-                        <div class="h-0.5 bg-white/50"></div>
-                        <button class="w-full px-3 py-2.5 bg-accent text-white hover:bg-accent-dark transition-colors duration-300">
-                            Order Now
-                        </button>
-                    </div>
+                    <button class="w-full mt-auto px-3 py-2.5 bg-liyog text-white hover:bg-liyog-dark transition-colors duration-300 rounded-lg font-bold text-sm">
+                        Add to Cart
+                    </button>
                 </div>
             </div>
         `;
     }
-
+   
+    
+        
+        
 
     /**
      * Renders a skeleton loader card.
