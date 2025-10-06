@@ -17,6 +17,7 @@
     <style>
         :root {
             --liyog-green: #28A428;
+            --liyog-green-light: #34bf49; /* Added for consistency with products.html */
             --liyog-green-dark: #228B22;
             --liyog-deep-green: #006400;
             --liyog-gold: #ffd700;
@@ -28,19 +29,29 @@
             background-color: #f8fafc; /* A slightly softer gray */
             color: #1e293b; 
         }
+        /* Adjusted shimmer effect for better visibility */
         .shimmer::after {
             content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
             transform: translateX(-100%);
-            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0));
-            animation: shimmer 2s infinite;
+            background-image: linear-gradient(90deg, 
+                rgba(255, 255, 255, 0) 0%, 
+                rgba(255, 255, 255, 0.1) 20%, 
+                rgba(255, 255, 255, 0.4) 60%, 
+                rgba(255, 255, 255, 0) 100%
+            );
+            animation: shimmer 1.8s infinite; /* Slightly faster shimmer */
         }
         @keyframes shimmer { 100% { transform: translateX(100%); } }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
+        /* Enhanced thumbnail active state */
         .thumb-active {
-            outline: 2px solid var(--liyog-green);
+            outline: 3px solid var(--liyog-green); /* Thicker outline */
             outline-offset: 2px;
+            box-shadow: 0 0 0 4px rgba(40, 164, 40, 0.3); /* Subtle glow */
+            transform: scale(1.05); /* Slightly larger on active */
+            transition: all 0.2s ease-out; /* Smooth transition */
         }
         .tab-btn-active {
             color: var(--liyog-green-dark);
@@ -50,6 +61,24 @@
         .like-icon-filled {
             color: #ef4444; /* red-500 */
         }
+
+        /* Custom styles for YouTube iframes to ensure full responsiveness */
+        .responsive-iframe-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 0.5rem; /* Match parent rounded-lg */
+        }
+        .responsive-iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
     </style>
     <script>
         tailwind.config = {
@@ -58,6 +87,7 @@
                     colors: {
                         liyog: {
                             green: 'var(--liyog-green)',
+                            'green-light': 'var(--liyog-green-light)', // Added
                             'green-dark': 'var(--liyog-green-dark)',
                             'deep-green': 'var(--liyog-deep-green)',
                             gold: 'var(--liyog-gold)',
@@ -95,21 +125,56 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
                 <div class="relative overflow-hidden">
                     <div class="aspect-square w-full bg-gray-200 rounded-lg shimmer"></div>
-                    <div class="flex gap-2 mt-4">
-                        <div class="w-20 h-20 bg-gray-200 rounded shimmer"></div>
-                        <div class="w-20 h-20 bg-gray-200 rounded shimmer"></div>
-                        <div class="w-20 h-20 bg-gray-200 rounded shimmer"></div>
+                    <div class="flex gap-2 mt-4 hide-scrollbar overflow-x-auto pb-2">
+                        <div class="flex-shrink-0 w-20 h-20 bg-gray-200 rounded shimmer"></div>
+                        <div class="flex-shrink-0 w-20 h-20 bg-gray-200 rounded shimmer"></div>
+                        <div class="flex-shrink-0 w-20 h-20 bg-gray-200 rounded shimmer"></div>
+                        <div class="flex-shrink-0 w-20 h-20 bg-gray-200 rounded shimmer hidden sm:block"></div>
+                        <div class="flex-shrink-0 w-20 h-20 bg-gray-200 rounded shimmer hidden lg:block"></div>
                     </div>
                 </div>
                 <div class="space-y-6">
-                    <div class="h-8 bg-gray-200 rounded w-3/4 shimmer"></div>
-                    <div class="flex items-center gap-4">
-                        <div class="h-5 bg-gray-200 rounded w-32 shimmer"></div>
-                        <div class="h-5 bg-gray-200 rounded w-24 shimmer"></div>
+                    <div class="h-4 bg-gray-200 rounded w-24 shimmer"></div> <div class="h-10 bg-gray-200 rounded w-full shimmer"></div> <div class="h-10 bg-gray-200 rounded w-5/6 shimmer"></div> <div class="flex items-center gap-4">
+                        <div class="h-5 bg-gray-200 rounded w-32 shimmer"></div> <div class="h-5 bg-gray-200 rounded w-24 shimmer"></div> </div>
+                    <div class="flex gap-3 mt-4 hide-scrollbar overflow-x-auto pb-2">
+                        <div class="px-3 py-1 bg-gray-200 rounded-full w-20 shimmer"></div>
+                        <div class="px-3 py-1 bg-gray-200 rounded-full w-24 shimmer"></div>
+                        <div class="px-3 py-1 bg-gray-200 rounded-full w-16 shimmer"></div>
                     </div>
-                    <div class="h-12 bg-gray-200 rounded w-1/3 shimmer"></div>
-                    <div class="h-16 bg-gray-200 rounded w-full shimmer"></div>
-                    <div class="h-12 bg-gray-200 rounded w-full shimmer"></div>
+                    <div class="my-6 bg-gray-100 p-4 rounded-lg border h-24 shimmer"></div> <div class="h-14 bg-gray-200 rounded-lg w-full shimmer"></div> <div class="h-14 bg-gray-200 rounded-lg w-full shimmer"></div> <div class="flex items-center gap-4 mt-6">
+                         <div class="h-8 bg-gray-200 rounded w-24 shimmer"></div> <div class="h-8 bg-gray-200 rounded w-24 shimmer"></div> <div class="h-8 bg-gray-200 rounded w-20 ml-auto shimmer"></div> </div>
+                </div>
+            </div>
+            <div class="mt-16 bg-white p-6 rounded-lg border">
+                <div class="border-b border-gray-200 pb-4 mb-4">
+                    <div class="-mb-px flex space-x-8">
+                        <div class="h-6 bg-gray-200 rounded w-24 shimmer"></div>
+                        <div class="h-6 bg-gray-200 rounded w-24 shimmer"></div>
+                    </div>
+                </div>
+                <div class="py-6 space-y-3">
+                    <div class="h-4 bg-gray-200 rounded w-full shimmer"></div>
+                    <div class="h-4 bg-gray-200 rounded w-5/6 shimmer"></div>
+                    <div class="h-4 bg-gray-200 rounded w-full shimmer"></div>
+                    <div class="h-4 bg-gray-200 rounded w-4/5 shimmer"></div>
+                </div>
+            </div>
+            <div class="mt-16">
+                <div class="h-8 bg-gray-200 rounded w-1/3 mb-6 shimmer"></div>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer"></div>
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer"></div>
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer hidden md:block"></div>
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer hidden lg:block"></div>
+                </div>
+            </div>
+             <div class="mt-16">
+                <div class="h-8 bg-gray-200 rounded w-1/3 mb-6 shimmer"></div>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer"></div>
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer"></div>
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer hidden md:block"></div>
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer hidden lg:block"></div>
                 </div>
             </div>
         </div>
@@ -117,7 +182,7 @@
         <div id="product-content" class="hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
                 <section id="media-gallery" class="w-full">
-                    <div id="main-media-viewer" class="w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden border mb-4">
+                    <div id="main-media-viewer" class="w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden border mb-4 shadow-lg">
                         </div>
                     <div id="thumbnails-container" class="w-full hide-scrollbar overflow-x-auto">
                         <div id="thumbnails-wrapper" class="flex gap-3 pb-2">
@@ -126,31 +191,31 @@
                 </section>
                 
                 <section id="product-details" class="flex flex-col">
-                    <div class="flex justify-between items-start">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-start">
                         <div>
                             <div id="product-category" class="text-sm font-semibold text-liyog-green mb-1"></div>
-                            <h1 id="product-name" class="text-3xl lg:text-4xl font-extrabold text-gray-900"></h1>
+                            <h1 id="product-name" class="text-3xl lg:text-4xl font-extrabold text-gray-900 leading-tight"></h1>
                         </div>
-                        <div id="stock-badge" class="text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap"></div>
+                        <div id="stock-badge" class="mt-2 sm:mt-0 text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap self-start"></div>
                     </div>
                     
-                    <div class="flex items-center gap-4 mt-3 text-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-3 text-sm">
                         <div id="star-rating" class="flex items-center gap-1"></div>
-                        <a href="#reviews-section" class="font-bold text-gray-800 hover:underline"><span id="avg-rating">0.0</span> (<span id="total-reviews">0</span> Reviews)</a>
-                        <span class="text-gray-300">|</span>
-                        <div class="flex items-center gap-1.5">
+                        <a href="#reviews-list" class="font-bold text-gray-800 hover:text-liyog-green-dark hover:underline transition-colors"><span id="avg-rating">0.0</span> (<span id="total-reviews">0</span> Reviews)</a>
+                        <span class="text-gray-300 hidden sm:block">|</span>
+                        <div class="flex items-center gap-1.5 mt-2 sm:mt-0">
                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             <span id="total-orders" class="font-semibold text-gray-600">0</span> <span class="text-gray-500">sold</span>
                         </div>
                     </div>
 
-                    <div id="tags-container" class="mt-4 flex items-center gap-3 overflow-x-auto hide-scrollbar pb-2">
+                    <div id="tags-container" class="mt-4 flex items-center gap-2 overflow-x-auto hide-scrollbar pb-2">
                         </div>
 
-                    <div class="my-6 bg-gray-50 p-4 rounded-lg border">
-                        <div class="flex items-baseline gap-3">
-                            <span id="final-price" class="text-4xl font-extrabold text-liyog-green-dark"></span>
-                            <span id="original-price" class="text-xl line-through text-gray-400"></span>
+                    <div class="my-6 bg-gray-50 p-4 rounded-lg border shadow-sm">
+                        <div class="flex items-baseline gap-3 flex-wrap">
+                            <span id="final-price" class="text-3xl sm:text-4xl font-extrabold text-liyog-green-dark"></span>
+                            <span id="original-price" class="text-base sm:text-xl line-through text-gray-400"></span>
                         </div>
                         <div id="lxc-banner" class="mt-2 text-sm font-semibold text-amber-700">
                             Earn <span id="liyogx-coins">0</span> LiyogX Coins (worth ₦<span id="liyogx-value">0.00</span>)
@@ -158,61 +223,61 @@
                     </div>
                     
                     <div class="mt-auto pt-6 border-t space-y-4">
-                        <div class="flex items-center gap-4">
-                            <div class="flex items-center border rounded-lg overflow-hidden">
-                                <button id="qty-decrement" class="px-4 py-3 text-lg font-bold hover:bg-gray-100">−</button>
-                                <input id="quantity-input" type="number" value="1" min="1" class="w-16 text-center py-3 border-l border-r font-bold text-lg focus:outline-none">
-                                <button id="qty-increment" class="px-4 py-3 text-lg font-bold hover:bg-gray-100">+</button>
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                            <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden flex-shrink-0">
+                                <button id="qty-decrement" class="px-4 py-3 text-lg font-bold hover:bg-gray-100 transition-colors rounded-l-lg">−</button>
+                                <input id="quantity-input" type="number" value="1" min="1" class="w-16 text-center py-3 border-l border-r border-gray-300 font-bold text-lg focus:outline-none focus:ring-1 focus:ring-liyog-green">
+                                <button id="qty-increment" class="px-4 py-3 text-lg font-bold hover:bg-gray-100 transition-colors rounded-r-lg">+</button>
                             </div>
-                            <button id="add-to-cart-btn" class="flex-1 text-center font-bold text-lg text-white bg-liyog-green hover:bg-liyog-green-dark rounded-lg py-3 transition-colors">Add to Cart</button>
+                            <button id="add-to-cart-btn" class="flex-1 text-center font-bold text-lg text-white bg-liyog-green hover:bg-liyog-green-dark rounded-lg py-3 transition-colors shadow-md">Add to Cart</button>
                         </div>
-                        <button id="order-now-btn" class="w-full text-center font-bold text-lg text-white bg-liyog-orange hover:bg-orange-600 rounded-lg py-3 transition-colors">Order Now</button>
+                        <button id="order-now-btn" class="w-full text-center font-bold text-lg text-white bg-liyog-orange hover:bg-orange-600 rounded-lg py-3 transition-colors shadow-md">Order Now</button>
                     </div>
 
                     <div class="mt-6 flex items-center justify-between text-sm">
                         <div class="flex items-center gap-4">
-                             <button id="like-btn" class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors">
-                                <svg id="like-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 116.364 6.364L12 20.25l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>
+                             <button id="like-btn" class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors group">
+                                <svg id="like-icon" class="w-6 h-6 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 116.364 6.364L12 20.25l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>
                                 <span id="total-likes" class="font-semibold">0</span>
                             </button>
-                            <button id="share-btn" class="flex items-center gap-2 text-gray-600 hover:text-liyog-green">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6.002l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path></svg>
+                            <button id="share-btn" class="flex items-center gap-2 text-gray-600 hover:text-liyog-green transition-colors group">
+                                <svg class="w-6 h-6 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6.002l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path></svg>
                                 <span>Share</span>
                             </button>
                         </div>
                         <div class="text-gray-500">
-                           Views: <span id="total-views" class="font-semibold">0</span>
+                           Views: <span id="total-views" class="font-semibold text-gray-700">0</span>
                         </div>
                     </div>
                 </section>
             </div>
 
-            <section id="tabs-section" class="mt-16 bg-white p-6 rounded-lg border">
+            <section id="tabs-section" class="mt-16 bg-white p-6 rounded-lg border shadow-sm">
                  <div class="border-b border-gray-200">
-                    <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                        <button data-tab="description" class="tab-btn tab-btn-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Description</button>
-                        <button data-tab="reviews" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">Reviews</button>
+                    <nav class="-mb-px flex space-x-4 sm:space-x-8" aria-label="Tabs">
+                        <button data-tab="description" class="tab-btn tab-btn-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm sm:text-base">Description</button>
+                        <button data-tab="reviews" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm sm:text-base">Reviews</button>
                     </nav>
                 </div>
                 <div class="py-6">
-                    <div id="tab-content-description" class="tab-content prose max-w-none text-gray-600"></div>
+                    <div id="tab-content-description" class="tab-content prose max-w-none text-gray-600 text-sm sm:text-base leading-relaxed"></div>
                     <div id="tab-content-reviews" class="tab-content hidden">
                          <div id="reviews-list" class="space-y-8"></div>
                          <div id="load-more-reviews-container" class="text-center mt-8 hidden">
-                            <button id="load-more-reviews-btn" class="px-6 py-2 border rounded-lg font-semibold hover:bg-gray-50">Load More</button>
+                            <button id="load-more-reviews-btn" class="px-6 py-2 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Load More</button>
                          </div>
                     </div>
                 </div>
             </section>
             
             <section id="related-products-section" class="mt-16 hidden">
-                <h2 class="text-2xl font-extrabold text-gray-900 mb-6">Related Products</h2>
-                <div id="related-products-carousel" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+                <h2 class="text-xl sm:text-2xl font-extrabold text-gray-900 mb-6">Related Products</h2>
+                <div id="related-products-carousel" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"></div>
             </section>
             
             <section id="you-may-like-section" class="mt-16">
-                <h2 class="text-2xl font-extrabold text-gray-900 mb-6">You May Also Like</h2>
-                <div id="you-may-like-carousel" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+                <h2 class="text-xl sm:text-2xl font-extrabold text-gray-900 mb-6">You May Also Like</h2>
+                <div id="you-may-like-carousel" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"></div>
             </section>
         </div>
     </main>
@@ -224,8 +289,8 @@
     </footer>
     
     <div id="mobile-sticky-footer" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t p-3 flex items-center gap-3 z-40 shadow-2xl">
-        <button id="mobile-add-to-cart-btn" class="flex-1 text-center font-bold text-liyog-green bg-green-100 rounded-lg py-3">Add to Cart</button>
-        <button id="mobile-order-now-btn" class="flex-1 text-center font-bold text-white bg-liyog-orange rounded-lg py-3">Order Now</button>
+        <button id="mobile-add-to-cart-btn" class="flex-1 text-center font-bold text-liyog-green bg-green-100 hover:bg-green-200 rounded-lg py-3 transition-colors">Add to Cart</button>
+        <button id="mobile-order-now-btn" class="flex-1 text-center font-bold text-white bg-liyog-orange hover:bg-orange-600 rounded-lg py-3 transition-colors">Order Now</button>
     </div>
 
 <script type="module">
@@ -233,7 +298,8 @@
 // CONFIG & INITIALIZATION
 // ===================================================================
 const SUPABASE_URL = "https://snwwlewjriuqrodpjhry.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzIANiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3dsZXdqcml1cXJvZHBqaHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDY3MDAsImV4cCI6MjA2ODE4MjcwMH0.WxOmEHxLcEHmMKFjsgrzcb22mPs-sJwW_G3GOuXX2c8";
+// FIX: Corrected Supabase Key
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3dsZXdqcml1cXJvZHBqaHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDY3MDAsImV4cCI6MjA2ODE4MjcwMH0.WxOmEHxLcEHmMKFjsgrzcb22mPs-sJwW_G3GOuXX2c8";
 
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -243,8 +309,8 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 // ===================================================================
 let state = {
     product: null,
-    currentUser: null,
-    settings: { lxc_rate: 10 }, // Default value
+    currentUser: null, // Will be fetched from session
+    settings: { lxc_rate: 10 }, // Default value, will be updated
     reviews: [],
     reviewsPage: 1,
     reviewsPerPage: 5,
@@ -273,6 +339,8 @@ const DOMElements = {
     liyogxCoins: document.getElementById('liyogx-coins'),
     liyogxValue: document.getElementById('liyogx-value'),
     quantityInput: document.getElementById('quantity-input'),
+    qtyDecrement: document.getElementById('qty-decrement'), // Added for direct access
+    qtyIncrement: document.getElementById('qty-increment'), // Added for direct access
     addToCartBtn: document.getElementById('add-to-cart-btn'),
     orderNowBtn: document.getElementById('order-now-btn'),
     likeBtn: document.getElementById('like-btn'),
@@ -302,75 +370,167 @@ const DOMElements = {
 // API/DATA FETCHING FUNCTIONS
 // ===================================================================
 async function fetchProduct(slug) {
-    const { data, error } = await supabaseClient
-        .from('products')
-        .select('*')
-        .eq('slug', slug)
-        .single();
-    if (error) throw new Error('Product not found or an error occurred.');
-    return data;
+    try {
+        // Increment total_views on product fetch
+        await supabaseClient
+            .from('products')
+            .rpc('increment_product_views', { p_slug: slug }); // Call an RPC function if you have one, or use update
+
+        const { data, error } = await supabaseClient
+            .from('products')
+            .select('*')
+            .eq('slug', slug)
+            .single();
+        if (error) {
+            if (error.code === 'PGRST116') { // No rows found
+                throw new Error('Product not found.');
+            }
+            throw new Error(`Failed to fetch product details: ${error.message}`);
+        }
+        return data;
+    } catch (error) {
+        console.error("Error in fetchProduct:", error.message);
+        throw error;
+    }
 }
 
+// Example RPC for incrementing views (you'll need to create this in Supabase)
+/*
+CREATE OR REPLACE FUNCTION increment_product_views(p_slug text)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE products
+    SET total_views = total_views + 1
+    WHERE slug = p_slug;
+END;
+$$ LANGUAGE plpgsql;
+*/
+
+
 async function fetchSettings() {
-    const { data, error } = await supabaseClient.from('site_settings').select('key, value').eq('key_lower', 'lxc_rate');
-    if (data && data.length > 0) {
-        state.settings.lxc_rate = parseFloat(data[0].value) || 10;
+    try {
+        const { data, error } = await supabaseClient
+            .from('site_settings')
+            .select('key, value')
+            .eq('key', 'lxc_rate') // Assuming 'key' is 'lxc_rate', not 'key_lower'
+            .single(); // Assuming only one setting for lxc_rate
+
+        if (error && error.code !== 'PGRST116') { // Ignore "no rows found" error for settings
+            console.warn("Error fetching site settings, using default:", error.message);
+        }
+
+        if (data) {
+            state.settings.lxc_rate = parseFloat(data.value) || state.settings.lxc_rate;
+        }
+    } catch (error) {
+        console.error("Critical error fetching site settings:", error.message);
     }
 }
 
 async function fetchReviews() {
     if (!state.product || !state.hasMoreReviews) return;
+    
+    // Show a loader for reviews if available
+    if (DOMElements.loadMoreReviewsBtn) DOMElements.loadMoreReviewsBtn.disabled = true;
+
     const from = (state.reviewsPage - 1) * state.reviewsPerPage;
     const to = from + state.reviewsPerPage - 1;
 
-    const { data, error } = await supabaseClient
-        .from('reviews')
-        .select(`*, user:users(name, profile_image)`)
-        .eq('product_id', state.product.id)
-        .order('created_at', { ascending: false })
-        .range(from, to);
-        
-    if (error) { console.error("Error fetching reviews:", error); return; }
+    try {
+        const { data, error } = await supabaseClient
+            .from('reviews')
+            .select(`*, user:users(name, profile_image)`) // Fetch user details if 'users' table exists
+            .eq('product_id', state.product.id)
+            .order('created_at', { ascending: false })
+            .range(from, to);
+            
+        if (error) { 
+            console.error("Error fetching reviews:", error);
+            // Optionally display a message to the user
+            if (DOMElements.reviewsList.children.length === 0) {
+                 DOMElements.reviewsList.innerHTML = `<p class="text-center text-gray-500">Failed to load reviews.</p>`;
+            }
+            return; 
+        }
 
-    if (data.length < state.reviewsPerPage) {
-        state.hasMoreReviews = false;
-        DOMElements.loadMoreReviewsContainer.classList.add('hidden');
-    } else {
-        DOMElements.loadMoreReviewsContainer.classList.remove('hidden');
+        if (data.length < state.reviewsPerPage) {
+            state.hasMoreReviews = false;
+            DOMElements.loadMoreReviewsContainer.classList.add('hidden');
+        } else {
+            DOMElements.loadMoreReviewsContainer.classList.remove('hidden');
+        }
+        
+        state.reviews = [...state.reviews, ...data];
+        state.reviewsPage++;
+        renderReviews();
+    } catch (error) {
+        console.error("Error in fetchReviews:", error);
+    } finally {
+        if (DOMElements.loadMoreReviewsBtn) DOMElements.loadMoreReviewsBtn.disabled = false;
     }
-    
-    state.reviews = [...state.reviews, ...data];
-    state.reviewsPage++;
-    renderReviews();
 }
 
 async function fetchRelatedProducts(product) {
-    const tags = (product.tags || '').split(',').map(t => t.trim()).filter(Boolean);
-    if (!product.category && tags.length === 0) return [];
+    try {
+        const tags = (product.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+        let queryBuilder = supabaseClient.from('products').select('name, price, discount_price, image_urls, slug, avg_rating, total_reviews');
+        queryBuilder = queryBuilder.neq('id', product.id).neq('published', false); // Exclude current product and unpublished ones
 
-    const tagQuery = tags.map(tag => `tags.cs.{"${tag}"}`).join(',');
-    const orQuery = `category.eq.${product.category},${tagQuery}`;
+        // Build OR condition for category or tags
+        let orConditions = [];
+        if (product.category) {
+            orConditions.push(`category.eq.${product.category}`);
+        }
+        if (tags.length > 0) {
+            orConditions.push(`tags.cs.{${tags.map(t => `"${t}"`).join(',')}}`);
+        }
+        
+        if (orConditions.length > 0) {
+            queryBuilder = queryBuilder.or(orConditions.join(','));
+        }
 
-    const { data, error } = await supabaseClient
-        .from('products')
-        .select('name, price, discount_price, image_urls, slug, avg_rating, total_reviews')
-        .neq('id', product.id)
-        .or(orQuery)
-        .limit(4);
+        const { data, error } = await queryBuilder.limit(4);
 
-    if (error) { console.error("Error fetching related products:", error); return []; }
-    return data;
+        if (error) { console.error("Error fetching related products:", error); return []; }
+        return data;
+    } catch (error) {
+        console.error("Error in fetchRelatedProducts:", error);
+        return [];
+    }
 }
 
 async function fetchYouMayLikeProducts() {
-    const { data, error } = await supabaseClient
-        .from('products')
-        .select('name, price, discount_price, image_urls, slug, avg_rating, total_reviews')
-        .order('total_orders', { ascending: false, nullsFirst: false })
-        .limit(8);
-        
-    if (error) { console.error("Error fetching 'You May Like' products:", error); return []; }
-    return data;
+    try {
+        const { data, error } = await supabaseClient
+            .from('products')
+            .select('name, price, discount_price, image_urls, slug, avg_rating, total_reviews')
+            .neq('published', false) // Only show published products
+            .order('total_orders', { ascending: false, nullsFirst: false })
+            .limit(8);
+            
+        if (error) { console.error("Error fetching 'You May Like' products:", error); return []; }
+        return data;
+    } catch (error) {
+        console.error("Error in fetchYouMayLikeProducts:", error);
+        return [];
+    }
+}
+
+async function checkIfProductLikedByUser(productId, userId) {
+    if (!userId) return false;
+    try {
+        const { data, error } = await supabaseClient
+            .from('likes')
+            .select('id')
+            .eq('product_id', productId)
+            .eq('user_id', userId)
+            .single();
+        return data !== null;
+    } catch (error) {
+        if (error.code === 'PGRST116') return false; // No rows found
+        console.error("Error checking if product is liked:", error.message);
+        return false;
+    }
 }
 
 // ===================================================================
@@ -378,7 +538,8 @@ async function fetchYouMayLikeProducts() {
 // ===================================================================
 function renderProductDetails() {
     const p = state.product;
-    
+    if (!p) return; // Ensure product data exists
+
     // Header Info
     DOMElements.productCategory.textContent = p.category || 'General';
     DOMElements.productName.textContent = p.name;
@@ -388,10 +549,14 @@ function renderProductDetails() {
     if (p.published) {
         DOMElements.stockBadge.textContent = 'In Stock';
         DOMElements.stockBadge.className = 'text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap bg-green-100 text-green-800';
+        [DOMElements.addToCartBtn, DOMElements.orderNowBtn, DOMElements.mobileAddToCartBtn, DOMElements.mobileOrderNowBtn].forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        });
     } else {
         DOMElements.stockBadge.textContent = 'Out of Stock';
         DOMElements.stockBadge.className = 'text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap bg-red-100 text-red-800';
-        [DOMElements.addToCartBtn, DOMElements.orderNowBtn].forEach(btn => {
+        [DOMElements.addToCartBtn, DOMElements.orderNowBtn, DOMElements.mobileAddToCartBtn, DOMElements.mobileOrderNowBtn].forEach(btn => {
             btn.disabled = true;
             btn.classList.add('opacity-50', 'cursor-not-allowed');
         });
@@ -415,7 +580,7 @@ function renderProductDetails() {
     const finalPrice = p.discount_price ?? p.price;
     const originalPrice = p.price;
     DOMElements.finalPrice.textContent = `₦${finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-    if (p.discount_price && p.discount_price < originalPrice) {
+    if (p.discount_price != null && p.discount_price < originalPrice) {
         DOMElements.originalPrice.textContent = `₦${originalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
     } else {
         DOMElements.originalPrice.textContent = '';
@@ -427,53 +592,87 @@ function renderProductDetails() {
     DOMElements.liyogxValue.textContent = lxcValue.toLocaleString(undefined, { minimumFractionDigits: 2 });
 
     // Description
-    DOMElements.descriptionContent.innerHTML = DOMPurify.sanitize(p.description_html || 'No description available.');
+    // Ensure description is sanitized before rendering
+    DOMElements.descriptionContent.innerHTML = DOMPurify.sanitize(p.description_html || '<p class="text-gray-500">No detailed description available.</p>');
 }
 
 function renderMediaGallery() {
     const p = state.product;
+    if (!p) return;
+
     const mediaItems = [];
     if (p.youtube_url) mediaItems.push({ type: 'youtube', url: normalizeYoutubeUrl(p.youtube_url) });
     if (p.video_url) mediaItems.push({ type: 'video', url: p.video_url });
-    if (p.image_urls) p.image_urls.forEach(url => mediaItems.push({ type: 'image', url }));
+    if (p.image_urls && p.image_urls.length > 0) p.image_urls.forEach(url => mediaItems.push({ type: 'image', url }));
 
     if (mediaItems.length === 0) {
-        mediaItems.push({ type: 'image', url: 'https://via.placeholder.com/600?text=No+Image' });
+        mediaItems.push({ type: 'image', url: 'https://via.placeholder.com/600?text=No+Media+Available' });
     }
 
     DOMElements.thumbnailsWrapper.innerHTML = mediaItems.map((item, index) => {
-        const thumbSrc = item.type === 'image' ? item.url : 
-                         item.type === 'youtube' ? `https://img.youtube.com/vi/${item.url.split('/').pop()}/mqdefault.jpg` : 
-                         ''; // You might need a thumbnail for local videos
+        let thumbSrc = 'https://via.placeholder.com/80?text=Media'; // Default fallback thumbnail
+        if (item.type === 'image') {
+            thumbSrc = item.url;
+        } else if (item.type === 'youtube') {
+            // Extract video ID from embed URL
+            const videoIdMatch = item.url.match(/embed\/([^?]+)/);
+            if (videoIdMatch && videoIdMatch[1]) {
+                 thumbSrc = `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`;
+            } else {
+                 console.warn("Could not extract YouTube video ID for thumbnail:", item.url);
+            }
+        }
+        // For 'video' type, you might need a static thumbnail or generate one on the fly (more complex)
+        // For now, use generic for video type if no specific thumbnail URL is provided in data
+
         return `
-            <button data-index="${index}" class="thumbnail-btn flex-shrink-0 w-20 h-20 border-2 border-transparent rounded-lg overflow-hidden cursor-pointer focus:outline-none">
-                <img src="${thumbSrc}" class="w-full h-full object-cover">
+            <button data-index="${index}" class="thumbnail-btn flex-shrink-0 w-20 h-20 border-2 border-transparent rounded-lg overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-liyog-green focus:ring-offset-2 transition-all duration-200">
+                <img src="${thumbSrc}" alt="Product media thumbnail ${index + 1}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300">
             </button>
         `;
     }).join('');
 
     renderMainMedia(0, mediaItems); // Show first item by default
 
-    document.querySelectorAll('.thumbnail-btn').forEach(btn => {
+    const thumbnailButtons = document.querySelectorAll('.thumbnail-btn');
+    thumbnailButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             const index = parseInt(btn.dataset.index, 10);
             renderMainMedia(index, mediaItems);
-            document.querySelectorAll('.thumbnail-btn').forEach(b => b.classList.remove('thumb-active'));
+            thumbnailButtons.forEach(b => b.classList.remove('thumb-active'));
             btn.classList.add('thumb-active');
         });
     });
-    document.querySelector('.thumbnail-btn')?.classList.add('thumb-active');
+    // Set the first thumbnail as active by default
+    if (thumbnailButtons.length > 0) {
+        thumbnailButtons[0].classList.add('thumb-active');
+    }
 }
 
 function renderMainMedia(index, mediaItems) {
     const item = mediaItems[index];
-    DOMElements.mainMediaViewer.innerHTML = '';
+    if (!item) {
+        DOMElements.mainMediaViewer.innerHTML = `<img src="https://via.placeholder.com/600?text=Error" alt="Media load error" class="w-full h-full object-contain">`;
+        return;
+    }
+    DOMElements.mainMediaViewer.innerHTML = ''; // Clear previous content
+
     if (item.type === 'image') {
-        DOMElements.mainMediaViewer.innerHTML = `<img src="${item.url}" class="w-full h-full object-contain">`;
+        DOMElements.mainMediaViewer.innerHTML = `<img src="${item.url}" alt="Product image" class="w-full h-full object-contain transition-opacity duration-300 animate-fade-in">`;
     } else if (item.type === 'video') {
-        DOMElements.mainMediaViewer.innerHTML = `<video src="${item.url}" class="w-full h-full" controls></video>`;
+        // Ensure video has controls and plays inline for mobile
+        DOMElements.mainMediaViewer.innerHTML = `<video src="${item.url}" class="w-full h-full object-contain rounded-lg" controls playsinline autoplay loop muted></video>`;
     } else if (item.type === 'youtube') {
-        DOMElements.mainMediaViewer.innerHTML = `<iframe src="${item.url}" class="w-full h-full" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+        // Use responsive container for YouTube iframe
+        DOMElements.mainMediaViewer.innerHTML = `
+            <div class="responsive-iframe-container">
+                <iframe src="${item.url}?autoplay=1&mute=1&controls=1&showinfo=0&rel=0&loop=1" 
+                        allow="autoplay; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen 
+                        title="YouTube video player for ${state.product?.name || 'product'}">
+                </iframe>
+            </div>
+        `;
     }
 }
 
@@ -483,34 +682,45 @@ function renderStarRating(rating = 0, size = 'w-5 h-5') {
     const halfStar = rating % 1 >= 0.5;
     const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
     
-    const starPaths = {
-        full: '<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" />',
-        half: '<path d="M10 15.347V2.927l-1.902 5.86-5.972.87L7.5 13.5l-1.287 3.957L10 15.347z" />',
-    };
+    // Using a consistent star SVG for full, half, and empty for easier management
+    const fullStarSVG = `<svg class="${size} text-liyog-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`;
+    const emptyStarSVG = `<svg class="${size} text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`;
     
-    for (let i = 0; i < fullStars; i++) starsHTML += `<svg class="${size} text-liyog-gold" fill="currentColor" viewBox="0 0 20 20">${starPaths.full}</svg>`;
-    if (halfStar) starsHTML += `<svg class="${size} text-liyog-gold" fill="currentColor" viewBox="0 0 20 20">${starPaths.full.replace('<path', '<path fill="url(#half_grad)")}<defs><linearGradient id="half_grad"><stop offset="50%" stop-color="currentColor"/><stop offset="50%" stop-color="#e5e7eb"/></linearGradient></defs></svg>`;
-    for (let i = 0; i < emptyStars; i++) starsHTML += `<svg class="${size} text-gray-300" fill="currentColor" viewBox="0 0 20 20">${starPaths.full}</svg>`;
+    for (let i = 0; i < fullStars; i++) starsHTML += fullStarSVG;
+    if (halfStar) {
+        // Linear gradient for half star
+        const halfStarGradientId = `half_grad_${Math.random().toString(36).substr(2, 5)}`;
+        starsHTML += `<svg class="${size}" viewBox="0 0 20 20" fill="url(#${halfStarGradientId})"><defs><linearGradient id="${halfStarGradientId}"><stop offset="50%" stop-color="var(--liyog-gold)"/><stop offset="50%" stop-color="#e5e7eb"/></linearGradient></defs><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`;
+    }
+    for (let i = 0; i < emptyStars; i++) starsHTML += emptyStarSVG;
     
     DOMElements.starRating.innerHTML = starsHTML;
 }
 
 function renderReviews() {
+    if (state.reviews.length === 0 && state.reviewsPage === 1) {
+        DOMElements.reviewsList.innerHTML = `<p class="text-center text-gray-500 py-4">No reviews yet. Be the first to review!</p>`;
+        DOMElements.loadMoreReviewsContainer.classList.add('hidden');
+        return;
+    }
+    
     DOMElements.reviewsList.innerHTML = state.reviews.map(review => {
         const user = review.user || { name: 'Anonymous', profile_image: null };
         const userInitial = (user.name || 'A').charAt(0).toUpperCase();
         return `
-            <div class="flex gap-4">
-                <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
-                    ${user.profile_image ? `<img src="${user.profile_image}" alt="${user.name}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-xl font-bold text-gray-500">${userInitial}</div>`}
+            <div class="flex gap-4 p-4 bg-gray-50 rounded-lg shadow-sm">
+                <div class="w-12 h-12 rounded-full overflow-hidden bg-liyog-green-light flex-shrink-0 flex items-center justify-center text-white text-xl font-bold">
+                    ${user.profile_image ? `<img src="${user.profile_image}" alt="${user.name}" class="w-full h-full object-cover">` : `<span>${userInitial}</span>`}
                 </div>
                 <div class="flex-1">
-                    <div class="flex justify-between items-center">
-                        <p class="font-bold text-gray-900">${user.name}</p>
+                    <div class="flex justify-between items-center flex-wrap gap-y-1">
+                        <p class="font-bold text-gray-900 text-base">${user.name}</p>
                         <p class="text-xs text-gray-500">${new Date(review.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                     </div>
-                    <div class="flex items-center my-1">${Array(5).fill(0).map((_, i) => `<svg class="w-4 h-4 ${i < review.rating ? 'text-liyog-gold' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`).join('')}</div>
-                    <p class="text-gray-700">${review.comment}</p>
+                    <div class="flex items-center my-1">
+                        ${Array(5).fill(0).map((_, i) => `<svg class="w-4 h-4 ${i < review.rating ? 'text-liyog-gold' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`).join('')}
+                    </div>
+                    <p class="text-gray-700 text-sm mt-1">${DOMPurify.sanitize(review.comment)}</p>
                 </div>
             </div>
         `;
@@ -520,17 +730,19 @@ function renderReviews() {
 function createProductCardHTML(product) {
     const finalPrice = product.discount_price ?? product.price;
     return `
-        <a href="product.html?slug=${product.slug}" class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 group overflow-hidden border">
+        <a href="product.html?slug=${product.slug}" class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 group overflow-hidden border border-gray-200">
             <div class="aspect-square w-full overflow-hidden">
-                <img src="${product.image_urls?.[0] || 'https://via.placeholder.com/300'}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
+                <img src="${product.image_urls?.[0] || 'https://via.placeholder.com/300?text=Liyog'}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
             </div>
             <div class="p-4">
-                <h3 class="font-bold text-gray-800 line-clamp-2">${product.name}</h3>
+                <h3 class="font-bold text-gray-800 line-clamp-2 text-sm">${product.name}</h3>
                 <div class="flex items-center gap-2 mt-2">
-                    <div class="flex">${Array(5).fill(0).map((_, i) => `<svg class="w-4 h-4 ${i < (product.avg_rating || 0) ? 'text-liyog-gold' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`).join('')}</div>
+                    <div class="flex">
+                        ${Array(5).fill(0).map((_, i) => `<svg class="w-4 h-4 ${i < (product.avg_rating || 0) ? 'text-liyog-gold' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`).join('')}
+                    </div>
                     <span class="text-xs text-gray-500">(${(product.total_reviews || 0)})</span>
                 </div>
-                <p class="text-lg font-extrabold text-liyog-green-dark mt-2">₦${finalPrice.toLocaleString()}</p>
+                <p class="text-base font-extrabold text-liyog-green-dark mt-2">₦${finalPrice.toLocaleString()}</p>
             </div>
         </a>
     `;
@@ -542,18 +754,36 @@ function createProductCardHTML(product) {
 // ===================================================================
 function setupEventHandlers() {
     // Quantity controls
-    document.getElementById('qty-increment').addEventListener('click', () => DOMElements.quantityInput.value++);
-    document.getElementById('qty-decrement').addEventListener('click', () => {
-        DOMElements.quantityInput.value = Math.max(1, DOMElements.quantityInput.value - 1);
+    DOMElements.qtyIncrement.addEventListener('click', () => {
+        let currentVal = parseInt(DOMElements.quantityInput.value, 10);
+        DOMElements.quantityInput.value = currentVal + 1;
+    });
+    DOMElements.qtyDecrement.addEventListener('click', () => {
+        let currentVal = parseInt(DOMElements.quantityInput.value, 10);
+        DOMElements.quantityInput.value = Math.max(1, currentVal - 1);
     });
 
     // Add to Cart (Desktop & Mobile)
-    const handleAddToCart = () => { console.log('Add to cart clicked'); }; // Placeholder for cart logic
+    const handleAddToCart = () => { 
+        console.log('Add to cart clicked', {
+            productId: state.product.id,
+            quantity: DOMElements.quantityInput.value
+        }); 
+        alert(`Added ${DOMElements.quantityInput.value} x "${state.product.name}" to cart! (Placeholder)`);
+        // TODO: Implement actual cart logic here
+    };
     DOMElements.addToCartBtn.addEventListener('click', handleAddToCart);
     DOMElements.mobileAddToCartBtn.addEventListener('click', handleAddToCart);
     
     // Order Now (Desktop & Mobile)
-    const handleOrderNow = () => { console.log('Order now clicked'); }; // Placeholder for order logic
+    const handleOrderNow = () => { 
+        console.log('Order now clicked', {
+            productId: state.product.id,
+            quantity: DOMElements.quantityInput.value
+        }); 
+        alert(`Ordering ${DOMElements.quantityInput.value} x "${state.product.name}" now! (Placeholder)`);
+        // TODO: Implement actual order logic here (e.g., redirect to checkout)
+    };
     DOMElements.orderNowBtn.addEventListener('click', handleOrderNow);
     DOMElements.mobileOrderNowBtn.addEventListener('click', handleOrderNow);
 
@@ -566,8 +796,13 @@ function setupEventHandlers() {
     // Tabs
     DOMElements.tabButtons.forEach(button => {
         button.addEventListener('click', () => {
-            DOMElements.tabButtons.forEach(btn => btn.classList.remove('tab-btn-active'));
-            button.classList.add('tab-btn-active');
+            DOMElements.tabButtons.forEach(btn => {
+                btn.classList.remove('tab-btn-active', 'border-liyog-green', 'text-liyog-green-dark');
+                btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            });
+            button.classList.add('tab-btn-active', 'border-liyog-green', 'text-liyog-green-dark');
+            button.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+
             DOMElements.tabContents.forEach(content => content.classList.add('hidden'));
             document.getElementById(`tab-content-${button.dataset.tab}`).classList.remove('hidden');
         });
@@ -585,11 +820,18 @@ async function handleLike() {
         return;
     }
     
+    // Check if the user already liked this product (prevent multiple likes)
+    const alreadyLiked = await checkIfProductLikedByUser(state.product.id, state.currentUser.id);
+    if (alreadyLiked) {
+        alert("You've already liked this product!");
+        return;
+    }
+
     // Optimistic UI update
-    const currentLikes = parseInt(DOMElements.totalLikes.textContent.replace(/,/g, ''), 10);
+    let currentLikes = parseInt(DOMElements.totalLikes.textContent.replace(/,/g, ''), 10);
     DOMElements.totalLikes.textContent = (currentLikes + 1).toLocaleString();
     DOMElements.likeIcon.classList.add('like-icon-filled');
-    DOMElements.likeBtn.disabled = true;
+    DOMElements.likeBtn.disabled = true; // Disable to prevent double-click and multiple likes
 
     try {
         const { error } = await supabaseClient.from('likes').insert({
@@ -597,10 +839,16 @@ async function handleLike() {
             product_id: state.product.id
         });
         if (error) throw error;
+
+        // Also update product's total_likes count
+        await supabaseClient
+            .from('products')
+            .rpc('increment_product_likes', { p_product_id: state.product.id }); // Assuming you have this RPC
+
         // If successful, the UI is already updated.
     } catch (error) {
-        // Revert on failure
         console.error("Failed to like product:", error);
+        // Revert on failure
         DOMElements.totalLikes.textContent = currentLikes.toLocaleString();
         DOMElements.likeIcon.classList.remove('like-icon-filled');
         DOMElements.likeBtn.disabled = false;
@@ -608,16 +856,37 @@ async function handleLike() {
     }
 }
 
+// Example RPC for incrementing likes (you'll need to create this in Supabase)
+/*
+CREATE OR REPLACE FUNCTION increment_product_likes(p_product_id uuid)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE products
+    SET total_likes = total_likes + 1
+    WHERE id = p_product_id;
+END;
+$$ LANGUAGE plpgsql;
+*/
+
 async function handleShare() {
     // Fetch user's referral code if not already available
     let referralCode = '';
+    // FIX: Only fetch referral code if user is logged in and it's not already in state
     if (state.currentUser && !state.currentUser.referral_code) {
-        const { data, error } = await supabaseClient
-            .from('users')
-            .select('referral_code')
-            .eq('id', state.currentUser.id)
-            .single();
-        if (data) state.currentUser.referral_code = data.referral_code;
+        try {
+            const { data, error } = await supabaseClient
+                .from('users') // Assuming 'users' is your user profile table
+                .select('referral_code')
+                .eq('id', state.currentUser.id)
+                .single();
+            if (data && data.referral_code) {
+                state.currentUser.referral_code = data.referral_code;
+            } else if (error && error.code !== 'PGRST116') {
+                 console.warn("Error fetching referral code:", error.message);
+            }
+        } catch (error) {
+            console.error("Failed to fetch referral code:", error);
+        }
     }
     referralCode = state.currentUser?.referral_code || '';
     
@@ -631,9 +900,14 @@ async function handleShare() {
             title: state.product.name,
             text: `Check out this product on Liyog: ${state.product.name}`,
             url: shareUrl,
-        });
+        }).catch((error) => console.error('Error sharing:', error));
     } else {
-        navigator.clipboard.writeText(shareUrl).then(() => alert('Product link copied to clipboard!'));
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            alert('Product link copied to clipboard!');
+        }).catch((error) => {
+            console.error('Failed to copy link:', error);
+            alert('Could not copy link to clipboard. Please copy it manually: ' + shareUrl);
+        });
     }
 }
 
@@ -643,15 +917,22 @@ async function handleShare() {
 function normalizeYoutubeUrl(url) {
     if (!url) return null;
     let videoId;
-    if (url.includes("embed")) return url;
-    if (url.includes("youtu.be/")) {
-        videoId = url.split("youtu.be/")[1].split("?")[0];
+    // Check if it's already an embed URL
+    const embedMatch = url.match(/(?:youtube\.com\/(?:embed\/|v\/)|youtu\.be\/|youtube-nocookie\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+    if (embedMatch && embedMatch[1]) {
+        videoId = embedMatch[1];
     } else {
-        const urlParams = new URLSearchParams(new URL(url).search);
-        videoId = urlParams.get("v");
+        // Handle standard watch URLs
+        const urlObj = new URL(url);
+        if (urlObj.hostname.includes('youtube.com') && urlObj.searchParams.has('v')) {
+            videoId = urlObj.searchParams.get('v');
+        } else if (urlObj.hostname.includes('youtu.be')) {
+            videoId = urlObj.pathname.substring(1); // Remove leading slash
+        }
     }
     return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
 }
+
 
 // ===================================================================
 // APPLICATION BOOTSTRAP
@@ -662,26 +943,46 @@ document.addEventListener('DOMContentLoaded', async () => {
     const slug = urlParams.get('slug');
 
     if (!slug) {
-        document.getElementById('main-content').innerHTML = `<div class="text-center p-10"><h1>Product not found.</h1><p>Please provide a valid product slug in the URL.</p><a href="products.html" class="text-liyog-green font-bold mt-4 inline-block">← Back to Shop</a></div>`;
+        DOMElements.loader.classList.add('hidden'); // Hide loader if no slug
+        document.getElementById('main-content').innerHTML = `
+            <div class="text-center p-10 bg-white rounded-lg shadow-md max-w-lg mx-auto mt-10">
+                <h1 class="text-3xl font-bold text-red-600 mb-4">Product Not Found</h1>
+                <p class="text-gray-700 text-lg mb-6">It looks like the product you're looking for doesn't exist or the link is invalid.</p>
+                <a href="products.html" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-liyog-green hover:bg-liyog-green-dark transition-colors">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"></path></svg>
+                    Back to Shop
+                </a>
+            </div>
+        `;
         return;
     }
 
     try {
-        const [{ data: { session } }] = await Promise.all([
+        // Fetch session and settings in parallel first
+        const [sessionResponse] = await Promise.all([
             supabaseClient.auth.getSession(),
-            fetchSettings()
+            fetchSettings() // This updates state.settings directly
         ]);
-        state.currentUser = session?.user || null;
+        state.currentUser = sessionResponse.data?.session?.user || null;
         
         state.product = await fetchProduct(slug);
 
-        // Render main content
+        // After product is loaded, check like status if a user is logged in
+        if (state.currentUser && state.product) {
+            const liked = await checkIfProductLikedByUser(state.product.id, state.currentUser.id);
+            if (liked) {
+                DOMElements.likeIcon.classList.add('like-icon-filled');
+                DOMElements.likeBtn.disabled = true; // Prevent re-liking
+            }
+        }
+
+        // Render main product content
         renderProductDetails();
         renderMediaGallery();
         
-        // Fetch and render additional content in parallel
-        Promise.all([
-            fetchReviews(),
+        // Fetch and render additional content in parallel AFTER main product is rendered
+        await Promise.all([
+            fetchReviews(), // Fetch initial reviews
             (async () => {
                 const related = await fetchRelatedProducts(state.product);
                 if (related && related.length > 0) {
@@ -702,8 +1003,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         setupEventHandlers();
 
     } catch (error) {
-        console.error(error);
-        DOMElements.loader.innerHTML = `<div class="text-center p-10 text-red-600"><h1>Error: ${error.message}</h1><a href="products.html" class="text-liyog-green font-bold mt-4 inline-block">← Back to Shop</a></div>`;
+        console.error("Initialization Error:", error);
+        DOMElements.loader.classList.add('hidden'); // Ensure loader is hidden on error
+        document.getElementById('main-content').innerHTML = `
+            <div class="text-center p-10 bg-white rounded-lg shadow-md max-w-lg mx-auto mt-10">
+                <h1 class="text-3xl font-bold text-red-600 mb-4">Error Loading Product</h1>
+                <p class="text-gray-700 text-lg mb-6">${error.message || 'An unexpected error occurred. Please try again later.'}</p>
+                <a href="products.html" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-liyog-green hover:bg-liyog-green-dark transition-colors">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"></path></svg>
+                    Back to Shop
+                </a>
+            </div>
+        `;
     }
 });
 
