@@ -314,19 +314,15 @@
 
             try {
                 // Fetch all data in parallel
-                const [{ data: { session } }, product, settings] = await Promise.all([
-  supabaseClient.auth.getSession(),
-  fetchProductData(slug),
-  fetchSiteSettings(),
-]);
+                const [product, reviews, settings, {data: {session}}] = await Promise.all([
+                    fetchProductData(slug),
+                    fetchReviews(/* product.id will be available after first promise */),
+                    fetchSiteSettings(),
+                    supabaseClient.auth.getSession()
+                ]);
+                
                 currentProduct = product;
                 currentUser = session?.user;
-
-                // Increment product views
-await supabaseClient
-  .from("products")
-  .update({ total_views: (product.total_views || 0) + 1 })
-  .eq("id", product.id);
 
                 // Now fetch reviews with the correct product ID
                 const finalReviews = await fetchReviews(product.id);
@@ -350,4 +346,3 @@ await supabaseClient
 
 </body>
 </html>
-
