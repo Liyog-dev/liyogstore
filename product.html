@@ -1,1 +1,349 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liyog - Shop Smart, Live Better</title>
+    <meta name="description" content="Product details page for Liyog.">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        liyog: {
+                            light: '#34bf49',
+                            DEFAULT: '#28a428',
+                            dark: '#228b22',
+                            deep: '#006400',
+                        },
+                        accent: {
+                            DEFAULT: '#ff7a00',
+                            dark: '#e66e00',
+                        },
+                        gold: '#ffd700',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom styles for Swiper pagination bullets */
+        .swiper-pagination-bullet-active {
+            background-color: #28a428 !important;
+        }
+        /* Custom scrollbar for tags */
+        .tags-container::-webkit-scrollbar {
+            height: 4px;
+        }
+        .tags-container::-webkit-scrollbar-thumb {
+            background-color: #28a428;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+
+    <header class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
+        <nav class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="/products.html" class="text-gray-600 hover:text-liyog transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </a>
+                <a href="/" class="text-2xl font-extrabold text-liyog">Liyog</a>
+                <a href="/cart/" class="relative text-gray-600 hover:text-liyog transition-colors">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <span id="cart-count" class="absolute -top-1 -right-2 bg-accent text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">0</span>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main id="product-detail-container" class="max-w-screen-xl mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-8 opacity-0 transition-opacity duration-500">
+        <div id="skeleton-loader">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+                <div class="animate-pulse">
+                    <div class="aspect-square bg-gray-200 rounded-lg"></div>
+                    <div class="flex gap-2 mt-4">
+                        <div class="w-20 h-20 bg-gray-200 rounded"></div>
+                        <div class="w-20 h-20 bg-gray-200 rounded"></div>
+                        <div class="w-20 h-20 bg-gray-200 rounded"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
+                    <div class="h-5 bg-gray-200 rounded w-1/2 mb-6"></div>
+                    <div class="h-12 bg-gray-200 rounded w-1/3 mb-6"></div>
+                    <div class="h-20 bg-gray-200 rounded w-full mb-6"></div>
+                    <div class="h-12 bg-gray-200 rounded w-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="product-content" class="hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+                <div id="media-gallery" class="w-full"></div>
+
+                <div class="flex flex-col">
+                    <div id="product-info-main"></div>
+                    <div id="action-buttons" class="mt-6"></div>
+                </div>
+            </div>
+
+            <div id="tags-section" class="mt-10"></div>
+            
+            <div id="tabs-section" class="mt-12"></div>
+            
+            <div id="related-products" class="mt-16"></div>
+
+        </div>
+    </main>
+    
+    <footer id="sticky-footer" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 p-3 flex items-center gap-3 z-40">
+    </footer>
+    
+    <script type="module">
+        // --- CONFIG ---
+        const SUPABASE_URL = "https://snwwlewjriuqrodpjhry.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3dsZXdqcml1cXJvZHBqaHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDY3MDAsImV4cCI6MjA2ODE4MjcwMH0.WxOmEHxLcEHmMKFjsgrzcb22mPs-sJwW_G3GOuXX2c8";
+        const WHATSAPP_NUMBER = "2347038268136"; // Your WhatsApp number
+
+        // --- INITIALIZATION ---
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+        let currentProduct = null;
+
+        // --- DOM ELEMENTS ---
+        const loader = document.getElementById('skeleton-loader');
+        const productContainer = document.getElementById('product-detail-container');
+        const productContent = document.getElementById('product-content');
+
+        // --- HELPER FUNCTIONS ---
+        const formatPrice = (amount) => `₦${(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        
+        const generateStarRatingHTML = (rating = 0, size = 'w-5 h-5') => {
+            let starsHTML = '';
+            const starId = `grad-${Math.random().toString(36).substr(2, 9)}`;
+            for (let i = 1; i <= 5; i++) {
+                const fill = i <= rating ? 100 : (i - rating < 1 ? (rating - Math.floor(rating)) * 100 : 0);
+                starsHTML += `
+                    <svg class="${size}" viewBox="0 0 24 24" fill="url(#${starId})">
+                        <defs><linearGradient id="${starId}"><stop offset="${fill}%" stop-color="#ffd700"/><stop offset="${fill}%" stop-color="#e5e7eb"/></linearGradient></defs>
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z"/>
+                    </svg>`;
+            }
+            return `<div class="flex items-center">${starsHTML}</div>`;
+        };
+
+        const getYouTubeEmbedUrl = (url) => {
+            if (!url) return null;
+            let videoId;
+            if (url.includes("embed")) return url;
+            if (url.includes("youtu.be/")) {
+                videoId = url.split("youtu.be/")[1].split("?")[0];
+            } else {
+                videoId = new URL(url).searchParams.get("v");
+            }
+            return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+        };
+
+        // --- DATA FETCHING ---
+        async function fetchProductData(slug) {
+            const { data, error } = await supabaseClient.from("products").select("*").eq("slug", slug).single();
+            if (error) throw new Error("Product not found.");
+            return data;
+        }
+
+        async function fetchReviews(productId) {
+            const { data, error } = await supabaseClient.from("reviews").select(`*, users (name, profile_image)`).eq("product_id", productId).order('created_at', { ascending: false });
+            return data || [];
+        }
+
+        async function fetchSiteSettings() {
+            const { data, error } = await supabaseClient.from("site_settings").select("key, value").in('key', ['lxc_rate']);
+            const settings = {};
+            if (data) data.forEach(s => settings[s.key] = s.value);
+            return settings;
+        }
+
+        // --- RENDERING ---
+        function renderMediaGallery(product) {
+            const mediaGallery = document.getElementById('media-gallery');
+            const mediaItems = [];
+            const youtubeUrl = getYouTubeEmbedUrl(product.youtube_url);
+            if (youtubeUrl) mediaItems.push({ type: 'youtube', url: youtubeUrl });
+            if (product.video_url) mediaItems.push({ type: 'video', url: product.video_url });
+            if (product.image_urls) product.image_urls.forEach(url => mediaItems.push({ type: 'image', url }));
+
+            if (mediaItems.length === 0) {
+                mediaItems.push({ type: 'image', url: 'https://via.placeholder.com/600?text=No+Image' });
+            }
+
+            const galleryHTML = `
+                <div class="swiper main-swiper w-full aspect-square rounded-lg overflow-hidden border">
+                    <div class="swiper-wrapper">
+                        ${mediaItems.map(item => `
+                            <div class="swiper-slide bg-gray-100 flex items-center justify-center">
+                                ${item.type === 'image' ? `<img src="${item.url}" class="w-full h-full object-cover">` : ''}
+                                ${item.type === 'video' ? `<video src="${item.url}" class="w-full h-full object-cover" controls></video>` : ''}
+                                ${item.type === 'youtube' ? `<iframe src="${item.url}" class="w-full h-full" frameborder="0" allowfullscreen></iframe>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="swiper-pagination"></div>
+                </div>
+                <div class="swiper thumbs-swiper w-full mt-3">
+                    <div class="swiper-wrapper">
+                        ${mediaItems.map(item => `
+                            <div class="swiper-slide w-20 h-20 border-2 border-transparent rounded-md overflow-hidden cursor-pointer">
+                                <img src="${item.type === 'image' ? item.url : 'https://img.youtube.com/vi/' + item.url.split('/').pop() + '/default.jpg'}" class="w-full h-full object-cover">
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            mediaGallery.innerHTML = galleryHTML;
+
+            const thumbsSwiper = new Swiper(".thumbs-swiper", {
+                spaceBetween: 10,
+                slidesPerView: 'auto',
+                freeMode: true,
+                watchSlidesProgress: true,
+            });
+            new Swiper(".main-swiper", {
+                spaceBetween: 10,
+                pagination: { el: ".swiper-pagination", clickable: true },
+                thumbs: { swiper: thumbsSwiper },
+            });
+        }
+
+        function renderProductInfo(product, settings) {
+            const infoContainer = document.getElementById('product-info-main');
+            const lxcRate = parseFloat(settings.lxc_rate || '10');
+            const lxcValue = (product.liyogx_coins || 0) / lxcRate;
+
+            let finalPrice = product.discount_price || product.price;
+            let originalPrice = product.price;
+            let hasDiscount = finalPrice < originalPrice;
+
+            if (finalPrice === originalPrice && finalPrice > 0) {
+                originalPrice = originalPrice * 1.10; // 10% artificial inflation
+                hasDiscount = true;
+            }
+
+            infoContainer.innerHTML = `
+                ${product.category ? `<div class="text-sm text-gray-500 font-medium mb-2">${product.category}</div>` : ''}
+                <h1 class="text-3xl lg:text-4xl font-extrabold text-gray-900">${product.name}</h1>
+                
+                <div class="flex items-center gap-4 mt-4">
+                    <div class="flex items-center gap-2">
+                        ${generateStarRatingHTML(product.avg_rating)}
+                        <span class="text-sm font-bold text-gray-700">${(product.avg_rating || 0).toFixed(1)}</span>
+                        <span class="text-sm text-gray-500">(${(product.total_reviews || 0).toLocaleString()} reviews)</span>
+                    </div>
+                    <div class="text-sm text-gray-500">|</div>
+                    <div class="text-sm font-medium text-gray-600"><strong class="text-gray-800">${(product.total_orders || 0).toLocaleString()}</strong> sold</div>
+                </div>
+
+                <div class="my-6">
+                    <span class="text-4xl font-extrabold text-liyog">${formatPrice(finalPrice)}</span>
+                    ${hasDiscount ? `<span class="text-xl line-through text-gray-400 ml-3">${formatPrice(originalPrice)}</span>` : ''}
+                </div>
+
+                <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+                    <div class="font-bold text-amber-700">Earn ${product.liyogx_coins || 0} LiyogX Coins</div>
+                    <div class="text-sm text-amber-600">Worth ${formatPrice(lxcValue)} on your next purchase!</div>
+                </div>
+
+                <div class="mt-6 text-sm text-gray-600 space-y-2">
+                    <p><strong class="font-semibold text-gray-800">Product Code:</strong> ${product.product_number}</p>
+                    <div class="flex items-center gap-2">
+                        <strong class="font-semibold text-gray-800">Availability:</strong>
+                        ${product.published ? `<span class="font-bold text-green-600">In Stock</span>` : `<span class="font-bold text-red-600">Out of Stock</span>`}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTags(tags) {
+            const tagsContainer = document.getElementById('tags-section');
+            if (!tags) {
+                tagsContainer.remove();
+                return;
+            };
+            const tagsArray = tags.split(',').map(tag => tag.trim()).filter(Boolean);
+            tagsContainer.innerHTML = `
+                <h3 class="text-lg font-bold mb-3">Tags</h3>
+                <div class="tags-container flex items-center gap-3 pb-2 overflow-x-auto">
+                    ${tagsArray.map(tag => `<a href="#" class="px-4 py-1.5 bg-gray-200 text-gray-700 text-sm font-semibold rounded-full whitespace-nowrap hover:bg-liyog hover:text-white transition-colors">${tag}</a>`).join('')}
+                </div>
+            `;
+        }
+        
+        // ... (renderTabs, renderReviews, renderReviewForm functions will be added here)
+
+        // --- MAIN APP LOGIC ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const slug = params.get("p"); // Using 'p' for product slug
+            
+            if (!slug) {
+                document.body.innerHTML = '<div class="text-center p-10"><h1>Product not specified.</h1><a href="/products.html" class="text-liyog">Go back to shop</a></div>';
+                return;
+            }
+
+            try {
+                // Fetch all data in parallel
+                const [product, reviews, settings, {data: {session}}] = await Promise.all([
+                    fetchProductData(slug),
+                    fetchReviews(/* product.id will be available after first promise */),
+                    fetchSiteSettings(),
+                    supabaseClient.auth.getSession()
+                ]);
+                
+                currentProduct = product;
+                currentUser = session?.user;
+
+                // Now fetch reviews with the correct product ID
+                const finalReviews = await fetchReviews(product.id);
+
+                // Start rendering
+                renderMediaGallery(product);
+                renderProductInfo(product, settings);
+                renderTags(product.tags);
+
+                // --- HIDE LOADER, SHOW CONTENT ---
+                loader.classList.add('hidden');
+                productContent.classList.remove('hidden');
+                productContainer.classList.add('opacity-100');
+
+            } catch (error) {
+                console.error(error);
+                loader.innerHTML = `<div class="text-center p-10 text-red-600"><h1>Error: ${error.message}</h1><a href="/products.html" class="text-liyog">Go back to shop</a></div>`;
+            }
+        });
+    </script>
+
+</body>
+</html>
 
