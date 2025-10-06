@@ -171,27 +171,27 @@
      * @returns {Promise<{data: any[] | null, error: any | null}>}
      */
     async function fetchProducts() {
-      try {
-        const { data, error } = await supabaseClient
-          .from("products")
-          .select(`
-            id, name, price, discount_percent, discount_price, image_urls,
-            published, avg_rating, total_reviews, total_orders,
-            total_likes, liyogx_coins, total_views
-          `)
-          // We fetch all products, and the UI will handle the "published" state
-          .order("created_at", { ascending: false })
-          .limit(20);
+    async function fetchProducts() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("products")
+      .select(`
+        id, slug, name, price, discount_percent, discount_price, image_urls,
+        published, avg_rating, total_reviews, total_orders,
+        total_likes, liyogx_coins, total_views
+      `)
+      .order("created_at", { ascending: false })
+      .limit(20);
 
-        if (error) {
-          throw error;
-        }
-        return { data, error: null };
-      } catch (error) {
-        console.error("Error fetching products:", error.message);
-        return { data: null, error };
-      }
+    if (error) {
+      throw error;
     }
+    return { data, error: null };
+  } catch (error) {
+    console.error("Error fetching products:", error.message);
+    return { data: null, error };
+  }
+}
     // ===================================================================
     // END: Code for `src/js/api.js`
     // ===================================================================
@@ -247,7 +247,12 @@
         const outOfStockClass = !isPublished ? 'opacity-60 grayscale' : '';
         const outOfStockPointer = !isPublished ? 'pointer-events-none' : '';
 
-        // --- Price Calculation ---
+        // Safe slug handling
+    const slug = product.slug ?? '';
+    const productHref = slug ? `product.html?slug=${encodeURIComponent(slug)}` : '#';
+
+     
+     // --- Price Calculation ---
         let finalPrice = product.price;
         let originalPrice = product.price;
         let discountPercentage = product.discount_percent || 0;
