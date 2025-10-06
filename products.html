@@ -31,36 +31,19 @@
             sans: ['Inter', 'sans-serif'],
           },
           keyframes: {
-            // Keyframe for the skeleton loader's shimmer effect
             shimmer: {
               '100%': { transform: 'translateX(100%)' },
             },
           },
         },
       },
-      plugins: [
-        // This line is for better default form styling, not strictly needed but good practice
-        // In a real build, you'd install it via npm: `npm install -D @tailwindcss/forms`
-      ],
     }
   </script> 
   <style>
-    /* A little bit of custom CSS for the shimmer effect on skeletons */
     .shimmer::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
+        content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
         transform: translateX(-100%);
-        background-image: linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0) 0,
-            rgba(255, 255, 255, 0.2) 20%,
-            rgba(255, 255, 255, 0.5) 60%,
-            rgba(255, 255, 255, 0)
-        );
+        background-image: linear-gradient( 90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0));
         animation: shimmer 2s infinite;
     }
   </style> 
@@ -147,97 +130,34 @@
    </div> 
   </footer> 
   <script type="module">
-    // This single script contains the logic from 4 separate files.
-    // When you're ready for production, you should split them as commented.
-
-    // ===================================================================
-    // START: Code for `src/js/config.js`
-    // ===================================================================
+    // CONFIG
     const SUPABASE_URL = "https://snwwlewjriuqrodpjhry.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3dsZXdqcml1cXJvZHBqaHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDY3MDAsImV4cCI6MjA2ODE4MjcwMH0.WxOmEHxLcEHmMKFjsgrzcb22mPs-sJwW_G3GOuXX2c8";
-    // ===================================================================
-    // END: Code for `src/js/config.js`
-    // ===================================================================
 
-
-    // ===================================================================
-    // START: Code for `src/js/api.js`
-    // ===================================================================
+    // API
     const { createClient } = supabase;
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    /**
-     * Fetches published products from the database with all required fields.
-     * @returns {Promise<{data: any[] | null, error: any | null}>}
-     */
     async function fetchProducts() {
       try {
         const { data, error } = await supabaseClient
           .from("products")
-          .select(`
-            id, name, price, discount_percent, discount_price, image_urls, slug,
-            published, avg_rating, total_reviews, total_orders,
-            total_likes, liyogx_coins, total_views
-          `)
-          // We fetch all products, and the UI will handle the "published" state
+          .select(`id, name, price, discount_percent, discount_price, image_urls, slug, published, avg_rating, total_reviews, total_orders, total_likes, liyogx_coins, total_views`)
           .order("created_at", { ascending: false })
           .limit(20);
-
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
         return { data, error: null };
       } catch (error) {
         console.error("Error fetching products:", error.message);
         return { data: null, error };
       }
     }
-    // ===================================================================
-    // END: Code for `src/js/api.js`
-    // ===================================================================
-
-
-    // ===================================================================
-    // START: Code for `src/js/ui.js`
-    // ===================================================================
+    
+    // UI
     const productsGrid = document.getElementById("products-grid");
     const errorContainer = document.getElementById("error-container");
 
-    /**
-     * Generates SVG stars for product rating.
-     * @param {number} rating - The average rating (e.g., 4.5).
-     * @returns {string} HTML string of SVG stars.
-     */
-    function generateStarRatingHTML(rating = 0) {
-        const totalStars = 5;
-        let starsHTML = '';
-        const starId = `star-grad-${Math.random().toString(36).substr(2, 9)}`;
-
-        for (let i = 1; i <= totalStars; i++) {
-            const fillPercentage = i <= rating ? 100 : (i - rating < 1 ? (rating - Math.floor(rating)) * 100 : 0);
-            
-            starsHTML += `
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="url(#${starId})" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="${starId}">
-                            <stop offset="${fillPercentage}%" stop-color="#ffd700" />
-                            <stop offset="${fillPercentage}%" stop-color="#e5e7eb" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z"/>
-                </svg>
-            `;
-        }
-        return `<div class="flex items-center">${starsHTML}</div>`;
-    }
-
-    /**
-     * Renders a single, professionally designed product card.
-     * @param {object} product The product data from Supabase.
-     * @returns {string} The HTML string for the product card.
-     */
-
-   function createProductCardHTML(product) {
+    function createProductCardHTML(product) {
         const imageUrl = (product.image_urls && product.image_urls.length > 0) ? product.image_urls[0] : "https://via.placeholder.com/400?text=Liyog";
         const isPublished = product.published;
         const outOfStockClass = !isPublished ? 'opacity-60 grayscale' : '';
@@ -287,129 +207,59 @@
             </div>
         `;
     }
-   
-    
-        
-        
 
-    /**
-     * Renders a skeleton loader card.
-     * @returns {string} The HTML string for the skeleton card.
-     */
     function createSkeletonCardHTML() {
       return `
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200/80">
-            <div class="relative">
-                <div class="aspect-square w-full bg-gray-200 shimmer"></div>
-            </div>
+            <div class="relative"><div class="aspect-square w-full bg-gray-200 shimmer"></div></div>
             <div class="p-4">
-                <div class="h-3 bg-gray-200 rounded w-1/4 mb-3 shimmer"></div>
                 <div class="h-4 bg-gray-200 rounded w-full mb-2 shimmer"></div>
                 <div class="h-4 bg-gray-200 rounded w-3/4 mb-4 shimmer"></div>
-                <div class="flex items-center gap-2 mb-4">
-                    <div class="h-4 w-20 bg-gray-200 rounded shimmer"></div>
-                    <div class="h-4 w-12 bg-gray-200 rounded shimmer"></div>
-                </div>
                 <div class="h-8 bg-gray-300 rounded w-1/2 mb-4 shimmer"></div>
                 <div class="h-10 bg-gray-300 rounded-lg w-full shimmer"></div>
             </div>
-        </div>
-      `;
+        </div>`;
     }
 
-    /**
-     * Renders the products to the grid.
-     * @param {Array<object>} products - Array of product objects.
-     */
     function renderProducts(products) {
       if (!productsGrid) return;
       productsGrid.innerHTML = products.map(createProductCardHTML).join("");
     }
 
-    /**
-     * Renders skeleton loaders to the grid.
-     * @param {number} count - The number of skeletons to display.
-     */
     function renderSkeletons(count) {
       if (!productsGrid) return;
-      const skeletonsHTML = Array(count).fill(0).map(createSkeletonCardHTML).join("");
-      productsGrid.innerHTML = skeletonsHTML;
+      productsGrid.innerHTML = Array(count).fill(0).map(createSkeletonCardHTML).join("");
     }
 
-    /**
-     * Displays an error message.
-     * @param {string} message - The error message to display.
-     */
     function displayError(message = "Oops! Something went wrong.") {
         if (!productsGrid || !errorContainer) return;
         productsGrid.innerHTML = "";
         errorContainer.classList.remove('hidden');
-        errorContainer.innerHTML = `
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center" role="alert">
-                <strong class="font-bold">Error:</strong>
-                <span class="block sm:inline">${message} Please try again later.</span>
-            </div>
-        `;
+        errorContainer.innerHTML = `<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center" role="alert"><strong class="font-bold">Error:</strong> <span class="block sm:inline">${message} Please try again later.</span></div>`;
     }
-    // ===================================================================
-    // END: Code for `src/js/ui.js`
-    // ===================================================================
 
-
-    // ===================================================================
-    // START: Code for `src/js/main.js` (The App Orchestrator)
-    // ===================================================================
+    // MAIN APP LOGIC
     (function App() {
-      
-      function init() {
-        document.addEventListener("DOMContentLoaded", () => {
-          setupEventListeners();
-          loadInitialProducts();
-          updateFooterYear();
-        });
-      }
-
-      function setupEventListeners() {
-        const menuToggle = document.getElementById("menu-toggle");
-        const mobileMenu = document.getElementById("mobile-menu");
-
-        if (menuToggle && mobileMenu) {
-          menuToggle.addEventListener("click", () => {
-            mobileMenu.classList.toggle("hidden");
-          });
-        }
-      }
-
       async function loadInitialProducts() {
         renderSkeletons(12);
         const { data: products, error } = await fetchProducts();
-
         if (error) {
           displayError("Failed to connect to the store.");
           return;
         }
-
         if (!products || products.length === 0) {
-          displayError("No products are available at the moment. Please check back soon!");
+          displayError("No products are available at the moment.");
           return;
         }
-
         renderProducts(products);
       }
 
-      function updateFooterYear() {
+      document.addEventListener("DOMContentLoaded", () => {
+        loadInitialProducts();
         const yearEl = document.getElementById("year");
-        if (yearEl) {
-          yearEl.textContent = new Date().getFullYear();
-        }
-      }
-
-      init();
-
+        if (yearEl) yearEl.textContent = new Date().getFullYear();
+      });
     })();
-    // ===================================================================
-    // END: Code for `src/js/main.js`
-    // ===================================================================
 </script> 
  </body>
 </html>
