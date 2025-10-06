@@ -175,7 +175,7 @@
         const { data, error } = await supabaseClient
           .from("products")
           .select(`
-            id, name, price, discount_percent, discount_price, image_urls,
+            id, name, price, discount_percent, discount_price, image_urls, slug,
             published, avg_rating, total_reviews, total_orders,
             total_likes, liyogx_coins, total_views
           `)
@@ -244,7 +244,8 @@
 
         const isPublished = product.published;
         const outOfStockClass = !isPublished ? 'opacity-60 grayscale' : '';
-        const outOfStockPointer = !isPublished ? 'pointer-events-none' : '';
+        // Removed `pointer-events-none` from `outOfStockPointer` to allow clicking out-of-stock products
+        const outOfStockPointer = ''; 
 
         // --- Price Calculation ---
         let finalPrice = product.price;
@@ -288,7 +289,7 @@
         
         return `
             <div class="bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 group overflow-hidden flex flex-col border border-gray-200/80 ${outOfStockClass}" data-published="${isPublished}">
-                <a href="product.html?p=${encodeURIComponent(product.slug)}" class="block relative overflow-hidden ${outOfStockPointer}">
+                <a href="product.html?p=${product.slug}" class="block relative overflow-hidden ${outOfStockPointer}">
                     <div class="aspect-square w-full">
                         <img src="${imageUrl}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
                     </div>
@@ -303,7 +304,7 @@
                     </div>
 
                     <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 flex-grow mb-2">
-                        <a href="#" class="hover:text-liyog-dark transition-colors">${product.name}</a>
+                        <a href="product.html?p=${product.slug}" class="hover:text-liyog-dark transition-colors">${product.name}</a>
                     </h3>
 
                     <div class="flex items-center gap-2 text-xs text-gray-500 mb-3">
