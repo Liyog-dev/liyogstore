@@ -261,11 +261,6 @@
       errorContainer.innerHTML = `<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">${message}</div>`;
     }
 
-    // MAIN APP
-    async function loadInitialProducts() {
-      renderSkeletons(12);
-      const { data, error } = await fetchProducts();
-      if (error) return displayError("Failed to load products.");
 
    // ===================================================================
     // START: Code for `src/js/main.js` (The App Orchestrator)
