@@ -3,39 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liyog - Shop Smart, Live Better</title>
-    <meta name="description" content="Product details page for Liyog.">
-    
+    <title>Product Details • Liyog</title>
+    <meta name="description" content="Explore product details, reviews, and offers on Liyog.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+    <style>
+        :root {
+            --liyog-green: #28A428;
+            --liyog-green-dark: #228B22;
+            --liyog-deep-green: #006400;
+            --liyog-gold: #ffd700;
+            --liyog-orange: #ff7a00;
+            --font-stack: 'Inter', sans-serif;
+        }
+        body { 
+            font-family: var(--font-stack); 
+            background-color: #f8fafc; /* A slightly softer gray */
+            color: #1e293b; 
+        }
+        .shimmer::after {
+            content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0));
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .thumb-active {
+            outline: 2px solid var(--liyog-green);
+            outline-offset: 2px;
+        }
+        .tab-btn-active {
+            color: var(--liyog-green-dark);
+            font-weight: 700;
+            border-color: var(--liyog-green);
+        }
+        .like-icon-filled {
+            color: #ef4444; /* red-500 */
+        }
+    </style>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
                         liyog: {
-                            light: '#34bf49',
-                            DEFAULT: '#28a428',
-                            dark: '#228b22',
-                            deep: '#006400',
+                            green: 'var(--liyog-green)',
+                            'green-dark': 'var(--liyog-green-dark)',
+                            'deep-green': 'var(--liyog-deep-green)',
+                            gold: 'var(--liyog-gold)',
+                            orange: 'var(--liyog-orange)',
                         },
-                        accent: {
-                            DEFAULT: '#ff7a00',
-                            dark: '#e66e00',
-                        },
-                        gold: '#ffd700',
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
@@ -44,305 +71,642 @@
             },
         }
     </script>
-    <style>
-        /* Custom styles for Swiper pagination bullets */
-        .swiper-pagination-bullet-active {
-            background-color: #28a428 !important;
-        }
-        /* Custom scrollbar for tags */
-        .tags-container::-webkit-scrollbar {
-            height: 4px;
-        }
-        .tags-container::-webkit-scrollbar-thumb {
-            background-color: #28a428;
-            border-radius: 10px;
-        }
-    </style>
 </head>
 
-<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+<body class="antialiased">
 
     <header class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
         <nav class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
-                <a href="/products.html" class="text-gray-600 hover:text-liyog transition-colors">
+                <a href="products.html" class="text-gray-600 hover:text-liyog-green transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                 </a>
-                <a href="/" class="text-2xl font-extrabold text-liyog">Liyog</a>
-                <a href="/cart/" class="relative text-gray-600 hover:text-liyog transition-colors">
+                <a href="/" class="text-2xl font-extrabold text-liyog-green">Liyog</a>
+                <a href="/cart/" class="relative text-gray-600 hover:text-liyog-green transition-colors">
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                    <span id="cart-count" class="absolute -top-1 -right-2 bg-accent text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">0</span>
+                    <span id="cart-count" class="absolute -top-1 -right-2 bg-liyog-orange text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">0</span>
                 </a>
             </div>
         </nav>
     </header>
 
-    <main id="product-detail-container" class="max-w-screen-xl mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-8 opacity-0 transition-opacity duration-500">
+    <main id="main-content" class="max-w-screen-xl mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
         <div id="skeleton-loader">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-                <div class="animate-pulse">
-                    <div class="aspect-square bg-gray-200 rounded-lg"></div>
+                <div class="relative overflow-hidden">
+                    <div class="aspect-square w-full bg-gray-200 rounded-lg shimmer"></div>
                     <div class="flex gap-2 mt-4">
-                        <div class="w-20 h-20 bg-gray-200 rounded"></div>
-                        <div class="w-20 h-20 bg-gray-200 rounded"></div>
-                        <div class="w-20 h-20 bg-gray-200 rounded"></div>
+                        <div class="w-20 h-20 bg-gray-200 rounded shimmer"></div>
+                        <div class="w-20 h-20 bg-gray-200 rounded shimmer"></div>
+                        <div class="w-20 h-20 bg-gray-200 rounded shimmer"></div>
                     </div>
                 </div>
-                <div>
-                    <div class="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-                    <div class="h-5 bg-gray-200 rounded w-1/2 mb-6"></div>
-                    <div class="h-12 bg-gray-200 rounded w-1/3 mb-6"></div>
-                    <div class="h-20 bg-gray-200 rounded w-full mb-6"></div>
-                    <div class="h-12 bg-gray-200 rounded w-full"></div>
+                <div class="space-y-6">
+                    <div class="h-8 bg-gray-200 rounded w-3/4 shimmer"></div>
+                    <div class="flex items-center gap-4">
+                        <div class="h-5 bg-gray-200 rounded w-32 shimmer"></div>
+                        <div class="h-5 bg-gray-200 rounded w-24 shimmer"></div>
+                    </div>
+                    <div class="h-12 bg-gray-200 rounded w-1/3 shimmer"></div>
+                    <div class="h-16 bg-gray-200 rounded w-full shimmer"></div>
+                    <div class="h-12 bg-gray-200 rounded w-full shimmer"></div>
                 </div>
             </div>
         </div>
 
         <div id="product-content" class="hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
-                <div id="media-gallery" class="w-full"></div>
+                <section id="media-gallery" class="w-full">
+                    <div id="main-media-viewer" class="w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden border mb-4">
+                        </div>
+                    <div id="thumbnails-container" class="w-full hide-scrollbar overflow-x-auto">
+                        <div id="thumbnails-wrapper" class="flex gap-3 pb-2">
+                            </div>
+                    </div>
+                </section>
+                
+                <section id="product-details" class="flex flex-col">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div id="product-category" class="text-sm font-semibold text-liyog-green mb-1"></div>
+                            <h1 id="product-name" class="text-3xl lg:text-4xl font-extrabold text-gray-900"></h1>
+                        </div>
+                        <div id="stock-badge" class="text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap"></div>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 mt-3 text-sm">
+                        <div id="star-rating" class="flex items-center gap-1"></div>
+                        <a href="#reviews-section" class="font-bold text-gray-800 hover:underline"><span id="avg-rating">0.0</span> (<span id="total-reviews">0</span> Reviews)</a>
+                        <span class="text-gray-300">|</span>
+                        <div class="flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span id="total-orders" class="font-semibold text-gray-600">0</span> <span class="text-gray-500">sold</span>
+                        </div>
+                    </div>
 
-                <div class="flex flex-col">
-                    <div id="product-info-main"></div>
-                    <div id="action-buttons" class="mt-6"></div>
-                </div>
+                    <div id="tags-container" class="mt-4 flex items-center gap-3 overflow-x-auto hide-scrollbar pb-2">
+                        </div>
+
+                    <div class="my-6 bg-gray-50 p-4 rounded-lg border">
+                        <div class="flex items-baseline gap-3">
+                            <span id="final-price" class="text-4xl font-extrabold text-liyog-green-dark"></span>
+                            <span id="original-price" class="text-xl line-through text-gray-400"></span>
+                        </div>
+                        <div id="lxc-banner" class="mt-2 text-sm font-semibold text-amber-700">
+                            Earn <span id="liyogx-coins">0</span> LiyogX Coins (worth ₦<span id="liyogx-value">0.00</span>)
+                        </div>
+                    </div>
+                    
+                    <div class="mt-auto pt-6 border-t space-y-4">
+                        <div class="flex items-center gap-4">
+                            <div class="flex items-center border rounded-lg overflow-hidden">
+                                <button id="qty-decrement" class="px-4 py-3 text-lg font-bold hover:bg-gray-100">−</button>
+                                <input id="quantity-input" type="number" value="1" min="1" class="w-16 text-center py-3 border-l border-r font-bold text-lg focus:outline-none">
+                                <button id="qty-increment" class="px-4 py-3 text-lg font-bold hover:bg-gray-100">+</button>
+                            </div>
+                            <button id="add-to-cart-btn" class="flex-1 text-center font-bold text-lg text-white bg-liyog-green hover:bg-liyog-green-dark rounded-lg py-3 transition-colors">Add to Cart</button>
+                        </div>
+                        <button id="order-now-btn" class="w-full text-center font-bold text-lg text-white bg-liyog-orange hover:bg-orange-600 rounded-lg py-3 transition-colors">Order Now</button>
+                    </div>
+
+                    <div class="mt-6 flex items-center justify-between text-sm">
+                        <div class="flex items-center gap-4">
+                             <button id="like-btn" class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors">
+                                <svg id="like-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 116.364 6.364L12 20.25l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>
+                                <span id="total-likes" class="font-semibold">0</span>
+                            </button>
+                            <button id="share-btn" class="flex items-center gap-2 text-gray-600 hover:text-liyog-green">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6.002l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path></svg>
+                                <span>Share</span>
+                            </button>
+                        </div>
+                        <div class="text-gray-500">
+                           Views: <span id="total-views" class="font-semibold">0</span>
+                        </div>
+                    </div>
+                </section>
             </div>
 
-            <div id="tags-section" class="mt-10"></div>
+            <section id="tabs-section" class="mt-16 bg-white p-6 rounded-lg border">
+                 <div class="border-b border-gray-200">
+                    <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                        <button data-tab="description" class="tab-btn tab-btn-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Description</button>
+                        <button data-tab="reviews" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">Reviews</button>
+                    </nav>
+                </div>
+                <div class="py-6">
+                    <div id="tab-content-description" class="tab-content prose max-w-none text-gray-600"></div>
+                    <div id="tab-content-reviews" class="tab-content hidden">
+                         <div id="reviews-list" class="space-y-8"></div>
+                         <div id="load-more-reviews-container" class="text-center mt-8 hidden">
+                            <button id="load-more-reviews-btn" class="px-6 py-2 border rounded-lg font-semibold hover:bg-gray-50">Load More</button>
+                         </div>
+                    </div>
+                </div>
+            </section>
             
-            <div id="tabs-section" class="mt-12"></div>
+            <section id="related-products-section" class="mt-16 hidden">
+                <h2 class="text-2xl font-extrabold text-gray-900 mb-6">Related Products</h2>
+                <div id="related-products-carousel" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+            </section>
             
-            <div id="related-products" class="mt-16"></div>
-
+            <section id="you-may-like-section" class="mt-16">
+                <h2 class="text-2xl font-extrabold text-gray-900 mb-6">You May Also Like</h2>
+                <div id="you-may-like-carousel" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+            </section>
         </div>
     </main>
-    
-    <footer id="sticky-footer" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 p-3 flex items-center gap-3 z-40">
+
+    <footer class="bg-white/80 backdrop-blur-lg mt-16 py-8 border-t">
+        <div class="text-center text-sm text-gray-500">
+            © <span id="footer-year"></span> Liyog. All Rights Reserved.
+        </div>
     </footer>
     
-    <script type="module">
-        // --- CONFIG ---
-        const SUPABASE_URL = "https://snwwlewjriuqrodpjhry.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3dsZXdqcml1cXJvZHBqaHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDY3MDAsImV4cCI6MjA2ODE4MjcwMH0.WxOmEHxLcEHmMKFjsgrzcb22mPs-sJwW_G3GOuXX2c8";
-        const WHATSAPP_NUMBER = "2347038268136"; // Your WhatsApp number
+    <div id="mobile-sticky-footer" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t p-3 flex items-center gap-3 z-40 shadow-2xl">
+        <button id="mobile-add-to-cart-btn" class="flex-1 text-center font-bold text-liyog-green bg-green-100 rounded-lg py-3">Add to Cart</button>
+        <button id="mobile-order-now-btn" class="flex-1 text-center font-bold text-white bg-liyog-orange rounded-lg py-3">Order Now</button>
+    </div>
 
-        // --- INITIALIZATION ---
-        const { createClient } = supabase;
-        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+<script type="module">
+// ===================================================================
+// CONFIG & INITIALIZATION
+// ===================================================================
+const SUPABASE_URL = "https://snwwlewjriuqrodpjhry.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzIANiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3dsZXdqcml1cXJvZHBqaHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDY3MDAsImV4cCI6MjA2ODE4MjcwMH0.WxOmEHxLcEHmMKFjsgrzcb22mPs-sJwW_G3GOuXX2c8";
 
-        let currentUser = null;
-        let currentProduct = null;
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // --- DOM ELEMENTS ---
-        const loader = document.getElementById('skeleton-loader');
-        const productContainer = document.getElementById('product-detail-container');
-        const productContent = document.getElementById('product-content');
+// ===================================================================
+// STATE MANAGEMENT
+// ===================================================================
+let state = {
+    product: null,
+    currentUser: null,
+    settings: { lxc_rate: 10 }, // Default value
+    reviews: [],
+    reviewsPage: 1,
+    reviewsPerPage: 5,
+    hasMoreReviews: true,
+};
 
-        // --- HELPER FUNCTIONS ---
-        const formatPrice = (amount) => `₦${(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+// ===================================================================
+// DOM ELEMENT SELECTORS
+// ===================================================================
+const DOMElements = {
+    loader: document.getElementById('skeleton-loader'),
+    content: document.getElementById('product-content'),
+    mainMediaViewer: document.getElementById('main-media-viewer'),
+    thumbnailsWrapper: document.getElementById('thumbnails-wrapper'),
+    productCategory: document.getElementById('product-category'),
+    productName: document.getElementById('product-name'),
+    stockBadge: document.getElementById('stock-badge'),
+    starRating: document.getElementById('star-rating'),
+    avgRating: document.getElementById('avg-rating'),
+    totalReviews: document.getElementById('total-reviews'),
+    totalOrders: document.getElementById('total-orders'),
+    tagsContainer: document.getElementById('tags-container'),
+    finalPrice: document.getElementById('final-price'),
+    originalPrice: document.getElementById('original-price'),
+    lxcBanner: document.getElementById('lxc-banner'),
+    liyogxCoins: document.getElementById('liyogx-coins'),
+    liyogxValue: document.getElementById('liyogx-value'),
+    quantityInput: document.getElementById('quantity-input'),
+    addToCartBtn: document.getElementById('add-to-cart-btn'),
+    orderNowBtn: document.getElementById('order-now-btn'),
+    likeBtn: document.getElementById('like-btn'),
+    likeIcon: document.getElementById('like-icon'),
+    totalLikes: document.getElementById('total-likes'),
+    shareBtn: document.getElementById('share-btn'),
+    totalViews: document.getElementById('total-views'),
+    // Tabs
+    tabButtons: document.querySelectorAll('.tab-btn'),
+    tabContents: document.querySelectorAll('.tab-content'),
+    descriptionContent: document.getElementById('tab-content-description'),
+    reviewsContent: document.getElementById('tab-content-reviews'),
+    reviewsList: document.getElementById('reviews-list'),
+    loadMoreReviewsContainer: document.getElementById('load-more-reviews-container'),
+    loadMoreReviewsBtn: document.getElementById('load-more-reviews-btn'),
+    // Carousels
+    relatedProductsSection: document.getElementById('related-products-section'),
+    relatedProductsCarousel: document.getElementById('related-products-carousel'),
+    youMayLikeSection: document.getElementById('you-may-like-section'),
+    youMayLikeCarousel: document.getElementById('you-may-like-carousel'),
+    // Mobile
+    mobileAddToCartBtn: document.getElementById('mobile-add-to-cart-btn'),
+    mobileOrderNowBtn: document.getElementById('mobile-order-now-btn'),
+};
+
+// ===================================================================
+// API/DATA FETCHING FUNCTIONS
+// ===================================================================
+async function fetchProduct(slug) {
+    const { data, error } = await supabaseClient
+        .from('products')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+    if (error) throw new Error('Product not found or an error occurred.');
+    return data;
+}
+
+async function fetchSettings() {
+    const { data, error } = await supabaseClient.from('site_settings').select('key, value').eq('key_lower', 'lxc_rate');
+    if (data && data.length > 0) {
+        state.settings.lxc_rate = parseFloat(data[0].value) || 10;
+    }
+}
+
+async function fetchReviews() {
+    if (!state.product || !state.hasMoreReviews) return;
+    const from = (state.reviewsPage - 1) * state.reviewsPerPage;
+    const to = from + state.reviewsPerPage - 1;
+
+    const { data, error } = await supabaseClient
+        .from('reviews')
+        .select(`*, user:users(name, profile_image)`)
+        .eq('product_id', state.product.id)
+        .order('created_at', { ascending: false })
+        .range(from, to);
         
-        const generateStarRatingHTML = (rating = 0, size = 'w-5 h-5') => {
-            let starsHTML = '';
-            const starId = `grad-${Math.random().toString(36).substr(2, 9)}`;
-            for (let i = 1; i <= 5; i++) {
-                const fill = i <= rating ? 100 : (i - rating < 1 ? (rating - Math.floor(rating)) * 100 : 0);
-                starsHTML += `
-                    <svg class="${size}" viewBox="0 0 24 24" fill="url(#${starId})">
-                        <defs><linearGradient id="${starId}"><stop offset="${fill}%" stop-color="#ffd700"/><stop offset="${fill}%" stop-color="#e5e7eb"/></linearGradient></defs>
-                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z"/>
-                    </svg>`;
-            }
-            return `<div class="flex items-center">${starsHTML}</div>`;
-        };
+    if (error) { console.error("Error fetching reviews:", error); return; }
 
-        const getYouTubeEmbedUrl = (url) => {
-            if (!url) return null;
-            let videoId;
-            if (url.includes("embed")) return url;
-            if (url.includes("youtu.be/")) {
-                videoId = url.split("youtu.be/")[1].split("?")[0];
-            } else {
-                videoId = new URL(url).searchParams.get("v");
-            }
-            return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
-        };
+    if (data.length < state.reviewsPerPage) {
+        state.hasMoreReviews = false;
+        DOMElements.loadMoreReviewsContainer.classList.add('hidden');
+    } else {
+        DOMElements.loadMoreReviewsContainer.classList.remove('hidden');
+    }
+    
+    state.reviews = [...state.reviews, ...data];
+    state.reviewsPage++;
+    renderReviews();
+}
 
-        // --- DATA FETCHING ---
-        async function fetchProductData(slug) {
-            const { data, error } = await supabaseClient.from("products").select("*").eq("slug", slug).single();
-            if (error) throw new Error("Product not found.");
-            return data;
-        }
+async function fetchRelatedProducts(product) {
+    const tags = (product.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+    if (!product.category && tags.length === 0) return [];
 
-        async function fetchReviews(productId) {
-            const { data, error } = await supabaseClient.from("reviews").select(`*, users (name, profile_image)`).eq("product_id", productId).order('created_at', { ascending: false });
-            return data || [];
-        }
+    const tagQuery = tags.map(tag => `tags.cs.{"${tag}"}`).join(',');
+    const orQuery = `category.eq.${product.category},${tagQuery}`;
 
-        async function fetchSiteSettings() {
-            const { data, error } = await supabaseClient.from("site_settings").select("key, value").in('key', ['lxc_rate']);
-            const settings = {};
-            if (data) data.forEach(s => settings[s.key] = s.value);
-            return settings;
-        }
+    const { data, error } = await supabaseClient
+        .from('products')
+        .select('name, price, discount_price, image_urls, slug, avg_rating, total_reviews')
+        .neq('id', product.id)
+        .or(orQuery)
+        .limit(4);
 
-        // --- RENDERING ---
-        function renderMediaGallery(product) {
-            const mediaGallery = document.getElementById('media-gallery');
-            const mediaItems = [];
-            const youtubeUrl = getYouTubeEmbedUrl(product.youtube_url);
-            if (youtubeUrl) mediaItems.push({ type: 'youtube', url: youtubeUrl });
-            if (product.video_url) mediaItems.push({ type: 'video', url: product.video_url });
-            if (product.image_urls) product.image_urls.forEach(url => mediaItems.push({ type: 'image', url }));
+    if (error) { console.error("Error fetching related products:", error); return []; }
+    return data;
+}
 
-            if (mediaItems.length === 0) {
-                mediaItems.push({ type: 'image', url: 'https://via.placeholder.com/600?text=No+Image' });
-            }
-
-            const galleryHTML = `
-                <div class="swiper main-swiper w-full aspect-square rounded-lg overflow-hidden border">
-                    <div class="swiper-wrapper">
-                        ${mediaItems.map(item => `
-                            <div class="swiper-slide bg-gray-100 flex items-center justify-center">
-                                ${item.type === 'image' ? `<img src="${item.url}" class="w-full h-full object-cover">` : ''}
-                                ${item.type === 'video' ? `<video src="${item.url}" class="w-full h-full object-cover" controls></video>` : ''}
-                                ${item.type === 'youtube' ? `<iframe src="${item.url}" class="w-full h-full" frameborder="0" allowfullscreen></iframe>` : ''}
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="swiper-pagination"></div>
-                </div>
-                <div class="swiper thumbs-swiper w-full mt-3">
-                    <div class="swiper-wrapper">
-                        ${mediaItems.map(item => `
-                            <div class="swiper-slide w-20 h-20 border-2 border-transparent rounded-md overflow-hidden cursor-pointer">
-                                <img src="${item.type === 'image' ? item.url : 'https://img.youtube.com/vi/' + item.url.split('/').pop() + '/default.jpg'}" class="w-full h-full object-cover">
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-            mediaGallery.innerHTML = galleryHTML;
-
-            const thumbsSwiper = new Swiper(".thumbs-swiper", {
-                spaceBetween: 10,
-                slidesPerView: 'auto',
-                freeMode: true,
-                watchSlidesProgress: true,
-            });
-            new Swiper(".main-swiper", {
-                spaceBetween: 10,
-                pagination: { el: ".swiper-pagination", clickable: true },
-                thumbs: { swiper: thumbsSwiper },
-            });
-        }
-
-        function renderProductInfo(product, settings) {
-            const infoContainer = document.getElementById('product-info-main');
-            const lxcRate = parseFloat(settings.lxc_rate || '10');
-            const lxcValue = (product.liyogx_coins || 0) / lxcRate;
-
-            let finalPrice = product.discount_price || product.price;
-            let originalPrice = product.price;
-            let hasDiscount = finalPrice < originalPrice;
-
-            if (finalPrice === originalPrice && finalPrice > 0) {
-                originalPrice = originalPrice * 1.10; // 10% artificial inflation
-                hasDiscount = true;
-            }
-
-            infoContainer.innerHTML = `
-                ${product.category ? `<div class="text-sm text-gray-500 font-medium mb-2">${product.category}</div>` : ''}
-                <h1 class="text-3xl lg:text-4xl font-extrabold text-gray-900">${product.name}</h1>
-                
-                <div class="flex items-center gap-4 mt-4">
-                    <div class="flex items-center gap-2">
-                        ${generateStarRatingHTML(product.avg_rating)}
-                        <span class="text-sm font-bold text-gray-700">${(product.avg_rating || 0).toFixed(1)}</span>
-                        <span class="text-sm text-gray-500">(${(product.total_reviews || 0).toLocaleString()} reviews)</span>
-                    </div>
-                    <div class="text-sm text-gray-500">|</div>
-                    <div class="text-sm font-medium text-gray-600"><strong class="text-gray-800">${(product.total_orders || 0).toLocaleString()}</strong> sold</div>
-                </div>
-
-                <div class="my-6">
-                    <span class="text-4xl font-extrabold text-liyog">${formatPrice(finalPrice)}</span>
-                    ${hasDiscount ? `<span class="text-xl line-through text-gray-400 ml-3">${formatPrice(originalPrice)}</span>` : ''}
-                </div>
-
-                <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
-                    <div class="font-bold text-amber-700">Earn ${product.liyogx_coins || 0} LiyogX Coins</div>
-                    <div class="text-sm text-amber-600">Worth ${formatPrice(lxcValue)} on your next purchase!</div>
-                </div>
-
-                <div class="mt-6 text-sm text-gray-600 space-y-2">
-                    <p><strong class="font-semibold text-gray-800">Product Code:</strong> ${product.product_number}</p>
-                    <div class="flex items-center gap-2">
-                        <strong class="font-semibold text-gray-800">Availability:</strong>
-                        ${product.published ? `<span class="font-bold text-green-600">In Stock</span>` : `<span class="font-bold text-red-600">Out of Stock</span>`}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderTags(tags) {
-            const tagsContainer = document.getElementById('tags-section');
-            if (!tags) {
-                tagsContainer.remove();
-                return;
-            };
-            const tagsArray = tags.split(',').map(tag => tag.trim()).filter(Boolean);
-            tagsContainer.innerHTML = `
-                <h3 class="text-lg font-bold mb-3">Tags</h3>
-                <div class="tags-container flex items-center gap-3 pb-2 overflow-x-auto">
-                    ${tagsArray.map(tag => `<a href="#" class="px-4 py-1.5 bg-gray-200 text-gray-700 text-sm font-semibold rounded-full whitespace-nowrap hover:bg-liyog hover:text-white transition-colors">${tag}</a>`).join('')}
-                </div>
-            `;
-        }
+async function fetchYouMayLikeProducts() {
+    const { data, error } = await supabaseClient
+        .from('products')
+        .select('name, price, discount_price, image_urls, slug, avg_rating, total_reviews')
+        .order('total_orders', { ascending: false, nullsFirst: false })
+        .limit(8);
         
-        // ... (renderTabs, renderReviews, renderReviewForm functions will be added here)
+    if (error) { console.error("Error fetching 'You May Like' products:", error); return []; }
+    return data;
+}
 
-        // --- MAIN APP LOGIC ---
-        document.addEventListener('DOMContentLoaded', async () => {
-            const params = new URLSearchParams(window.location.search);
-            const slug = params.get("p"); // Using 'p' for product slug
-            
-            if (!slug) {
-                document.body.innerHTML = '<div class="text-center p-10"><h1>Product not specified.</h1><a href="/products.html" class="text-liyog">Go back to shop</a></div>';
-                return;
-            }
-
-            try {
-                // Fetch all data in parallel
-                const [product, reviews, settings, {data: {session}}] = await Promise.all([
-                    fetchProductData(slug),
-                    fetchReviews(/* product.id will be available after first promise */),
-                    fetchSiteSettings(),
-                    supabaseClient.auth.getSession()
-                ]);
-                
-                currentProduct = product;
-                currentUser = session?.user;
-
-                // Now fetch reviews with the correct product ID
-                const finalReviews = await fetchReviews(product.id);
-
-                // Start rendering
-                renderMediaGallery(product);
-                renderProductInfo(product, settings);
-                renderTags(product.tags);
-
-                // --- HIDE LOADER, SHOW CONTENT ---
-                loader.classList.add('hidden');
-                productContent.classList.remove('hidden');
-                productContainer.classList.add('opacity-100');
-
-            } catch (error) {
-                console.error(error);
-                loader.innerHTML = `<div class="text-center p-10 text-red-600"><h1>Error: ${error.message}</h1><a href="/products.html" class="text-liyog">Go back to shop</a></div>`;
-            }
+// ===================================================================
+// RENDER FUNCTIONS
+// ===================================================================
+function renderProductDetails() {
+    const p = state.product;
+    
+    // Header Info
+    DOMElements.productCategory.textContent = p.category || 'General';
+    DOMElements.productName.textContent = p.name;
+    document.title = `${p.name} • Liyog`;
+    
+    // Stock Status
+    if (p.published) {
+        DOMElements.stockBadge.textContent = 'In Stock';
+        DOMElements.stockBadge.className = 'text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap bg-green-100 text-green-800';
+    } else {
+        DOMElements.stockBadge.textContent = 'Out of Stock';
+        DOMElements.stockBadge.className = 'text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap bg-red-100 text-red-800';
+        [DOMElements.addToCartBtn, DOMElements.orderNowBtn].forEach(btn => {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
         });
-    </script>
+    }
 
+    // Ratings & Metrics
+    renderStarRating(p.avg_rating);
+    DOMElements.avgRating.textContent = (p.avg_rating || 0).toFixed(1);
+    DOMElements.totalReviews.textContent = `${(p.total_reviews || 0).toLocaleString()} Reviews`;
+    DOMElements.totalOrders.textContent = (p.total_orders || 0).toLocaleString();
+    DOMElements.totalLikes.textContent = (p.total_likes || 0).toLocaleString();
+    DOMElements.totalViews.textContent = (p.total_views || 0).toLocaleString();
+
+    // Tags
+    const tags = (p.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+    DOMElements.tagsContainer.innerHTML = tags.map(tag => 
+        `<a href="#" class="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded-full whitespace-nowrap hover:bg-liyog-green hover:text-white transition-colors">${tag}</a>`
+    ).join('');
+
+    // Pricing
+    const finalPrice = p.discount_price ?? p.price;
+    const originalPrice = p.price;
+    DOMElements.finalPrice.textContent = `₦${finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+    if (p.discount_price && p.discount_price < originalPrice) {
+        DOMElements.originalPrice.textContent = `₦${originalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+    } else {
+        DOMElements.originalPrice.textContent = '';
+    }
+    
+    // LiyogX Coins
+    const lxcValue = (p.liyogx_coins || 0) * state.settings.lxc_rate;
+    DOMElements.liyogxCoins.textContent = p.liyogx_coins || 0;
+    DOMElements.liyogxValue.textContent = lxcValue.toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+    // Description
+    DOMElements.descriptionContent.innerHTML = DOMPurify.sanitize(p.description_html || 'No description available.');
+}
+
+function renderMediaGallery() {
+    const p = state.product;
+    const mediaItems = [];
+    if (p.youtube_url) mediaItems.push({ type: 'youtube', url: normalizeYoutubeUrl(p.youtube_url) });
+    if (p.video_url) mediaItems.push({ type: 'video', url: p.video_url });
+    if (p.image_urls) p.image_urls.forEach(url => mediaItems.push({ type: 'image', url }));
+
+    if (mediaItems.length === 0) {
+        mediaItems.push({ type: 'image', url: 'https://via.placeholder.com/600?text=No+Image' });
+    }
+
+    DOMElements.thumbnailsWrapper.innerHTML = mediaItems.map((item, index) => {
+        const thumbSrc = item.type === 'image' ? item.url : 
+                         item.type === 'youtube' ? `https://img.youtube.com/vi/${item.url.split('/').pop()}/mqdefault.jpg` : 
+                         ''; // You might need a thumbnail for local videos
+        return `
+            <button data-index="${index}" class="thumbnail-btn flex-shrink-0 w-20 h-20 border-2 border-transparent rounded-lg overflow-hidden cursor-pointer focus:outline-none">
+                <img src="${thumbSrc}" class="w-full h-full object-cover">
+            </button>
+        `;
+    }).join('');
+
+    renderMainMedia(0, mediaItems); // Show first item by default
+
+    document.querySelectorAll('.thumbnail-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const index = parseInt(btn.dataset.index, 10);
+            renderMainMedia(index, mediaItems);
+            document.querySelectorAll('.thumbnail-btn').forEach(b => b.classList.remove('thumb-active'));
+            btn.classList.add('thumb-active');
+        });
+    });
+    document.querySelector('.thumbnail-btn')?.classList.add('thumb-active');
+}
+
+function renderMainMedia(index, mediaItems) {
+    const item = mediaItems[index];
+    DOMElements.mainMediaViewer.innerHTML = '';
+    if (item.type === 'image') {
+        DOMElements.mainMediaViewer.innerHTML = `<img src="${item.url}" class="w-full h-full object-contain">`;
+    } else if (item.type === 'video') {
+        DOMElements.mainMediaViewer.innerHTML = `<video src="${item.url}" class="w-full h-full" controls></video>`;
+    } else if (item.type === 'youtube') {
+        DOMElements.mainMediaViewer.innerHTML = `<iframe src="${item.url}" class="w-full h-full" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    }
+}
+
+function renderStarRating(rating = 0, size = 'w-5 h-5') {
+    let starsHTML = '';
+    const fullStars = Math.floor(rating);
+    const halfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+    
+    const starPaths = {
+        full: '<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" />',
+        half: '<path d="M10 15.347V2.927l-1.902 5.86-5.972.87L7.5 13.5l-1.287 3.957L10 15.347z" />',
+    };
+    
+    for (let i = 0; i < fullStars; i++) starsHTML += `<svg class="${size} text-liyog-gold" fill="currentColor" viewBox="0 0 20 20">${starPaths.full}</svg>`;
+    if (halfStar) starsHTML += `<svg class="${size} text-liyog-gold" fill="currentColor" viewBox="0 0 20 20">${starPaths.full.replace('<path', '<path fill="url(#half_grad)")}<defs><linearGradient id="half_grad"><stop offset="50%" stop-color="currentColor"/><stop offset="50%" stop-color="#e5e7eb"/></linearGradient></defs></svg>`;
+    for (let i = 0; i < emptyStars; i++) starsHTML += `<svg class="${size} text-gray-300" fill="currentColor" viewBox="0 0 20 20">${starPaths.full}</svg>`;
+    
+    DOMElements.starRating.innerHTML = starsHTML;
+}
+
+function renderReviews() {
+    DOMElements.reviewsList.innerHTML = state.reviews.map(review => {
+        const user = review.user || { name: 'Anonymous', profile_image: null };
+        const userInitial = (user.name || 'A').charAt(0).toUpperCase();
+        return `
+            <div class="flex gap-4">
+                <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+                    ${user.profile_image ? `<img src="${user.profile_image}" alt="${user.name}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-xl font-bold text-gray-500">${userInitial}</div>`}
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-center">
+                        <p class="font-bold text-gray-900">${user.name}</p>
+                        <p class="text-xs text-gray-500">${new Date(review.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                    </div>
+                    <div class="flex items-center my-1">${Array(5).fill(0).map((_, i) => `<svg class="w-4 h-4 ${i < review.rating ? 'text-liyog-gold' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`).join('')}</div>
+                    <p class="text-gray-700">${review.comment}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function createProductCardHTML(product) {
+    const finalPrice = product.discount_price ?? product.price;
+    return `
+        <a href="product.html?slug=${product.slug}" class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 group overflow-hidden border">
+            <div class="aspect-square w-full overflow-hidden">
+                <img src="${product.image_urls?.[0] || 'https://via.placeholder.com/300'}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
+            </div>
+            <div class="p-4">
+                <h3 class="font-bold text-gray-800 line-clamp-2">${product.name}</h3>
+                <div class="flex items-center gap-2 mt-2">
+                    <div class="flex">${Array(5).fill(0).map((_, i) => `<svg class="w-4 h-4 ${i < (product.avg_rating || 0) ? 'text-liyog-gold' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`).join('')}</div>
+                    <span class="text-xs text-gray-500">(${(product.total_reviews || 0)})</span>
+                </div>
+                <p class="text-lg font-extrabold text-liyog-green-dark mt-2">₦${finalPrice.toLocaleString()}</p>
+            </div>
+        </a>
+    `;
+}
+
+
+// ===================================================================
+// EVENT HANDLERS & UI LOGIC
+// ===================================================================
+function setupEventHandlers() {
+    // Quantity controls
+    document.getElementById('qty-increment').addEventListener('click', () => DOMElements.quantityInput.value++);
+    document.getElementById('qty-decrement').addEventListener('click', () => {
+        DOMElements.quantityInput.value = Math.max(1, DOMElements.quantityInput.value - 1);
+    });
+
+    // Add to Cart (Desktop & Mobile)
+    const handleAddToCart = () => { console.log('Add to cart clicked'); }; // Placeholder for cart logic
+    DOMElements.addToCartBtn.addEventListener('click', handleAddToCart);
+    DOMElements.mobileAddToCartBtn.addEventListener('click', handleAddToCart);
+    
+    // Order Now (Desktop & Mobile)
+    const handleOrderNow = () => { console.log('Order now clicked'); }; // Placeholder for order logic
+    DOMElements.orderNowBtn.addEventListener('click', handleOrderNow);
+    DOMElements.mobileOrderNowBtn.addEventListener('click', handleOrderNow);
+
+    // Like Button
+    DOMElements.likeBtn.addEventListener('click', handleLike);
+
+    // Share Button
+    DOMElements.shareBtn.addEventListener('click', handleShare);
+
+    // Tabs
+    DOMElements.tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            DOMElements.tabButtons.forEach(btn => btn.classList.remove('tab-btn-active'));
+            button.classList.add('tab-btn-active');
+            DOMElements.tabContents.forEach(content => content.classList.add('hidden'));
+            document.getElementById(`tab-content-${button.dataset.tab}`).classList.remove('hidden');
+        });
+    });
+
+    // Load More Reviews
+    DOMElements.loadMoreReviewsBtn.addEventListener('click', fetchReviews);
+}
+
+async function handleLike() {
+    if (!state.currentUser) {
+        alert("Please log in to like products.");
+        // Optional: redirect to login page
+        // window.location.href = '/auth/auth.html';
+        return;
+    }
+    
+    // Optimistic UI update
+    const currentLikes = parseInt(DOMElements.totalLikes.textContent.replace(/,/g, ''), 10);
+    DOMElements.totalLikes.textContent = (currentLikes + 1).toLocaleString();
+    DOMElements.likeIcon.classList.add('like-icon-filled');
+    DOMElements.likeBtn.disabled = true;
+
+    try {
+        const { error } = await supabaseClient.from('likes').insert({
+            user_id: state.currentUser.id,
+            product_id: state.product.id
+        });
+        if (error) throw error;
+        // If successful, the UI is already updated.
+    } catch (error) {
+        // Revert on failure
+        console.error("Failed to like product:", error);
+        DOMElements.totalLikes.textContent = currentLikes.toLocaleString();
+        DOMElements.likeIcon.classList.remove('like-icon-filled');
+        DOMElements.likeBtn.disabled = false;
+        alert("Couldn't save your like. Please try again.");
+    }
+}
+
+async function handleShare() {
+    // Fetch user's referral code if not already available
+    let referralCode = '';
+    if (state.currentUser && !state.currentUser.referral_code) {
+        const { data, error } = await supabaseClient
+            .from('users')
+            .select('referral_code')
+            .eq('id', state.currentUser.id)
+            .single();
+        if (data) state.currentUser.referral_code = data.referral_code;
+    }
+    referralCode = state.currentUser?.referral_code || '';
+    
+    let shareUrl = `${window.location.origin}${window.location.pathname}?slug=${state.product.slug}`;
+    if (referralCode) {
+        shareUrl += `&ref=${referralCode}`;
+    }
+
+    if (navigator.share) {
+        navigator.share({
+            title: state.product.name,
+            text: `Check out this product on Liyog: ${state.product.name}`,
+            url: shareUrl,
+        });
+    } else {
+        navigator.clipboard.writeText(shareUrl).then(() => alert('Product link copied to clipboard!'));
+    }
+}
+
+// ===================================================================
+// HELPER UTILITIES
+// ===================================================================
+function normalizeYoutubeUrl(url) {
+    if (!url) return null;
+    let videoId;
+    if (url.includes("embed")) return url;
+    if (url.includes("youtu.be/")) {
+        videoId = url.split("youtu.be/")[1].split("?")[0];
+    } else {
+        const urlParams = new URLSearchParams(new URL(url).search);
+        videoId = urlParams.get("v");
+    }
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+}
+
+// ===================================================================
+// APPLICATION BOOTSTRAP
+// ===================================================================
+document.addEventListener('DOMContentLoaded', async () => {
+    document.getElementById('footer-year').textContent = new Date().getFullYear();
+    const urlParams = new URLSearchParams(window.location.search);
+    const slug = urlParams.get('slug');
+
+    if (!slug) {
+        document.getElementById('main-content').innerHTML = `<div class="text-center p-10"><h1>Product not found.</h1><p>Please provide a valid product slug in the URL.</p><a href="products.html" class="text-liyog-green font-bold mt-4 inline-block">← Back to Shop</a></div>`;
+        return;
+    }
+
+    try {
+        const [{ data: { session } }] = await Promise.all([
+            supabaseClient.auth.getSession(),
+            fetchSettings()
+        ]);
+        state.currentUser = session?.user || null;
+        
+        state.product = await fetchProduct(slug);
+
+        // Render main content
+        renderProductDetails();
+        renderMediaGallery();
+        
+        // Fetch and render additional content in parallel
+        Promise.all([
+            fetchReviews(),
+            (async () => {
+                const related = await fetchRelatedProducts(state.product);
+                if (related && related.length > 0) {
+                    DOMElements.relatedProductsSection.classList.remove('hidden');
+                    DOMElements.relatedProductsCarousel.innerHTML = related.map(createProductCardHTML).join('');
+                }
+            })(),
+            (async () => {
+                const youMayLike = await fetchYouMayLikeProducts();
+                DOMElements.youMayLikeCarousel.innerHTML = youMayLike.map(createProductCardHTML).join('');
+            })()
+        ]);
+
+        // Show content, hide loader
+        DOMElements.loader.classList.add('hidden');
+        DOMElements.content.classList.remove('hidden');
+
+        setupEventHandlers();
+
+    } catch (error) {
+        console.error(error);
+        DOMElements.loader.innerHTML = `<div class="text-center p-10 text-red-600"><h1>Error: ${error.message}</h1><a href="products.html" class="text-liyog-green font-bold mt-4 inline-block">← Back to Shop</a></div>`;
+    }
+});
+
+</script>
 </body>
 </html>
