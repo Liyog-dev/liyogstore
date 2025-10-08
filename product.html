@@ -10,8 +10,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMDJzL+cduKz9gK+K2M4G7O/xYg/FmP8LpGz2M4K8S2f5gP5tB5pB/Z2uK2H5/tQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
@@ -81,108 +79,120 @@
             height: 100%;
             border: 0;
         }
-        
-        /* --- Revolutionary Review Section Styles --- */
 
-        /* Default Avatar for users without a profile image */
-        .default-avatar {
-            width: 48px; /* Matching the w-12 h-12 in HTML */
-            height: 48px;
-            border-radius: 9999px; /* full rounded */
+        /* NEW: Styles for the innovative reviews section */
+
+        /* Star rating input */
+        .star-rating-input input[type="radio"] {
+            display: none;
+        }
+        .star-rating-input label {
+            cursor: pointer;
+            font-size: 0; /* Hide default radio button text */
+            color: #e5e7eb; /* Default gray for empty stars */
+            transition: color 0.2s ease-in-out;
+            padding: 2px; /* Add some padding around stars for easier clicking */
+        }
+        .star-rating-input label svg {
+            width: 1.5rem; /* Larger stars for input */
+            height: 1.5rem;
+        }
+        .star-rating-input label:hover,
+        .star-rating-input label:hover ~ label {
+            color: var(--liyog-gold);
+        }
+        .star-rating-input input[type="radio"]:checked ~ label {
+            color: var(--liyog-gold);
+        }
+        .star-rating-input input[type="radio"]:checked + label {
+            color: var(--liyog-gold);
+        }
+        .star-rating-input {
+            direction: rtl; /* Stars from right to left */
+            display: inline-flex;
+        }
+        .star-rating-input > label:hover,
+        .star-rating-input > label:hover ~ label,
+        .star-rating-input > input.selected ~ label,
+        .star-rating-input > input:checked ~ label {
+            color: var(--liyog-gold);
+        }
+        .star-rating-input label:hover svg,
+        .star-rating-input label:hover ~ label svg,
+        .star-rating-input input[type="radio"]:checked ~ label svg {
+            fill: var(--liyog-gold);
+        }
+        /* Fix for star display order in input */
+        .star-rating-input label:before {
+            content: "\2605"; /* Unicode star character */
+            font-size: 1.5rem; /* Match SVG size */
+            margin-left: 2px;
+            visibility: hidden; /* Hide the unicode star, only use SVG */
+        }
+        .star-rating-input label svg {
+            visibility: visible;
+        }
+
+        /* Glittering effect for helpful count */
+        .glittering-number {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+            background: linear-gradient(90deg, #f0f0f0 0%, #ffffff 50%, #f0f0f0 100%);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glitter 2s infinite linear;
+        }
+
+        @keyframes glitter {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Bar chart for ratings distribution */
+        .rating-bar {
+            height: 10px; /* Thickness of the bar */
+            background-color: #e5e7eb; /* Default gray for empty part */
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+        .rating-fill {
+            height: 100%;
+            background-color: var(--liyog-green-light);
+            border-radius: 5px;
+            transition: width 0.3s ease-out;
+        }
+        .rating-bar-value {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            background-color: transparent; /* Overlay for click event */
+            width: 100%;
+            cursor: pointer;
+        }
+        .rating-bar-value:hover .rating-fill {
+            background-color: var(--liyog-green-dark); /* Darker on hover */
+        }
+        .rating-bar-wrapper.active .rating-fill {
+            background-color: var(--liyog-deep-green); /* Darker green for active filter */
+        }
+
+        /* Dynamic Avatar */
+        .avatar-initials {
+            background-color: var(--liyog-green-light); /* Default background */
+            color: white;
+            font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: var(--liyog-green-dark); /* Deep green background */
-            color: white;
-            font-size: 1.25rem; /* text-xl */
-            font-weight: 700; /* font-bold */
+            flex-shrink: 0;
+            border-radius: 9999px; /* Tailwind `rounded-full` */
         }
 
-        /* Rating Distribution Chart Filters (The Crypto Chart Look) */
-        .chart-filter-pill {
-            cursor: pointer;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            transition: all 0.3s ease;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 0.5rem;
-            text-align: center;
-        }
-        .chart-filter-pill:hover, .chart-filter-pill.active {
-            background-color: var(--liyog-green-light);
-            color: white;
-            box-shadow: 0 4px 12px rgba(40, 164, 40, 0.2);
-            transform: translateY(-2px);
-        }
-        .chart-filter-pill.active {
-            border-color: var(--liyog-green);
-        }
-
-        /* Rating Bars (The Graphical Look) */
-        .rating-bar-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            cursor: pointer;
-            padding: 0.5rem 0;
-            transition: background-color 0.2s;
-        }
-        .rating-bar-item:hover {
-            background-color: #f1f5f9; /* light hover background */
-        }
-        .bar-background {
-            flex-grow: 1;
-            height: 10px;
-            background-color: #e5e7eb; /* gray-200 */
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        .bar-fill {
-            height: 100%;
-            background-color: var(--liyog-green); /* The main chart color */
-            border-radius: 5px;
-            transition: width 0.5s ease;
-        }
-
-        /* Helpful/Like Counter (The Glittering Effect) */
-        .helpful-counter {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 9999px;
-            transition: all 0.3s ease;
-            border: 1px solid transparent;
-            color: #475569; /* slate-600 */
-        }
-        .helpful-counter:hover {
-            background-color: #f1f5f9;
-            border-color: #cbd5e1;
-        }
-        .helpful-icon {
-            color: #94a3b8; /* slate-400 */
-            transition: color 0.3s;
-        }
-        .helpful-counter.liked .helpful-icon {
-            color: #ef4444; /* red-500 */
-            transform: scale(1.1);
-        }
-        .helpful-count-number {
-            font-weight: 700;
-            position: relative;
-            overflow: hidden;
-            padding: 0 2px;
-        }
-        /* Keyframe animation for the "glittering" effect on update */
-        @keyframes glitter-pulse {
-            0% { color: var(--liyog-orange); text-shadow: 0 0 5px var(--liyog-orange); }
-            50% { color: #1e293b; text-shadow: none; }
-            100% { color: var(--liyog-orange); text-shadow: 0 0 5px var(--liyog-orange); }
-        }
-        .glittering {
-            animation: glitter-pulse 0.4s ease-out;
-        }
     </style>
     <script>
         tailwind.config = {
@@ -191,7 +201,7 @@
                     colors: {
                         liyog: {
                             green: 'var(--liyog-green)',
-                            'green-light': 'var(--liyog-green-light)',
+                            'green-light': 'var(--liyog-green-light)', // Added
                             'green-dark': 'var(--liyog-green-dark)',
                             'deep-green': 'var(--liyog-deep-green)',
                             gold: 'var(--liyog-gold)',
@@ -246,7 +256,7 @@
                         <div class="px-3 py-1 bg-gray-200 rounded-full w-16 shimmer"></div>
                     </div>
                     <div class="my-6 bg-gray-100 p-4 rounded-lg border h-24 shimmer"></div> <div class="h-14 bg-gray-200 rounded-lg w-full shimmer"></div> <div class="h-14 bg-gray-200 rounded-lg w-full shimmer"></div> <div class="flex items-center gap-4 mt-6">
-                         <div class="h-8 bg-gray-200 rounded w-24 shimmer"></div> <div class="h-8 bg-gray-200 rounded w-24 shimmer"></div> <div class="h-8 bg-gray-200 rounded w-20 ml-auto shimmer"></div> </div>
+                        <div class="h-8 bg-gray-200 rounded w-24 shimmer"></div> <div class="h-8 bg-gray-200 rounded w-24 shimmer"></div> <div class="h-8 bg-gray-200 rounded w-20 ml-auto shimmer"></div> </div>
                 </div>
             </div>
             <div class="mt-16 bg-white p-6 rounded-lg border">
@@ -305,7 +315,7 @@
                     
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-3 text-sm">
                         <div id="star-rating" class="flex items-center gap-1"></div>
-                        <a href="#reviews-list" class="font-bold text-gray-800 hover:text-liyog-green-dark hover:underline transition-colors"><span id="avg-rating">0.0</span> (<span id="total-reviews">0</span> Reviews)</a>
+                        <a href="#reviews-section-start" class="font-bold text-gray-800 hover:text-liyog-green-dark hover:underline transition-colors"><span id="avg-rating">0.0</span> (<span id="total-reviews">0</span> Reviews)</a>
                         <span class="text-gray-300 hidden sm:block">|</span>
                         <div class="flex items-center gap-1.5 mt-2 sm:mt-0">
                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
@@ -350,7 +360,7 @@
                             </button>
                         </div>
                         <div class="text-gray-500">
-                           Views: <span id="total-views" class="font-semibold text-gray-700">0</span>
+                            Views: <span id="total-views" class="font-semibold text-gray-700">0</span>
                         </div>
                     </div>
                 </section>
@@ -365,45 +375,61 @@
                 </div>
                 <div class="py-6">
                     <div id="tab-content-description" class="tab-content prose max-w-none text-gray-600 text-sm sm:text-base leading-relaxed"></div>
-                    
-                    <div id="tab-content-reviews" class="tab-content hidden">
-                        <div id="reviews-summary-section" class="mb-10 p-6 bg-white rounded-xl border border-gray-200 shadow-lg">
-                            <h3 class="text-2xl font-extrabold text-gray-900 mb-4">Product Rating Breakdown</h3>
-                            
-                            <div id="reviews-summary-avg" class="flex items-center gap-6 mb-6">
-                                <div class="flex flex-col items-center">
-                                    <span id="avg-rating-value-large" class="text-6xl font-black text-liyog-green-dark">0.0</span>
-                                    <p class="text-sm font-semibold text-gray-600"><span id="total-reviews-count-small">0</span> Ratings</p>
+                    <div id="tab-content-reviews" class="tab-content hidden" id="reviews-section-start">
+                        <div id="reviews-dashboard" class="mb-8 p-4 sm:p-6 bg-liyog-deep-green text-white rounded-lg shadow-inner">
+                            <h3 class="text-2xl font-bold mb-4 text-center">Customer Reviews</h3>
+                            <div class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+                                <div class="flex items-center gap-2 text-3xl font-extrabold flex-shrink-0">
+                                    <span id="overall-avg-rating">0.0</span> / 5
+                                    <div id="overall-star-rating" class="flex items-center"></div>
                                 </div>
-                                <div id="avg-star-display-large" class="star-rating flex items-center gap-1">
-                                    </div>
+                                <div class="text-sm text-gray-200 text-center md:text-left">Based on <span id="overall-total-reviews-count">0</span> reviews</div>
                             </div>
 
-                            <div id="rating-distribution-chart" class="flex flex-col md:flex-row md:items-start gap-6 pt-4 border-t border-gray-100">
-                                <div id="all-stars-filter" class="chart-filter-pill active flex-shrink-0 w-full md:w-auto" data-rating-filter="all">
-                                    <p class="text-sm font-bold leading-none">All Ratings</p>
+                            <div id="ratings-distribution-chart" class="space-y-3">
                                 </div>
-
-                                <div id="rating-bars-container" class="flex-grow space-y-2">
-                                    </div>
+                            <div class="flex flex-wrap gap-2 mt-6 justify-center">
+                                <button data-rating-filter="0" class="filter-rating-btn px-4 py-2 text-sm font-semibold rounded-full bg-liyog-green text-white hover:bg-liyog-green-dark transition-colors active">All Reviews</button>
+                                <button data-rating-filter="5" class="filter-rating-btn px-4 py-2 text-sm font-semibold rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors">5 Stars</button>
+                                <button data-rating-filter="4" class="filter-rating-btn px-4 py-2 text-sm font-semibold rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors">4 Stars</button>
+                                <button data-rating-filter="3" class="filter-rating-btn px-4 py-2 text-sm font-semibold rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors">3 Stars</button>
+                                <button data-rating-filter="2" class="filter-rating-btn px-4 py-2 text-sm font-semibold rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors">2 Stars</button>
+                                <button data-rating-filter="1" class="filter-rating-btn px-4 py-2 text-sm font-semibold rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors">1 Star</button>
                             </div>
                         </div>
-                        
-                        <div id="user-review-form-container" class="mb-10">
-                            </div>
-                        
-                        <h3 id="reviews-filter-status" class="text-xl font-bold text-gray-900 mb-6">
-                            Showing All Reviews
-                        </h3>
 
-                        <div id="reviews-list" class="space-y-6">
-                            </div>
+                        <div id="add-review-form-section" class="mb-8 p-4 sm:p-6 bg-white rounded-lg shadow-md border" style="display: none;">
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Add Your Review</h3>
+                            <form id="review-form" class="space-y-4">
+                                <div class="flex items-center gap-3">
+                                    <div id="user-avatar-review-form" class="w-10 h-10 rounded-full overflow-hidden bg-liyog-green-light flex-shrink-0 flex items-center justify-center text-white text-lg font-bold">
+                                        </div>
+                                    <span id="current-user-name-review-form" class="font-semibold text-gray-800"></span>
+                                </div>
+                                
+                                <div>
+                                    <label for="review-rating" class="block text-sm font-medium text-gray-700 mb-2">Your Rating:</label>
+                                    <div id="review-rating-input" class="star-rating-input flex">
+                                        </div>
+                                    <input type="hidden" name="rating" id="selected-rating" value="0" required>
+                                </div>
+                                <div>
+                                    <label for="review-comment" class="block text-sm font-medium text-gray-700 mb-2">Your Comment:</label>
+                                    <textarea id="review-comment" name="comment" rows="4" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-liyog-green focus:ring-liyog-green sm:text-sm p-3" placeholder="Share your thoughts about this product..." required></textarea>
+                                </div>
+                                <button type="submit" id="submit-review-btn" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-liyog-green hover:bg-liyog-green-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-liyog-green">Submit Review</button>
+                            </form>
+                        </div>
                         
+                        <div id="reviews-list" class="space-y-6 pt-4">
+                            <p class="text-center text-gray-500 py-4" id="no-reviews-message" style="display: none;">No reviews yet. Be the first to share your experience!</p>
+                        </div>
+
                         <div id="load-more-reviews-container" class="text-center mt-8 hidden">
                             <button id="load-more-reviews-btn" class="px-6 py-2 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Load More</button>
                         </div>
                     </div>
-                    </div>
+                </div>
             </section>
             
             <section id="related-products-section" class="mt-16 hidden">
@@ -440,22 +466,30 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+
 // ===================================================================
 // STATE MANAGEMENT
 // ===================================================================
 let state = {
     product: null,
-    currentUser: null, // Will be fetched from session
+    currentUser: null, // Will be fetched from session and include profile_image, role
     settings: { lxc_rate: 10 }, // Default value, will be updated
-    reviews: [],
+    reviews: [], // Stores all fetched reviews for the current product
     reviewsPage: 1,
     reviewsPerPage: 5,
     hasMoreReviews: true,
-    isLiked: false, // Track product like status
-    // === NEW REVIEWS STATE ===
-    currentReviewFilter: 'all', // 'all' or '1' through '5'
-    ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, total: 0 } // Stores the star counts
+    isLiked: false, // Track if the *product* is liked by current user
+    
+    // NEW: State for reviews section
+    reviewsData: { // Processed review data for dashboard
+        ratingCounts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        totalReviews: 0,
+        avgRating: 0.0,
+    },
+    currentRatingFilter: 0, // 0 for all reviews, 1-5 for specific star ratings
+    filteredReviews: [], // Reviews currently displayed based on filter
 };
+
 
 // ===================================================================
 // DOM ELEMENT SELECTORS
@@ -468,9 +502,9 @@ const DOMElements = {
     productCategory: document.getElementById('product-category'),
     productName: document.getElementById('product-name'),
     stockBadge: document.getElementById('stock-badge'),
-    starRating: document.getElementById('star-rating'),
-    avgRating: document.getElementById('avg-rating'),
-    totalReviews: document.getElementById('total-reviews'),
+    starRating: document.getElementById('star-rating'), // Product's main star rating
+    avgRating: document.getElementById('avg-rating'), // Product's main avg rating text
+    totalReviews: document.getElementById('total-reviews'), // Product's main total reviews count
     totalOrders: document.getElementById('total-orders'),
     tagsContainer: document.getElementById('tags-container'),
     finalPrice: document.getElementById('final-price'),
@@ -479,13 +513,13 @@ const DOMElements = {
     liyogxCoins: document.getElementById('liyogx-coins'),
     liyogxValue: document.getElementById('liyogx-value'),
     quantityInput: document.getElementById('quantity-input'),
-    qtyDecrement: document.getElementById('qty-decrement'),
-    qtyIncrement: document.getElementById('qty-increment'),
+    qtyDecrement: document.getElementById('qty-decrement'), // Added for direct access
+    qtyIncrement: document.getElementById('qty-increment'), // Added for direct access
     addToCartBtn: document.getElementById('add-to-cart-btn'),
     orderNowBtn: document.getElementById('order-now-btn'),
-    likeBtn: document.getElementById('like-btn'),
-    likeIcon: document.getElementById('like-icon'),
-    totalLikes: document.getElementById('total-likes'),
+    likeBtn: document.getElementById('like-btn'), // Product like button
+    likeIcon: document.getElementById('like-icon'), // Product like icon
+    totalLikes: document.getElementById('total-likes'), // Product total likes count
     shareBtn: document.getElementById('share-btn'),
     totalViews: document.getElementById('total-views'),
     // Tabs
@@ -493,19 +527,25 @@ const DOMElements = {
     tabContents: document.querySelectorAll('.tab-content'),
     descriptionContent: document.getElementById('tab-content-description'),
     reviewsContent: document.getElementById('tab-content-reviews'),
-    // Reviews Section (NEW/MODIFIED)
-    reviewsSummaryAvg: document.getElementById('reviews-summary-avg'),
-    avgRatingValueLarge: document.getElementById('avg-rating-value-large'),
-    totalReviewsCountSmall: document.getElementById('total-reviews-count-small'),
-    avgStarDisplayLarge: document.getElementById('avg-star-display-large'),
+    // Reviews Section (NEW)
+    reviewsDashboard: document.getElementById('reviews-dashboard'),
+    overallAvgRating: document.getElementById('overall-avg-rating'),
+    overallStarRating: document.getElementById('overall-star-rating'),
+    overallTotalReviewsCount: document.getElementById('overall-total-reviews-count'),
+    ratingsDistributionChart: document.getElementById('ratings-distribution-chart'),
+    filterRatingBtns: document.querySelectorAll('.filter-rating-btn'),
     
-    ratingDistributionChart: document.getElementById('rating-distribution-chart'),
-    ratingBarsContainer: document.getElementById('rating-bars-container'),
-    allStarsFilter: document.getElementById('all-stars-filter'),
-    userReviewFormContainer: document.getElementById('user-review-form-container'),
-    reviewsFilterStatus: document.getElementById('reviews-filter-status'),
-    
+    addReviewFormSection: document.getElementById('add-review-form-section'),
+    reviewForm: document.getElementById('review-form'),
+    userAvatarReviewForm: document.getElementById('user-avatar-review-form'),
+    currentUserNameReviewForm: document.getElementById('current-user-name-review-form'),
+    reviewRatingInput: document.getElementById('review-rating-input'),
+    selectedRatingInput: document.getElementById('selected-rating'),
+    reviewCommentInput: document.getElementById('review-comment'),
+    submitReviewBtn: document.getElementById('submit-review-btn'),
+
     reviewsList: document.getElementById('reviews-list'),
+    noReviewsMessage: document.getElementById('no-reviews-message'),
     loadMoreReviewsContainer: document.getElementById('load-more-reviews-container'),
     loadMoreReviewsBtn: document.getElementById('load-more-reviews-btn'),
     // Carousels
@@ -518,9 +558,36 @@ const DOMElements = {
     mobileOrderNowBtn: document.getElementById('mobile-order-now-btn'),
 };
 
+
 // ===================================================================
 // API/DATA FETCHING FUNCTIONS
 // ===================================================================
+
+async function fetchCurrentUser() {
+    try {
+        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+        if (sessionError) throw sessionError;
+
+        if (session?.user) {
+            const { data: userProfile, error: profileError } = await supabaseClient
+                .from('users')
+                .select('id, name, email, profile_image, role, referral_code')
+                .eq('id', session.user.id)
+                .single();
+
+            if (profileError && profileError.code !== 'PGRST116') throw profileError; // Ignore no rows found for profile
+            
+            state.currentUser = userProfile || { id: session.user.id, name: session.user.email, email: session.user.email, profile_image: null, role: 'user', referral_code: null };
+        } else {
+            state.currentUser = null;
+        }
+    } catch (error) {
+        console.error("Error fetching current user:", error.message);
+        state.currentUser = null;
+    }
+}
+
+
 async function fetchProduct(slug) {
     try {
         const { data, error } = await supabaseClient
@@ -541,6 +608,9 @@ async function fetchProduct(slug) {
     }
 }
 
+
+// FIX 1. Corrected/Upgraded Function: Check for existing like AND return its ID for deletion.
+// This replaces the previous boolean check.
 async function getExistingLike(productId, userId) {
     if (!userId) return null;
     try {
@@ -549,7 +619,7 @@ async function getExistingLike(productId, userId) {
             .select('id')
             .eq('product_id', productId)
             .eq('user_id', userId)
-            .maybeSingle(); 
+            .maybeSingle(); // Gets the single row or null
         
         if (error) throw error;
 
@@ -561,15 +631,16 @@ async function getExistingLike(productId, userId) {
     }
 }
 
+
 async function fetchSettings() {
     try {
         const { data, error } = await supabaseClient
             .from('site_settings')
             .select('key, value')
-            .eq('key', 'lxc_rate')
-            .single();
+            .eq('key', 'lxc_rate') // Assuming 'key' is 'lxc_rate', not 'key_lower'
+            .single(); // Assuming only one setting for lxc_rate
 
-        if (error && error.code !== 'PGRST116') {
+        if (error && error.code !== 'PGRST116') { // Ignore "no rows found" error for settings
             console.warn("Error fetching site settings, using default:", error.message);
         }
 
@@ -581,50 +652,24 @@ async function fetchSettings() {
     }
 }
 
-// NEW: Function to get the count of each star rating (The Chart Data)
-async function fetchRatingDistribution() {
+// NEW: Fetches reviews and includes user profile details
+async function fetchReviews(filter = state.currentRatingFilter) {
     if (!state.product) return;
-    
-    // NOTE: This assumes you have a backend View or Function 'get_rating_distribution' 
-    // that returns an array of objects like: [{ rating: 5, count: 30 }, { rating: 4, count: 8 }, ...]
-    try {
-        // We assume an RPC exists for this complex aggregation
-        const { data, error } = await supabaseClient
-            .rpc('get_rating_distribution', { product_id: state.product.id }); 
 
-        if (error) {
-            console.error("Error fetching rating distribution via RPC:", error);
-            state.ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, total: state.product.total_reviews };
-            return;
-        }
-        
-        // Transform RPC result into a key-value object
-        const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, total: state.product.total_reviews };
-        data.forEach(item => {
-            distribution[item.rating] = item.count;
-        });
-        
-        state.ratingDistribution = distribution;
-
-    } catch (error) {
-        console.error("Error in fetchRatingDistribution:", error);
-        state.ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, total: state.product.total_reviews };
+    // Reset for new filter or initial load
+    if (state.reviewsPage === 1 || filter !== state.currentRatingFilter) {
+        state.reviews = [];
+        state.hasMoreReviews = true;
+        state.currentRatingFilter = filter;
+        DOMElements.reviewsList.innerHTML = ''; // Clear existing reviews
+        DOMElements.noReviewsMessage.style.display = 'none'; // Hide no reviews message initially
     }
-}
-
-// MODIFIED: fetchReviews to use the current filter state
-async function fetchReviews() {
-    if (!state.product || (!state.hasMoreReviews && state.reviewsPage > 1)) return;
     
-    const ratingFilter = state.currentReviewFilter;
-    const isFirstLoadForFilter = state.reviews.length === 0 || (state.reviewsPage === 1 && state.currentReviewFilter === 'all' && DOMElements.reviewsList.children.length === 0);
+    if (!state.hasMoreReviews) return;
 
-    // Manage UI status
-    if (isFirstLoadForFilter) {
-        DOMElements.reviewsList.innerHTML = `<p class="text-center text-gray-500 py-8">Loading ${ratingFilter !== 'all' ? ratingFilter + '-star ' : ''} reviews...</p>`;
-        DOMElements.loadMoreReviewsContainer.classList.add('hidden');
-    }
-    if (DOMElements.loadMoreReviewsBtn) DOMElements.loadMoreReviewsBtn.disabled = true;
+    DOMElements.loadMoreReviewsBtn.disabled = true;
+    DOMElements.loadMoreReviewsBtn.textContent = 'Loading...';
+
 
     const from = (state.reviewsPage - 1) * state.reviewsPerPage;
     const to = from + state.reviewsPerPage - 1;
@@ -632,26 +677,21 @@ async function fetchReviews() {
     try {
         let query = supabaseClient
             .from('reviews')
-            .select(`*, user:users(id, name, profile_image, role)`) // Added user ID and role for moderation
-            .eq('product_id', state.product.id)
+            .select(`*, user:users(id, name, profile_image, role)`) // Fetch user details
+            .eq('product_id', state.product.id);
+        
+        if (filter > 0) {
+            query = query.eq('rating', filter);
+        }
+
+        const { data, error } = await query
             .order('created_at', { ascending: false })
             .range(from, to);
-
-        // Apply the rating filter
-        if (ratingFilter !== 'all') {
-            const ratingNum = parseInt(ratingFilter, 10);
-            if (!isNaN(ratingNum) && ratingNum >= 1 && ratingNum <= 5) {
-                query = query.eq('rating', ratingNum);
-            }
-        }
-            
-        const { data, error } = await query;
             
         if (error) { 
             console.error("Error fetching reviews:", error);
-            if (isFirstLoadForFilter) {
-                 DOMElements.reviewsList.innerHTML = `<p class="text-center text-red-500 py-4">Failed to load reviews.</p>`;
-            }
+            DOMElements.loadMoreReviewsBtn.textContent = 'Failed to load reviews';
+            if (state.reviews.length === 0) DOMElements.noReviewsMessage.style.display = 'block';
             return; 
         }
 
@@ -659,29 +699,51 @@ async function fetchReviews() {
             state.hasMoreReviews = false;
             DOMElements.loadMoreReviewsContainer.classList.add('hidden');
         } else {
-            state.hasMoreReviews = true;
             DOMElements.loadMoreReviewsContainer.classList.remove('hidden');
         }
         
-        state.reviews = isFirstLoadForFilter ? data : [...state.reviews, ...data];
+        state.reviews = [...state.reviews, ...data];
         state.reviewsPage++;
         
-        renderReviews();
+        processReviewsData(state.reviews); // Process data for dashboard
+        renderReviews(); // Render all reviews (or filtered)
+        DOMElements.loadMoreReviewsBtn.textContent = 'Load More';
 
     } catch (error) {
         console.error("Error in fetchReviews:", error);
+        DOMElements.loadMoreReviewsBtn.textContent = 'Error loading reviews';
+        if (state.reviews.length === 0) DOMElements.noReviewsMessage.style.display = 'block';
     } finally {
-        if (DOMElements.loadMoreReviewsBtn) DOMElements.loadMoreReviewsBtn.disabled = false;
-        if (!state.hasMoreReviews) DOMElements.loadMoreReviewsContainer.classList.add('hidden');
+        DOMElements.loadMoreReviewsBtn.disabled = false;
     }
 }
+
+// NEW: Processes raw review data to calculate counts and averages for the dashboard
+function processReviewsData(reviews) {
+    let ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let totalRatingSum = 0;
+    let totalReviews = reviews.length;
+
+    reviews.forEach(review => {
+        ratingCounts[review.rating]++;
+        totalRatingSum += review.rating;
+    });
+
+    state.reviewsData.ratingCounts = ratingCounts;
+    state.reviewsData.totalReviews = totalReviews;
+    state.reviewsData.avgRating = totalReviews > 0 ? (totalRatingSum / totalReviews) : 0;
+
+    renderReviewsDashboard(ratingCounts, totalReviews, state.reviewsData.avgRating);
+}
+
 
 async function fetchRelatedProducts(product) {
     try {
         const tags = (product.tags || '').split(',').map(t => t.trim()).filter(Boolean);
         let queryBuilder = supabaseClient.from('products').select('name, price, discount_price, image_urls, slug, avg_rating, total_reviews');
-        queryBuilder = queryBuilder.neq('id', product.id).neq('published', false);
+        queryBuilder = queryBuilder.neq('id', product.id).neq('published', false); // Exclude current product and unpublished ones
 
+        // Build OR condition for category or tags
         let orConditions = [];
         if (product.category) {
             orConditions.push(`category.eq.${product.category}`);
@@ -704,12 +766,13 @@ async function fetchRelatedProducts(product) {
     }
 }
 
+
 async function fetchYouMayLikeProducts() {
     try {
         const { data, error } = await supabaseClient
             .from('products')
             .select('name, price, discount_price, image_urls, slug, avg_rating, total_reviews')
-            .neq('published', false)
+            .neq('published', false) // Only show published products
             .order('total_orders', { ascending: false, nullsFirst: false })
             .limit(8);
             
@@ -725,15 +788,17 @@ async function fetchYouMayLikeProducts() {
 // ===================================================================
 // RENDER FUNCTIONS
 // ===================================================================
+
 function renderProductDetails() {
     const p = state.product;
-    if (!p) return;
+    if (!p) return; // Ensure product data exists
 
-    // ... (existing header, stock, tags, pricing logic) ...
+    // Header Info
     DOMElements.productCategory.textContent = p.category || 'General';
     DOMElements.productName.textContent = p.name;
     document.title = `${p.name} • Liyog`;
     
+    // Stock Status
     if (p.published) {
         DOMElements.stockBadge.textContent = 'In Stock';
         DOMElements.stockBadge.className = 'text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap bg-green-100 text-green-800';
@@ -750,10 +815,10 @@ function renderProductDetails() {
         });
     }
 
-    // Ratings & Metrics
-    renderStarRating(p.avg_rating, DOMElements.starRating, 'w-5 h-5'); // Updated call
+    // Ratings & Metrics (Product-level)
+    DOMElements.starRating.innerHTML = renderStarRatingHTML(p.avg_rating);
     DOMElements.avgRating.textContent = (p.avg_rating || 0).toFixed(1);
-    DOMElements.totalReviews.textContent = `${(p.total_reviews || 0).toLocaleString()}`; // Removed 'Reviews' for space
+    DOMElements.totalReviews.textContent = (p.total_reviews || 0).toLocaleString(); // Only number here, "Reviews" is in the HTML
     DOMElements.totalOrders.textContent = (p.total_orders || 0).toLocaleString();
     DOMElements.totalLikes.textContent = (p.total_likes || 0).toLocaleString();
     DOMElements.totalViews.textContent = (p.total_views || 0).toLocaleString();
@@ -780,15 +845,17 @@ function renderProductDetails() {
     DOMElements.liyogxValue.textContent = lxcValue.toLocaleString(undefined, { minimumFractionDigits: 2 });
 
     // Description
+    // Ensure description is sanitized before rendering
     DOMElements.descriptionContent.innerHTML = DOMPurify.sanitize(p.description_html || '<p class="text-gray-500">No detailed description available.</p>');
     
-    // Set initial like state
+    // Set initial product like state
     if (state.isLiked) {
         DOMElements.likeIcon.classList.add('like-icon-filled');
     } else {
         DOMElements.likeIcon.classList.remove('like-icon-filled');
     }
 }
+
 
 function renderMediaGallery() {
     const p = state.product;
@@ -804,17 +871,20 @@ function renderMediaGallery() {
     }
 
     DOMElements.thumbnailsWrapper.innerHTML = mediaItems.map((item, index) => {
-        let thumbSrc = 'https://via.placeholder.com/80?text=Media';
+        let thumbSrc = 'https://via.placeholder.com/80?text=Media'; // Default fallback thumbnail
         if (item.type === 'image') {
             thumbSrc = item.url;
         } else if (item.type === 'youtube') {
+            // Extract video ID from embed URL
             const videoIdMatch = item.url.match(/embed\/([^?]+)/);
             if (videoIdMatch && videoIdMatch[1]) {
-                 thumbSrc = `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`;
+                thumbSrc = `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`;
             } else {
-                 console.warn("Could not extract YouTube video ID for thumbnail:", item.url);
+                console.warn("Could not extract YouTube video ID for thumbnail:", item.url);
             }
         }
+        // For 'video' type, you might need a static thumbnail or generate one on the fly (more complex)
+        // For now, use generic for video type if no specific thumbnail URL is provided in data
 
         return `
             <button data-index="${index}" class="thumbnail-btn flex-shrink-0 w-20 h-20 border-2 border-transparent rounded-lg overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-liyog-green focus:ring-offset-2 transition-all duration-200">
@@ -823,7 +893,7 @@ function renderMediaGallery() {
         `;
     }).join('');
 
-    renderMainMedia(0, mediaItems);
+    renderMainMedia(0, mediaItems); // Show first item by default
 
     const thumbnailButtons = document.querySelectorAll('.thumbnail-btn');
     thumbnailButtons.forEach(btn => {
@@ -834,10 +904,12 @@ function renderMediaGallery() {
             btn.classList.add('thumb-active');
         });
     });
+    // Set the first thumbnail as active by default
     if (thumbnailButtons.length > 0) {
         thumbnailButtons[0].classList.add('thumb-active');
     }
 }
+
 
 function renderMainMedia(index, mediaItems) {
     const item = mediaItems[index];
@@ -845,13 +917,15 @@ function renderMainMedia(index, mediaItems) {
         DOMElements.mainMediaViewer.innerHTML = `<img src="https://via.placeholder.com/600?text=Error" alt="Media load error" class="w-full h-full object-contain">`;
         return;
     }
-    DOMElements.mainMediaViewer.innerHTML = '';
+    DOMElements.mainMediaViewer.innerHTML = ''; // Clear previous content
 
     if (item.type === 'image') {
         DOMElements.mainMediaViewer.innerHTML = `<img src="${item.url}" alt="Product image" class="w-full h-full object-contain transition-opacity duration-300 animate-fade-in">`;
     } else if (item.type === 'video') {
+        // Ensure video has controls and plays inline for mobile
         DOMElements.mainMediaViewer.innerHTML = `<video src="${item.url}" class="w-full h-full object-contain rounded-lg" controls playsinline autoplay loop muted></video>`;
     } else if (item.type === 'youtube') {
+        // Use responsive container for YouTube iframe
         DOMElements.mainMediaViewer.innerHTML = `
             <div class="responsive-iframe-container">
                 <iframe src="${item.url}?autoplay=1&mute=1&controls=1&showinfo=0&rel=0&loop=1" 
@@ -864,157 +938,173 @@ function renderMainMedia(index, mediaItems) {
     }
 }
 
-// MODIFIED: renderStarRating to be reusable and accept a target element
-function renderStarRating(rating = 0, targetElement, size = 'w-5 h-5') {
-    if (!targetElement && !targetElement?.classList) return ''; // Only return HTML string if no target element is provided
-    
+
+// NEW: Reusable function to render star HTML (for display or interactive input)
+function renderStarRatingHTML(rating = 0, size = 'w-4 h-4', interactive = false, inputName = 'review-rating') {
     let starsHTML = '';
     const fullStars = Math.floor(rating);
     const halfStar = rating % 1 >= 0.5;
     const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
     
-    // Using a consistent star SVG for full, half, and empty
     const fullStarSVG = `<svg class="${size} text-liyog-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`;
     const emptyStarSVG = `<svg class="${size} text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`;
     
-    for (let i = 0; i < fullStars; i++) starsHTML += fullStarSVG;
-    
-    if (halfStar) {
-        starsHTML += fullStarSVG; // Simplified: Treat 0.5+ as full for display consistency
+    if (interactive) {
+        // For interactive star ratings (e.g., in a form)
+        for (let i = 5; i >= 1; i--) {
+            const checked = (i === Math.round(rating) ? 'checked' : ''); // Pre-select if rating is provided
+            starsHTML += `
+                <input type="radio" id="${inputName}-${i}" name="${inputName}" value="${i}" class="sr-only" ${checked}>
+                <label for="${inputName}-${i}" title="${i} stars">
+                    <svg class="${size}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>
+                </label>
+            `;
+        }
+    } else {
+        // For display-only star ratings
+        for (let i = 0; i < fullStars; i++) starsHTML += fullStarSVG;
+        if (halfStar) {
+            // Linear gradient for half star
+            const halfStarGradientId = `half_grad_${Math.random().toString(36).substr(2, 5)}`;
+            starsHTML += `<svg class="${size}" viewBox="0 0 20 20" fill="url(#${halfStarGradientId})"><defs><linearGradient id="${halfStarGradientId}"><stop offset="50%" stop-color="var(--liyog-gold)"/><stop offset="50%" stop-color="#e5e7eb"/></linearGradient></defs><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`;
+        }
+        for (let i = 0; i < emptyStars; i++) starsHTML += emptyStarSVG;
     }
-
-    const finalEmptyStars = 5 - (fullStars + (halfStar ? 1 : 0));
-    for (let i = 0; i < finalEmptyStars; i++) starsHTML += emptyStarSVG;
-
-    targetElement.innerHTML = starsHTML;
+    
+    return starsHTML;
 }
 
+// NEW: Renders the reviews dashboard (chart and overall average)
+function renderReviewsDashboard(ratingCounts, totalReviews, avgRating) {
+    DOMElements.overallAvgRating.textContent = avgRating.toFixed(1);
+    DOMElements.overallStarRating.innerHTML = renderStarRatingHTML(avgRating, 'w-6 h-6');
+    DOMElements.overallTotalReviewsCount.textContent = totalReviews.toLocaleString();
 
-// NEW: Renders the graphical distribution chart and attaches listeners
-function renderRatingDistribution() {
-    const dist = state.ratingDistribution;
-    const totalReviews = state.product.total_reviews || 1; 
+    DOMElements.ratingsDistributionChart.innerHTML = ''; // Clear previous chart
 
-    DOMElements.avgRatingValueLarge.textContent = (state.product.avg_rating || 0).toFixed(2);
-    DOMElements.totalReviewsCountSmall.textContent = (state.product.total_reviews || 0).toLocaleString();
-    renderStarRating(state.product.avg_rating, DOMElements.avgStarDisplayLarge, 'w-6 h-6');
+    for (let i = 5; i >= 1; i--) {
+        const count = ratingCounts[i] || 0;
+        const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
+        const isActive = (state.currentRatingFilter === i);
 
-    let barsHTML = '';
-    
-    for (let rating = 5; rating >= 1; rating--) {
-        const count = dist[rating] || 0;
-        const percentage = Math.round((count / totalReviews) * 100);
-        
-        barsHTML += `
-            <div class="rating-bar-item group" data-rating-filter="${rating}">
-                <div class="flex items-center w-16 flex-shrink-0">
-                    <span class="text-sm font-semibold">${rating} Star</span>
+        DOMElements.ratingsDistributionChart.innerHTML += `
+            <div class="flex items-center gap-3 group">
+                <button data-rating-filter="${i}" class="text-sm font-semibold w-8 text-right filter-rating-btn ${isActive ? 'text-liyog-gold' : 'text-gray-200'}">${i} <span class="hidden sm:inline">Star</span></button>
+                <div class="flex-1 h-3 bg-gray-600 rounded-full rating-bar-wrapper relative cursor-pointer ${isActive ? 'active' : ''}" data-rating-filter="${i}">
+                    <div class="rating-fill bg-liyog-gold h-full rounded-full transition-all duration-300" style="width: ${percentage.toFixed(0)}%;"></div>
+                    <span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-bold text-gray-800 mix-blend-screen">${count}</span>
                 </div>
-                <div class="bar-background">
-                    <div class="bar-fill" style="width: ${percentage}%;" data-count="${count}"></div> 
-                </div>
-                <span class="bar-percentage w-12 text-right text-sm font-semibold text-gray-700">${percentage}%</span>
-                <span class="text-sm text-gray-500 w-12 text-right">(${count})</span>
+                <span class="text-sm font-medium w-10 text-right text-gray-200">${percentage.toFixed(0)}%</span>
             </div>
         `;
     }
-    
-    DOMElements.ratingBarsContainer.innerHTML = barsHTML;
-    
-    // Attach filter event listeners
-    document.querySelectorAll('#rating-distribution-chart [data-rating-filter]').forEach(pill => {
-        // Use an anonymous function to wrap the call to prevent duplicates
-        pill.removeEventListener('click', handleReviewFilterClick);
-        pill.addEventListener('click', handleReviewFilterClick);
+
+    // Re-attach listeners to new filter buttons in the chart
+    document.querySelectorAll('#ratings-distribution-chart .filter-rating-btn, #ratings-distribution-chart .rating-bar-wrapper').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const filterValue = parseInt(btn.dataset.ratingFilter, 10);
+            applyReviewFilter(filterValue);
+        });
+    });
+
+    // Update active state for filter buttons below the chart
+    DOMElements.filterRatingBtns.forEach(btn => {
+        const rating = parseInt(btn.dataset.ratingFilter, 10);
+        if (rating === state.currentRatingFilter) {
+            btn.classList.add('active', 'bg-liyog-green');
+            btn.classList.remove('bg-gray-700');
+        } else {
+            btn.classList.remove('active', 'bg-liyog-green');
+            btn.classList.add('bg-gray-700');
+        }
     });
 }
 
-// NEW: Builds the HTML for a single, revolutionary review card
+
+// NEW: Function to generate a dynamic avatar (initials)
+function generateAvatar(name, size = 'w-10 h-10', textSize = 'text-lg') {
+    const initials = (name || 'Anonymous').split(' ').map(n => n[0]).join('').toUpperCase().substring(0,2);
+    // Assign a random, consistent background color based on the first initial
+    const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722', '#795548', '#607D8B'];
+    const hashCode = (str) => {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return hash;
+    };
+    const colorIndex = Math.abs(hashCode(initials)) % colors.length;
+    const bgColor = colors[colorIndex];
+
+    return `<div class="${size} ${textSize} avatar-initials" style="background-color: ${bgColor};">${initials}</div>`;
+}
+
+
+// NEW: Function to generate HTML for a single review card
 function createReviewCardHTML(review) {
-    const user = review.user || { id: null, name: 'Anonymous', profile_image: null, role: 'user' };
-    const userInitial = (user.name || 'A').charAt(0).toUpperCase();
-    const isCurrentUserReview = state.currentUser?.id === review.user_id;
-    const isAdmin = state.currentUser?.role === 'admin';
-    const helpfulCount = review.totalreview_likes || 0;
-
-    // --- AVATAR & USER INFO ---
-    const userAvatar = user.profile_image 
-        ? `<img src="${user.profile_image}" class="w-full h-full object-cover" alt="${user.name}'s profile">`
-        : `<div class="default-avatar">${userInitial}</div>`;
-
-    // --- MODERATION BUTTONS (Edit/Delete) ---
-    let moderationButtons = '';
-    if (isCurrentUserReview || isAdmin) {
-        moderationButtons = `
-            <div class="moderation-actions ml-auto flex gap-3 text-sm pt-4">
-                <button class="text-liyog-green hover:text-liyog-green-dark font-semibold transition-colors" onclick="handleReviewAction('${review.id}', 'edit')">Edit</button>
-                <button class="text-red-500 hover:text-red-700 font-semibold transition-colors" onclick="handleReviewAction('${review.id}', 'delete')">Delete</button>
-            </div>
-        `;
-    }
+    const user = review.user || { name: 'Anonymous', profile_image: null, id: null, role: 'user' };
+    const avatarHTML = user.profile_image 
+        ? `<img src="${user.profile_image}" alt="${user.name}'s profile" class="w-full h-full object-cover">`
+        : generateAvatar(user.name, 'w-12 h-12', 'text-xl');
     
-    // NOTE: Review star display is rendered inside this function
-    const reviewStarHTML = Array(5).fill(0).map((_, i) => 
-        `<svg class="w-4 h-4 ${i < review.rating ? 'text-liyog-gold' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`
-    ).join('');
+    const isOwner = state.currentUser && state.currentUser.id === user.id;
+    const isAdmin = state.currentUser && state.currentUser.role === 'admin';
 
+    const formattedDate = new Date(review.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
     return `
-        <div class="individual-review-card p-6 bg-white rounded-xl shadow-lg border border-gray-100 transform hover:shadow-xl transition-shadow duration-300">
-            <div class="flex flex-col sm:flex-row justify-between items-start">
-                <div class="flex items-start gap-4 flex-grow">
-                    <div class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-                        ${userAvatar}
-                    </div>
-                    <div class="flex-grow">
-                        <p class="font-bold text-gray-900 text-lg">${user.name}</p>
-                        <div class="flex items-center my-1">
-                            <div class="flex items-center gap-0.5">
-                                ${reviewStarHTML}
-                            </div>
-                            <span class="text-xs text-gray-500 ml-3">Reviewed on ${new Date(review.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                        </div>
-                    </div>
+        <div class="review-card flex gap-4 p-4 bg-white rounded-lg shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md" data-review-id="${review.id}">
+            <div class="flex-shrink-0">
+                <div class="w-12 h-12 rounded-full overflow-hidden bg-liyog-green-light flex-shrink-0 flex items-center justify-center text-white text-xl font-bold">
+                    ${avatarHTML}
                 </div>
-                
-                <button class="helpful-counter flex-shrink-0 mt-4 sm:mt-0 ${isCurrentUserReview ? 'opacity-50 cursor-not-allowed' : ''}" 
-                        data-review-id="${review.id}" 
-                        onclick="${isCurrentUserReview ? '' : 'handleReviewLike(event)'}" 
-                        ${isCurrentUserReview ? 'title="You cannot like your own review"' : ''}
-                        ${isCurrentUserReview ? 'disabled' : ''}>
-                    <i class="fas fa-thumbs-up helpful-icon text-lg"></i>
-                    <span class="helpful-count-number">${helpfulCount.toLocaleString()}</span>
-                    <span class="helpful-text text-sm hidden sm:inline">Helpful</span>
-                </button>
             </div>
-            
-            <p class="text-gray-700 text-base mt-4 border-l-4 border-liyog-green-light pl-4">${DOMPurify.sanitize(review.comment)}</p>
-
-            ${moderationButtons}
+            <div class="flex-1">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center flex-wrap gap-y-1">
+                    <p class="font-bold text-gray-900 text-base">${user.name}</p>
+                    <p class="text-xs text-gray-500">${formattedDate}</p>
+                </div>
+                <div class="flex items-center my-1">
+                    ${renderStarRatingHTML(review.rating, 'w-4 h-4')}
+                </div>
+                <p class="text-gray-700 text-sm mt-1 leading-relaxed">${DOMPurify.sanitize(review.comment)}</p>
+                
+                <div class="flex items-center gap-4 mt-3">
+                    <button class="flex items-center gap-1 text-gray-500 hover:text-liyog-green transition-colors review-like-btn" data-review-id="${review.id}">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6.382 10.118A4 4 0 0110 5.5V4a2 2 0 014 0v.5c1.11 0 2.08.402 2.592 1.182a4.004 4.004 0 01.13 5.48c-.069.166-.098.32-.098.47 0 .225.072.443.21.614l.004.007a.75.75 0 01.353.642v.001l-.007.004c-.001.002-.002.003-.002.003h-2.163c-.156.02-.31.03-.464.032H13.5a6.45 6.45 0 01-1.397.712A6.5 6.5 0 0110 16.5a6.463 6.463 0 01-3.618-1.118L2 10.5z" /></svg>
+                        <span class="font-semibold text-sm glittering-number" data-review-likes="${review.id}">${review.totalreview_likes || 0}</span>
+                        <span class="text-xs text-gray-400">Helpful</span>
+                    </button>
+                    ${(isOwner || isAdmin) ? `
+                        <button class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors review-edit-btn" data-review-id="${review.id}" data-comment="${DOMPurify.sanitize(review.comment)}" data-rating="${review.rating}">Edit</button>
+                        <button class="text-sm font-semibold text-red-600 hover:text-red-800 transition-colors review-delete-btn" data-review-id="${review.id}">Delete</button>
+                    ` : ''}
+                </div>
+            </div>
         </div>
     `;
 }
 
-// MODIFIED: renderReviews
-function renderReviews() {
-    // Clear the list only if it's the first page for the current filter
-    const isFirstPage = state.reviewsPage === 2 && state.reviews.length <= state.reviewsPerPage;
-    if (isFirstPage) {
-        DOMElements.reviewsList.innerHTML = '';
-    }
 
-    if (state.reviews.length === 0) {
-        DOMElements.reviewsList.innerHTML = `<p class="text-center text-gray-500 py-8">No ${state.currentReviewFilter !== 'all' ? state.currentReviewFilter + '-star ' : ''} reviews yet. Be the first to review!</p>`;
+function renderReviews() {
+    state.filteredReviews = state.reviews.filter(review => {
+        return state.currentRatingFilter === 0 || review.rating === state.currentRatingFilter;
+    });
+
+    if (state.filteredReviews.length === 0) {
+        DOMElements.reviewsList.innerHTML = '';
+        DOMElements.noReviewsMessage.style.display = 'block';
         DOMElements.loadMoreReviewsContainer.classList.add('hidden');
         return;
     }
     
-    const startIndex = DOMElements.reviewsList.children.length;
-    const newReviews = state.reviews.slice(startIndex);
+    DOMElements.noReviewsMessage.style.display = 'none';
+    DOMElements.reviewsList.innerHTML = state.filteredReviews.map(createReviewCardHTML).join('');
     
-    const newReviewsHTML = newReviews.map(createReviewCardHTML).join('');
-    DOMElements.reviewsList.insertAdjacentHTML('beforeend', newReviewsHTML);
+    // Re-attach listeners for review-specific actions (like, edit, delete)
+    attachReviewActionListeners();
 }
+
 
 function createProductCardHTML(product) {
     const finalPrice = product.discount_price ?? product.price;
@@ -1027,7 +1117,7 @@ function createProductCardHTML(product) {
                 <h3 class="font-bold text-gray-800 line-clamp-2 text-sm">${product.name}</h3>
                 <div class="flex items-center gap-2 mt-2">
                     <div class="flex">
-                        ${Array(5).fill(0).map((_, i) => `<svg class="w-4 h-4 ${i < (product.avg_rating || 0) ? 'text-liyog-gold' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`).join('')}
+                        ${renderStarRatingHTML(product.avg_rating || 0, 'w-4 h-4')}
                     </div>
                     <span class="text-xs text-gray-500">(${(product.total_reviews || 0)})</span>
                 </div>
@@ -1037,124 +1127,239 @@ function createProductCardHTML(product) {
     `;
 }
 
-// NEW: Renders the review submission form or status
-function renderReviewForm() {
-    const hasReviewed = state.reviews.some(r => r.user_id === state.currentUser?.id);
-
-    if (!state.currentUser) {
-        DOMElements.userReviewFormContainer.innerHTML = `
-            <div class="text-center p-6 bg-blue-50 border border-blue-200 rounded-lg">
-                <p class="font-semibold text-blue-700">Want to share your experience?</p>
-                <a href="/login?redirect=${encodeURIComponent(window.location.href)}" class="text-liyog-green-dark hover:underline font-bold">Log in to add your review.</a>
-            </div>
-        `;
-        return;
-    }
-    
-    if (hasReviewed) {
-         DOMElements.userReviewFormContainer.innerHTML = `
-            <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
-                <p class="font-semibold text-yellow-800">You have already submitted a review for this product.</p>
-                <p class="text-sm text-yellow-700">Scroll to your review below to edit or delete it.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    // User can add a new review
-    DOMElements.userReviewFormContainer.innerHTML = `
-        <div class="p-6 bg-liyog-green-light/5 border border-liyog-green-light/20 rounded-lg shadow-md">
-            <h4 class="text-xl font-bold text-liyog-green-dark mb-4">Add Your Review</h4>
-            <form id="add-review-form" class="space-y-4">
-                <div class="flex items-center gap-3">
-                    <label class="font-semibold text-gray-700">Your Rating:</label>
-                    <div id="star-rating-input" class="flex text-2xl cursor-pointer">
-                        ${Array(5).fill(0).map((_, i) => `<i class="fa-solid fa-star text-gray-300 hover:text-liyog-gold transition-colors" data-rating="${i + 1}"></i>`).join('')}
-                    </div>
-                    <input type="hidden" id="review-rating-value" required>
-                </div>
-                
-                <textarea id="review-comment-input" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-liyog-green focus:border-liyog-green" placeholder="Share your detailed experience with this product..." required></textarea>
-                
-                <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-liyog-green text-white font-bold rounded-lg hover:bg-liyog-green-dark transition-colors shadow-md">Submit Review</button>
-            </form>
-        </div>
-    `;
-    
-    // Setup Star Rating Input & Form Submission
-    const starInputContainer = document.getElementById('star-rating-input');
-    const ratingValueInput = document.getElementById('review-rating-value');
-    let selectedRating = 0;
-
-    starInputContainer.querySelectorAll('i').forEach(star => {
-        star.addEventListener('click', () => {
-            selectedRating = parseInt(star.dataset.rating);
-            ratingValueInput.value = selectedRating;
-            starInputContainer.querySelectorAll('i').forEach(s => {
-                s.classList.toggle('text-liyog-gold', parseInt(s.dataset.rating) <= selectedRating);
-                s.classList.toggle('text-gray-300', parseInt(s.dataset.rating) > selectedRating);
-            });
-        });
-        star.addEventListener('mouseover', () => {
-            starInputContainer.querySelectorAll('i').forEach(s => {
-                const isHovered = parseInt(s.dataset.rating) <= parseInt(star.dataset.rating);
-                s.classList.toggle('text-liyog-gold', isHovered || parseInt(s.dataset.rating) <= selectedRating);
-                s.classList.toggle('text-gray-300', !(isHovered || parseInt(s.dataset.rating) <= selectedRating));
-            });
-        });
-        star.addEventListener('mouseout', () => {
-             starInputContainer.querySelectorAll('i').forEach(s => {
-                s.classList.toggle('text-liyog-gold', parseInt(s.dataset.rating) <= selectedRating);
-                s.classList.toggle('text-gray-300', parseInt(s.dataset.rating) > selectedRating);
-            });
-        });
-    });
-
-    document.getElementById('add-review-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const comment = document.getElementById('review-comment-input').value;
-
-        if (selectedRating === 0 || !comment.trim()) {
-            alert("Please provide a rating and a comment.");
-            return;
-        }
-
-        e.submitter.disabled = true;
-        e.submitter.textContent = 'Submitting...';
-
-        try {
-            const { error } = await supabaseClient
-                .from('reviews')
-                .insert({ 
-                    product_id: state.product.id, 
-                    user_id: state.currentUser.id, 
-                    rating: selectedRating, 
-                    comment: comment 
-                });
-
-            if (error) throw error;
-            
-            alert('Review submitted successfully! It will appear shortly.');
-            // Re-fetch everything to show the new review and update the form state
-            await loadReviewsForFilter('all');
-            await fetchRatingDistribution();
-            renderRatingDistribution();
-            renderReviewForm();
-
-        } catch (error) {
-            console.error("Review submission error:", error);
-            alert(`Failed to submit review: ${error.message}`);
-        } finally {
-            e.submitter.disabled = false;
-            e.submitter.textContent = 'Submit Review';
-        }
-    });
-}
-
 
 // ===================================================================
 // EVENT HANDLERS & UI LOGIC
 // ===================================================================
+
+// NEW: Function to apply a filter to reviews
+function applyReviewFilter(filterValue) {
+    if (state.currentRatingFilter === filterValue && filterValue !== 0) {
+        // If the same filter is clicked again, reset to all reviews
+        filterValue = 0;
+    }
+    state.reviewsPage = 1; // Reset pagination
+    state.reviews = []; // Clear existing reviews
+    fetchReviews(filterValue); // Fetch reviews with new filter
+}
+
+
+// NEW: Handles review form submission
+async function handleReviewFormSubmit(event) {
+    event.preventDefault();
+    if (!state.currentUser) {
+        alert('Please log in to submit a review.');
+        return;
+    }
+    if (!state.product) {
+        alert('Product not found. Cannot submit review.');
+        return;
+    }
+
+    const rating = parseInt(DOMElements.selectedRatingInput.value, 10);
+    const comment = DOMElements.reviewCommentInput.value.trim();
+
+    if (rating === 0 || !comment) {
+        alert('Please provide a rating and a comment.');
+        return;
+    }
+
+    DOMElements.submitReviewBtn.disabled = true;
+    DOMElements.submitReviewBtn.textContent = 'Submitting...';
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('reviews')
+            .insert({
+                user_id: state.currentUser.id,
+                product_id: state.product.id,
+                rating: rating,
+                comment: comment,
+            });
+
+        if (error) throw error;
+
+        alert('Review submitted successfully!');
+        // Clear form
+        DOMElements.reviewCommentInput.value = '';
+        DOMElements.selectedRatingInput.value = '0';
+        document.querySelectorAll('#review-rating-input input[type="radio"]').forEach(radio => {
+            radio.checked = false;
+        });
+
+        // Trigger re-fetch of reviews to include the new one (realtime might handle this too)
+        state.reviewsPage = 1; // Reset pagination to load from start
+        state.reviews = []; // Clear existing local reviews
+        state.hasMoreReviews = true;
+        await fetchReviews(state.currentRatingFilter); // Fetch all reviews with current filter
+
+        // Update product's total_reviews and avg_rating via RPC if you have one, or re-fetch product
+        // For now, let's re-fetch product to update its main stats
+        state.product = await fetchProduct(state.product.slug);
+        renderProductDetails();
+
+    } catch (error) {
+        console.error('Error submitting review:', error);
+        alert(`Failed to submit review: ${error.message}`);
+    } finally {
+        DOMElements.submitReviewBtn.disabled = false;
+        DOMElements.submitReviewBtn.textContent = 'Submit Review';
+    }
+}
+
+
+// NEW: Handles liking/unliking individual reviews
+async function handleToggleReviewLike(event) {
+    if (!state.currentUser) {
+        alert("Please log in to like reviews.");
+        return;
+    }
+
+    const button = event.currentTarget;
+    const reviewId = button.dataset.reviewId;
+    if (!reviewId) return;
+
+    button.disabled = true; // Prevent multiple clicks
+
+    try {
+        // Optimistically update UI
+        const likesSpan = document.querySelector(`span[data-review-likes="${reviewId}"]`);
+        let currentLikes = parseInt(likesSpan.textContent, 10);
+
+        // This assumes a user can only like a review once.
+        // For a more robust solution, you'd need a 'review_likes' table to track user_id and review_id.
+        // For now, we'll just toggle based on the RPC function success.
+        
+        // Call RPC function to increment. If successful, assume it was a like.
+        // If we want to implement UNLIKE, we need a separate mechanism (e.g., a 'user_review_likes' table)
+        // Given your provided RPCs, 'increment' adds, 'decrement' removes.
+        // To accurately toggle, we need to know if the CURRENT USER has already liked it.
+        // This requires an additional query or a `user_review_likes` table.
+
+        // Placeholder for now: assuming 'increment' is always intended
+        const { error: rpcError } = await supabaseClient.rpc('increment_review_like', { rid: reviewId });
+
+        if (rpcError) {
+             // If RPC fails, revert optimistic update (or show error)
+            console.error('Error incrementing review like via RPC:', rpcError);
+            alert('Failed to like review. Please try again.');
+        } else {
+            // Success: update UI
+            likesSpan.textContent = currentLikes + 1;
+            likesSpan.classList.add('glittering-number'); // Apply glitter effect
+            setTimeout(() => likesSpan.classList.remove('glittering-number'), 2500); // Remove after a short period
+        }
+
+    } catch (error) {
+        console.error('Error toggling review like:', error);
+        alert(`Failed to update like status: ${error.message}`);
+    } finally {
+        button.disabled = false;
+    }
+}
+
+// NEW: Handles review editing
+async function handleEditReview(event) {
+    const button = event.currentTarget;
+    const reviewId = button.dataset.reviewId;
+    const currentComment = button.dataset.comment;
+    const currentRating = parseInt(button.dataset.rating, 10);
+
+    if (!state.currentUser) {
+        alert('You must be logged in to edit reviews.');
+        return;
+    }
+    // Check if the current user is the owner or an admin
+    const reviewToEdit = state.reviews.find(r => r.id === reviewId);
+    if (!reviewToEdit || (state.currentUser.id !== reviewToEdit.user.id && state.currentUser.role !== 'admin')) {
+        alert('You do not have permission to edit this review.');
+        return;
+    }
+
+    const newComment = prompt('Edit your review:', currentComment);
+    if (newComment === null || newComment.trim() === '') {
+        return; // User cancelled or entered empty comment
+    }
+
+    let newRating = prompt(`Edit your rating (1-5, current: ${currentRating}):`, currentRating);
+    newRating = parseInt(newRating, 10);
+    if (isNaN(newRating) || newRating < 1 || newRating > 5) {
+        alert('Invalid rating. Please enter a number between 1 and 5.');
+        return;
+    }
+
+    try {
+        const { error } = await supabaseClient
+            .from('reviews')
+            .update({ comment: newComment.trim(), rating: newRating, updated_at: new Date().toISOString() })
+            .eq('id', reviewId);
+
+        if (error) throw error;
+
+        alert('Review updated successfully!');
+        // Refresh reviews to reflect changes
+        state.reviewsPage = 1;
+        state.reviews = [];
+        state.hasMoreReviews = true;
+        await fetchReviews(state.currentRatingFilter);
+
+        // Re-fetch product details to update avg_rating/total_reviews if they changed
+        state.product = await fetchProduct(state.product.slug);
+        renderProductDetails();
+
+    } catch (error) {
+        console.error('Error updating review:', error);
+        alert(`Failed to update review: ${error.message}`);
+    }
+}
+
+
+// NEW: Handles review deletion
+async function handleDeleteReview(event) {
+    const button = event.currentTarget;
+    const reviewId = button.dataset.reviewId;
+
+    if (!state.currentUser) {
+        alert('You must be logged in to delete reviews.');
+        return;
+    }
+
+    // Check if the current user is the owner or an admin
+    const reviewToDelete = state.reviews.find(r => r.id === reviewId);
+    if (!reviewToDelete || (state.currentUser.id !== reviewToDelete.user.id && state.currentUser.role !== 'admin')) {
+        alert('You do not have permission to delete this review.');
+        return;
+    }
+
+    if (!confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const { error } = await supabaseClient
+            .from('reviews')
+            .delete()
+            .eq('id', reviewId);
+
+        if (error) throw error;
+
+        alert('Review deleted successfully!');
+        // Refresh reviews to reflect changes
+        state.reviewsPage = 1;
+        state.reviews = [];
+        state.hasMoreReviews = true;
+        await fetchReviews(state.currentRatingFilter);
+
+        // Re-fetch product details to update avg_rating/total_reviews if they changed
+        state.product = await fetchProduct(state.product.slug);
+        renderProductDetails();
+
+    } catch (error) {
+        console.error('Error deleting review:', error);
+        alert(`Failed to delete review: ${error.message}`);
+    }
+}
+
 
 function setupEventHandlers() {
     // Quantity controls
@@ -1174,6 +1379,7 @@ function setupEventHandlers() {
             quantity: DOMElements.quantityInput.value
         }); 
         alert(`Added ${DOMElements.quantityInput.value} x "${state.product.name}" to cart! (Placeholder)`);
+        // TODO: Implement actual cart logic here
     };
     DOMElements.addToCartBtn.addEventListener('click', handleAddToCart);
     DOMElements.mobileAddToCartBtn.addEventListener('click', handleAddToCart);
@@ -1185,12 +1391,13 @@ function setupEventHandlers() {
             quantity: DOMElements.quantityInput.value
         }); 
         alert(`Ordering ${DOMElements.quantityInput.value} x "${state.product.name}" now! (Placeholder)`);
+        // TODO: Implement actual order logic here (e.g., redirect to checkout)
     };
     DOMElements.orderNowBtn.addEventListener('click', handleOrderNow);
     DOMElements.mobileOrderNowBtn.addEventListener('click', handleOrderNow);
 
-    // Like Button (Product Like)
-    DOMElements.likeBtn.addEventListener('click', handleToggleLike);
+    // Product Like Button
+    DOMElements.likeBtn.addEventListener('click', handleToggleLike); 
 
     // Share Button
     DOMElements.shareBtn.addEventListener('click', handleShare);
@@ -1207,153 +1414,98 @@ function setupEventHandlers() {
 
             DOMElements.tabContents.forEach(content => content.classList.add('hidden'));
             document.getElementById(`tab-content-${button.dataset.tab}`).classList.remove('hidden');
+
+            // If reviews tab is opened, ensure review form is rendered if user is logged in
+            if (button.dataset.tab === 'reviews') {
+                renderReviewForm();
+            }
         });
     });
 
     // Load More Reviews
     DOMElements.loadMoreReviewsBtn.addEventListener('click', fetchReviews);
+
+    // NEW: Review form event listeners
+    DOMElements.reviewForm.addEventListener('submit', handleReviewFormSubmit);
+    document.querySelectorAll('#review-rating-input input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            DOMElements.selectedRatingInput.value = e.target.value;
+            // Add a class to the selected radio button for better styling
+            document.querySelectorAll('#review-rating-input input[type="radio"]').forEach(r => {
+                if (r.checked) {
+                    r.classList.add('selected');
+                } else {
+                    r.classList.remove('selected');
+                }
+            });
+        });
+    });
+    
+    // NEW: Filter buttons for ratings dashboard
+    DOMElements.filterRatingBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const filterValue = parseInt(btn.dataset.ratingFilter, 10);
+            applyReviewFilter(filterValue);
+        });
+    });
 }
 
-// NEW: Handles the click on any chart filter pill
-function handleReviewFilterClick(event) {
-    let filterElement = event.currentTarget;
-    const newFilter = filterElement.dataset.ratingFilter;
-    loadReviewsForFilter(newFilter);
+// NEW: Attaches event listeners for dynamically rendered review cards
+function attachReviewActionListeners() {
+    document.querySelectorAll('.review-like-btn').forEach(button => {
+        // Remove existing to prevent duplicates when re-rendering
+        button.removeEventListener('click', handleToggleReviewLike);
+        button.addEventListener('click', handleToggleReviewLike);
+    });
+
+    document.querySelectorAll('.review-edit-btn').forEach(button => {
+        button.removeEventListener('click', handleEditReview);
+        button.addEventListener('click', handleEditReview);
+    });
+
+    document.querySelectorAll('.review-delete-btn').forEach(button => {
+        button.removeEventListener('click', handleDeleteReview);
+        button.addEventListener('click', handleDeleteReview);
+    });
 }
 
-// NEW: Handles filtering and resets pagination
-async function loadReviewsForFilter(newFilter) {
-    if (newFilter === state.currentReviewFilter && !state.hasMoreReviews && state.reviews.length > 0) return;
-    
-    state.currentReviewFilter = newFilter;
-    state.reviews = [];
-    state.reviewsPage = 1;
-    state.hasMoreReviews = true;
 
-    // Visually update the chart filter button/pill
-    document.querySelectorAll('#rating-distribution-chart [data-rating-filter]').forEach(p => p.classList.remove('active'));
-    const activePill = document.querySelector(`#rating-distribution-chart [data-rating-filter="${newFilter}"]`);
-    if (activePill) activePill.classList.add('active');
-
-
-    // Update filter status text
-    const filterText = newFilter === 'all' ? 'All' : `${newFilter}-Star`;
-    DOMElements.reviewsFilterStatus.textContent = `Showing ${filterText} Reviews`;
-    
-    // Clear and fetch new reviews
-    DOMElements.reviewsList.innerHTML = ''; 
-    await fetchReviews();
-}
-
-// NEW: Handles the Helpful/Like action on a review
-window.handleReviewLike = async function(event) {
-    const likeBtn = event.currentTarget;
-    const reviewId = likeBtn.dataset.reviewId;
-    
-    if (!state.currentUser) {
-        alert("Please log in to mark a review as helpful.");
-        return;
-    }
-    
-    // Prevent liking own review
-    const currentReview = state.reviews.find(r => r.id === reviewId);
-    if (currentReview?.user_id === state.currentUser.id) {
-        return;
-    }
-    
-    likeBtn.disabled = true;
-    
-    // NOTE: In a real-world scenario, you MUST have a `review_likes` table 
-    // to track which *user* liked which *review* to prevent double-counting.
-    // Since the instruction was to use RPC for increment/decrement on the `reviews` table,
-    // we assume the backend *also* manages a hidden check/toggle mechanism per user/review.
-    
-    // For this implementation, we will assume the button is currently UN-liked for simplicity, 
-    // and if the user clicks again, they are un-liking it (toggle required on the frontend).
-    
-    const isCurrentlyLiked = likeBtn.classList.contains('liked');
-    let action = isCurrentlyLiked ? 'decrement' : 'increment';
-    
-    try {
-        let rpcResult;
-        if (action === 'decrement') {
-            // Decrement (Un-like)
-            rpcResult = await supabaseClient.rpc('decrement_review_like', { rid: reviewId });
+// NEW: Renders the review submission form based on user login status
+function renderReviewForm() {
+    if (state.currentUser) {
+        DOMElements.addReviewFormSection.style.display = 'block';
+        DOMElements.currentUserNameReviewForm.textContent = state.currentUser.name || state.currentUser.email;
+        if (state.currentUser.profile_image) {
+            DOMElements.userAvatarReviewForm.innerHTML = `<img src="${state.currentUser.profile_image}" alt="${state.currentUser.name}'s profile" class="w-full h-full object-cover">`;
         } else {
-            // Increment (Like)
-            rpcResult = await supabaseClient.rpc('increment_review_like', { rid: reviewId });
+            DOMElements.userAvatarReviewForm.innerHTML = generateAvatar(state.currentUser.name, 'w-10 h-10', 'text-lg');
         }
-        
-        if (rpcResult.error) throw rpcResult.error;
-        
-        // Find the index and update the count locally
-        const reviewIndex = state.reviews.findIndex(r => r.id === reviewId);
-        if (reviewIndex !== -1) {
-            
-            // Toggle the liked class visually
-            likeBtn.classList.toggle('liked', !isCurrentlyLiked);
+        // Render interactive stars for the form
+        DOMElements.reviewRatingInput.innerHTML = renderStarRatingHTML(0, 'w-6 h-6', true, 'review-rating');
+        // Attach change listener for the dynamically rendered radio buttons
+        document.querySelectorAll('#review-rating-input input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                DOMElements.selectedRatingInput.value = e.target.value;
+                document.querySelectorAll('#review-rating-input input[type="radio"]').forEach(r => {
+                    if (r.checked) {
+                        r.classList.add('selected');
+                    } else {
+                        r.classList.remove('selected');
+                    }
+                });
+            });
+        });
 
-            // Re-fetch the review to get the absolute confirmed count (best practice)
-            const { data: updatedReview, error: fetchError } = await supabaseClient
-                .from('reviews')
-                .select('totalreview_likes')
-                .eq('id', reviewId)
-                .single();
-
-            if (fetchError) {
-                 console.error("Failed to re-fetch review likes count:", fetchError);
-            } else {
-                const newCount = updatedReview.totalreview_likes;
-                state.reviews[reviewIndex].totalreview_likes = newCount;
-                
-                const countElement = likeBtn.querySelector('.helpful-count-number');
-                countElement.textContent = newCount.toLocaleString();
-                
-                // Apply glittering effect
-                countElement.classList.remove('glittering');
-                void countElement.offsetWidth; // Trigger reflow
-                countElement.classList.add('glittering');
-            }
-        }
-
-    } catch (error) {
-        console.error("Failed to update review like status:", error);
-        alert("Could not register your helpful vote. Please try again.");
-    } finally {
-        likeBtn.disabled = false;
+    } else {
+        DOMElements.addReviewFormSection.style.display = 'none';
+        // Optionally, display a message asking users to log in to leave a review
     }
-};
+}
 
-// Global hook for edit/delete (needed because it's set in innerHTML)
-window.handleReviewAction = (reviewId, action) => {
-    if (!state.currentUser) {
-        alert("Please log in to perform this action.");
-        return;
-    }
-    
-    // Security check: Ensure user is the reviewer or an admin (based on state)
-    const review = state.reviews.find(r => r.id === reviewId);
-    const isCurrentUserReview = review?.user_id === state.currentUser.id;
-    const isAdmin = state.currentUser?.role === 'admin';
 
-    if (!isCurrentUserReview && !isAdmin) {
-        alert("You do not have permission to perform this action.");
-        return;
-    }
-    
-    if (action === 'edit') {
-        alert(`Initiating edit form for Review ID: ${reviewId}. (Frontend logic required)`);
-        // TODO: Load the review data into the form for editing.
-    } else if (action === 'delete') {
-        if (confirm("Are you sure you want to delete this review? This action cannot be undone.")) {
-            // TODO: Implement actual delete RPC/API call here
-            alert(`Review ID: ${reviewId} deleted! (Backend call placeholder)`);
-        }
-    }
-};
-
+// FIX 2. Completely REWRITTEN handleLike function for toggle and DB-only counter update
 async function handleToggleLike() {
-    DOMElements.likeBtn.disabled = true;
+    DOMElements.likeBtn.disabled = true; // Disable button immediately to prevent double-click
 
     if (!state.currentUser) {
         alert("Please log in to like products.");
@@ -1364,6 +1516,7 @@ async function handleToggleLike() {
     const productId = state.product.id;
     const userId = state.currentUser.id;
     
+    // Check if a like already exists (we get the ID of the like row if it exists)
     const existingLikeId = await getExistingLike(productId, userId);
     
     let action = '';
@@ -1389,7 +1542,8 @@ async function handleToggleLike() {
             action = 'liked';
         }
         
-        // Re-fetch the product to get the true, updated count.
+        // **IMPORTANT:** The database trigger now handles updating products.total_likes.
+        // We must re-fetch the product to get the true, updated count.
         const { data: updatedProduct, error: fetchError } = await supabaseClient
             .from('products')
             .select('total_likes')
@@ -1398,30 +1552,33 @@ async function handleToggleLike() {
 
         if (fetchError) {
              console.error("Failed to re-fetch likes count:", fetchError);
+             // Best effort: switch icon and let the number be slightly delayed
              if (action === 'liked') state.isLiked = true; else state.isLiked = false;
         } else {
+            // Update state and UI with the true, database-confirmed values
             state.product.total_likes = updatedProduct.total_likes;
             state.isLiked = (action === 'liked');
         }
         
-        renderProductDetails();
+        renderProductDetails(); // Re-render to update the icon and the count number
 
     } catch (error) {
         console.error(`Failed to ${action} product:`, error);
         alert(`Could not save your action. Please try again. Error: ${error.message}`);
     } finally {
-        DOMElements.likeBtn.disabled = false;
+        DOMElements.likeBtn.disabled = false; // Re-enable the button
     }
 }
 
 
 async function handleShare() {
+    // Fetch user's referral code if not already available
     let referralCode = '';
-    
+    // FIX: Only fetch referral code if user is logged in and it's not already in state
     if (state.currentUser && !state.currentUser.referral_code) {
         try {
             const { data, error } = await supabaseClient
-                .from('users')
+                .from('users') // Assuming 'users' is your user profile table
                 .select('referral_code')
                 .eq('id', state.currentUser.id)
                 .single();
@@ -1457,25 +1614,25 @@ async function handleShare() {
     }
 }
 
+
 // ===================================================================
 // HELPER UTILITIES
 // ===================================================================
+
 function normalizeYoutubeUrl(url) {
     if (!url) return null;
     let videoId;
+    // Check if it's already an embed URL
     const embedMatch = url.match(/(?:youtube\.com\/(?:embed\/|v\/)|youtu\.be\/|youtube-nocookie\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
     if (embedMatch && embedMatch[1]) {
         videoId = embedMatch[1];
     } else {
-        try {
-            const urlObj = new URL(url);
-            if (urlObj.hostname.includes('youtube.com') && urlObj.searchParams.has('v')) {
-                videoId = urlObj.searchParams.get('v');
-            } else if (urlObj.hostname.includes('youtu.be')) {
-                videoId = urlObj.pathname.substring(1);
-            }
-        } catch(e) {
-            return null; // Handle invalid URL format
+        // Handle standard watch URLs
+        const urlObj = new URL(url);
+        if (urlObj.hostname.includes('youtube.com') && urlObj.searchParams.has('v')) {
+            videoId = urlObj.searchParams.get('v');
+        } else if (urlObj.hostname.includes('youtu.be')) {
+            videoId = urlObj.pathname.substring(1); // Remove leading slash
         }
     }
     return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
@@ -1483,15 +1640,48 @@ function normalizeYoutubeUrl(url) {
 
 
 // ===================================================================
+// REALTIME SUBSCRIPTIONS (NEW)
+// ===================================================================
+function setupSupabaseRealtimeReviews() {
+    if (!state.product) return; // Only subscribe if product is loaded
+
+    supabaseClient
+        .channel(`product_reviews:${state.product.id}`)
+        .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'reviews', filter: `product_id=eq.${state.product.id}` },
+            async (payload) => {
+                console.log('Realtime change received:', payload);
+                // When a change happens, re-fetch and re-render reviews
+                // This ensures the dashboard, review list, and like counts are always up-to-date
+                state.reviewsPage = 1; // Reset pagination for a full refresh of current filter
+                state.reviews = [];
+                state.hasMoreReviews = true;
+                await fetchReviews(state.currentRatingFilter);
+
+                // Also update the main product's total_reviews and avg_rating if a review was inserted/deleted
+                if (payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
+                    state.product = await fetchProduct(state.product.slug);
+                    renderProductDetails(); // Update product's main rating/count
+                }
+            }
+        )
+        .subscribe();
+    console.log(`Subscribed to realtime changes for product reviews: ${state.product.id}`);
+}
+
+
+// ===================================================================
 // APPLICATION BOOTSTRAP
 // ===================================================================
+
 document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('footer-year').textContent = new Date().getFullYear();
     const urlParams = new URLSearchParams(window.location.search);
     const slug = urlParams.get('slug');
 
     if (!slug) {
-        DOMElements.loader.classList.add('hidden');
+        DOMElements.loader.classList.add('hidden'); // Hide loader if no slug
         document.getElementById('main-content').innerHTML = `
             <div class="text-center p-10 bg-white rounded-lg shadow-md max-w-lg mx-auto mt-10">
                 <h1 class="text-3xl font-bold text-red-600 mb-4">Product Not Found</h1>
@@ -1506,22 +1696,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-        const [sessionResponse] = await Promise.all([
-            supabaseClient.auth.getSession(),
-            fetchSettings()
+        // Fetch session and settings in parallel first
+        await Promise.all([
+            fetchCurrentUser(), // Populates state.currentUser
+            fetchSettings() // This updates state.settings directly
         ]);
-        state.currentUser = sessionResponse.data?.session?.user || null;
         
+        // Fetch product
         state.product = await fetchProduct(slug); 
         
+        // FIX 3. Separated RPC call for views to run *after* product ID is available
+        // This ensures the RPC signature `increment_product_views(pid UUID)` is correctly used.
         if (state.product) {
-             const { error: rpcError } = await supabaseClient
+            const { error: rpcError } = await supabaseClient
                 .rpc('increment_product_views', { pid: state.product.id }); 
-             if (rpcError) {
+            if (rpcError) {
                 console.error("Failed to increment product views via RPC:", rpcError);
-             }
+            }
         }
 
+        // After product is loaded, check product like status if a user is logged in
         if (state.currentUser && state.product) {
             const existingLikeId = await getExistingLike(state.product.id, state.currentUser.id);
             if (existingLikeId) {
@@ -1529,20 +1723,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        // --- NEW REVIEWS INITIALIZATION ---
-        if (state.product) {
-            await fetchRatingDistribution();
-            renderRatingDistribution();
-            renderReviewForm();
-            // Initial fetch of reviews uses the default 'all' filter
-            await fetchReviews(); 
-        }
-        // --- END NEW REVIEWS INITIALIZATION ---
-
+        // Render main product content
         renderProductDetails();
         renderMediaGallery();
         
+        // Setup review form (visibility depends on user login)
+        renderReviewForm();
+
+        // Fetch and render additional content in parallel AFTER main product is rendered
         await Promise.all([
+            fetchReviews(), // Fetch initial reviews for the current filter (0 = all)
             (async () => {
                 const related = await fetchRelatedProducts(state.product);
                 if (related && related.length > 0) {
@@ -1556,6 +1746,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             })()
         ]);
 
+        // Setup Realtime subscription after initial render
+        setupSupabaseRealtimeReviews();
+
+        // Show content, hide loader
         DOMElements.loader.classList.add('hidden');
         DOMElements.content.classList.remove('hidden');
 
@@ -1563,7 +1757,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (error) {
         console.error("Initialization Error:", error);
-        DOMElements.loader.classList.add('hidden');
+        DOMElements.loader.classList.add('hidden'); // Ensure loader is hidden on error
         document.getElementById('main-content').innerHTML = `
             <div class="text-center p-10 bg-white rounded-lg shadow-md max-w-lg mx-auto mt-10">
                 <h1 class="text-3xl font-bold text-red-600 mb-4">Error Loading Product</h1>
@@ -1577,7 +1771,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+
 </script>
 </body>
 </html>
-
