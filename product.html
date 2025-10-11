@@ -678,6 +678,10 @@
 
 
 <script type="module">
+    window.addEventListener('error', e => {
+  alert('Error: ' + e.message);
+  console.error(e);
+});
 // ===================================================================
 // CONFIG & INITIALIZATION
 // ===================================================================
