@@ -46,7 +46,6 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Enhanced thumbnail active state */
         .thumb-active {
             outline: 3px solid var(--liyog-green);
             outline-offset: 2px;
@@ -61,6 +60,7 @@
         }
         .like-icon-filled {
             color: #ef4444; /* red-500 */
+            fill: #ef4444;
         }
         .responsive-iframe-container {
             position: relative;
@@ -79,7 +79,7 @@
             border: 0;
         }
 
-        /* NEW: Styles for the innovative reviews section */
+        /* Star Rating Input */
         .star-rating-input input[type="radio"] { display: none; }
         .star-rating-input label {
             cursor: pointer;
@@ -88,18 +88,12 @@
             transition: color 0.2s ease-in-out;
             padding: 2px;
         }
-        .star-rating-input label svg {
-            width: 1.5rem;
-            height: 1.5rem;
-        }
+        .star-rating-input label svg { width: 1.5rem; height: 1.5rem; }
         .star-rating-input label:hover,
         .star-rating-input label:hover ~ label { color: var(--liyog-gold); }
         .star-rating-input input[type="radio"]:checked ~ label { color: var(--liyog-gold); }
         .star-rating-input input[type="radio"]:checked + label { color: var(--liyog-gold); }
-        .star-rating-input {
-            direction: rtl;
-            display: inline-flex;
-        }
+        .star-rating-input { direction: rtl; display: inline-flex; }
         .star-rating-input > label:hover,
         .star-rating-input > label:hover ~ label,
         .star-rating-input > input.selected ~ label,
@@ -107,249 +101,121 @@
         .star-rating-input label:hover svg,
         .star-rating-input label:hover ~ label svg,
         .star-rating-input input[type="radio"]:checked ~ label svg { fill: var(--liyog-gold); }
-        .star-rating-input label:before {
-            content: "\2605";
-            font-size: 1.5rem;
-            margin-left: 2px;
-            visibility: hidden;
-        }
-        .star-rating-input label svg { visibility: visible; }
 
-        /* Glittering effect for helpful count - Enhanced for visibility */
+        /* Helpful Count Animations & Bubbles */
         .glittering-number {
             position: relative;
             display: inline-block;
             overflow: hidden;
-            font-weight: bold; /* Make it bolder */
-            color: var(--liyog-gold); /* Default color for better visibility */
+            font-weight: bold;
+            color: var(--liyog-gold);
         }
         .glittering-active {
-            animation: glitter 1s ease-out forwards; /* Shorter, more punchy glitter */
+            animation: glitter 1s ease-out forwards;
         }
         @keyframes glitter {
             0% { transform: scale(1); opacity: 1; text-shadow: 0 0 5px var(--liyog-gold); }
             50% { transform: scale(1.2); opacity: 0.8; text-shadow: 0 0 15px var(--liyog-gold), 0 0 25px rgba(255,215,0,0.5); }
             100% { transform: scale(1); opacity: 1; text-shadow: none; }
         }
-
-        /* Bar chart for ratings distribution */
-        .rating-bar {
-            height: 10px;
-            background-color: #e5e7eb;
-            border-radius: 5px;
-            overflow: hidden;
-            position: relative;
+        .number-animate {
+            transition: all 0.3s ease-out;
+            display: inline-block;
         }
-        .rating-fill {
-            height: 100%;
-            background-color: var(--liyog-green-light);
-            border-radius: 5px;
-            transition: width 0.3s ease-out;
-        }
-        .rating-bar-value {
+        .like-bubble-container {
             position: absolute;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            background-color: transparent;
-            width: 100%;
-            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
         }
-        .rating-bar-value:hover .rating-fill { background-color: var(--liyog-green-dark); }
-        .rating-bar-wrapper.active .rating-fill { background-color: var(--liyog-deep-green); }
-        
-        /* Dynamic Avatar */
-        .avatar-initials {
-            background-color: var(--liyog-green-light);
+        .like-bubble, .dislike-bubble {
+            position: absolute;
+            font-size: 1.5rem;
+            animation-duration: 1.5s;
+            animation-timing-function: ease-out;
+            animation-fill-mode: forwards;
+        }
+        .like-bubble { animation-name: bubble-like; }
+        .dislike-bubble { animation-name: bubble-dislike; }
+        @keyframes bubble-like {
+            0% { transform: translate(0, 0) scale(0); opacity: 1; }
+            100% { transform: translate(calc(var(--randX) * 40px), -100px) scale(0.5); opacity: 0; }
+        }
+        @keyframes bubble-dislike {
+            0% { transform: translate(0, 0) scale(0); opacity: 1; }
+            100% { transform: translate(calc(var(--randX) * 40px), -100px) scale(0.5); opacity: 0; }
+        }
+        @keyframes subtle-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .continuous-pulse {
+            animation: subtle-pulse 2s infinite ease-in-out;
+        }
+
+        /* Ratings Distribution Chart */
+        #reviews-dashboard {
+            background-color: var(--liyog-deep-green);
             color: white;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            border-radius: 9999px;
+        }
+        #ratings-distribution-chart .text-gray-200,
+        #modal-ratings-distribution-chart .text-gray-200 {
+            color: #e0e7ee;
+        }
+        .rating-bar-wrapper .mix-blend-screen {
+            mix-blend-mode: normal;
+            font-weight: 700;
+            color: #1e293b;
+            text-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
+        }
+        .filter-rating-btn.bg-gray-700 {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .filter-rating-btn.bg-gray-700:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .filter-rating-btn.active {
+            background-color: var(--liyog-green) !important;
+            color: white;
         }
 
-        /* Skeleton Loader Enhancements */
-        .skeleton-media-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-        .skeleton-media-item {
-            width: 80px;
-            height: 80px;
-            background-color: #e2e8f0; /* gray-200 */
-            border-radius: 0.5rem;
-            position: relative;
-            overflow: hidden;
-        }
-        .skeleton-main-media {
-            aspect-square w-full bg-gray-200 rounded-lg h-full relative overflow-hidden;
+        /* Responsive Product Name */
+        #product-name {
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
 
-        /* Chart text color for visibility */
-        #ratings-distribution-chart .text-gray-200 {
-            color: #d1d5db; /* A lighter gray for better contrast on dark green */
+        /* Main Media Gallery Fade Transition */
+        #main-media-viewer {
+            transition: opacity 0.3s ease-in-out;
         }
-        #ratings-distribution-chart .text-gray-800 {
-            color: #f8fafc; /* White/very light for numbers on bars */
-            text-shadow: 0 0 2px rgba(0, 0, 0, 0.5); /* Add slight shadow for readability */
-        }
-        
-        /* Added for review form error styling */
-        .input-error {
-            border-color: #ef4444; /* red-500 */
-            box-shadow: 0 0 0 1px #ef4444;
-        }
-        .error-message {
-            color: #ef4444; /* red-500 */
-            font-size: 0.875rem; /* text-sm */
-            margin-top: 0.25rem;
-        }
-
-        /* Modal Styles (basic for now, can be enhanced with Tailwind) */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.75);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .modal.open {
-            opacity: 1;
-            visibility: visible;
-        }
-        .modal-content {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 0.5rem;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            transform: translateY(-20px);
-            transition: transform 0.3s ease;
-        }
-        .modal.open .modal-content {
-            transform: translateY(0);
-        }
-
-        /* Media Gallery Arrows */
         .media-arrow {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 0.5rem;
-            border-radius: 9999px;
-            cursor: pointer;
-            z-index: 10;
-            opacity: 0.8;
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5); color: white;
+            width: 2.5rem; height: 2.5rem; border-radius: 9999px;
+            cursor: pointer; z-index: 10; opacity: 0;
             transition: opacity 0.2s ease;
+            display: flex; align-items: center; justify-content: center;
         }
+        #main-media-viewer:hover .media-arrow { opacity: 0.8; }
         .media-arrow:hover { opacity: 1; }
         .media-arrow.left { left: 0.5rem; }
         .media-arrow.right { right: 0.5rem; }
         .media-arrow svg { width: 1.5rem; height: 1.5rem; }
 
-        /* Two-row thumbnails */
-        #thumbnails-wrapper.two-rows {
-            display: grid;
-            grid-auto-flow: column; /* Allows horizontal scrolling with variable columns */
-            grid-template-rows: repeat(2, minmax(0, 1fr)); /* Two rows */
-            grid-auto-columns: 80px; /* Each thumbnail takes 80px width */
-            gap: 0.75rem; /* gap-3 */
-            overflow-x: auto;
-            padding-bottom: 0.5rem; /* pb-2 */
-            scroll-snap-type: x mandatory; /* Optional: for smoother scrolling */
-            scroll-padding: 0.5rem;
-        }
-        #thumbnails-wrapper.two-rows .thumbnail-btn {
-            scroll-snap-align: start;
-            margin-bottom: 0; /* Remove default margin-bottom from flex */
-        }
-
-        /* Review like bubbles animation */
-        .like-bubble, .dislike-bubble {
-            position: absolute;
-            animation: floatAndFade 1.5s ease-out forwards;
-            pointer-events: none;
-            font-size: 1.5rem;
-            opacity: 0;
-            transform: translate(-50%, 0) scale(0.5);
-        }
-        .like-bubble { color: hotpink; }
-        .dislike-bubble { color: gray; }
-
-        @keyframes floatAndFade {
-            0% { opacity: 0; transform: translate(-50%, 0) scale(0.5); }
-            20% { opacity: 1; transform: translate(-50%, -20px) scale(1); }
-            80% { opacity: 1; transform: translate(-50%, -60px) scale(1); }
-            100% { opacity: 0; transform: translate(-50%, -80px) scale(0.8); }
-        }
-
-        /* Bottom Sheet / Full Reviews Modal */
-        .bottom-sheet-modal {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: flex-end; /* Align to bottom for mobile */
-            z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .bottom-sheet-modal.open {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .bottom-sheet-content {
-            background-color: white;
-            width: 100%;
-            max-height: 90%; /* Limit height for mobile */
-            border-top-left-radius: 1rem;
-            border-top-right-radius: 1rem;
-            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
-            transform: translateY(100%); /* Start off-screen */
-            transition: transform 0.3s ease-out;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden; /* For inner scrolling */
-        }
-        .bottom-sheet-modal.open .bottom-sheet-content {
-            transform: translateY(0);
-        }
-
-        /* Desktop specific styles for the bottom sheet */
-        @media (min-width: 1024px) { /* Adjust breakpoint as needed, e.g., lg */
-            .bottom-sheet-modal {
-                align-items: center; /* Center vertically for desktop */
+        /* All Reviews Modal */
+        #all-reviews-modal.open { opacity: 1; visibility: visible; }
+        #all-reviews-modal-content { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        #all-reviews-modal.open #all-reviews-modal-content { transform: translateY(0); }
+        @media (min-width: 768px) {
+            #all-reviews-modal { align-items: center; padding: 2rem; }
+            #all-reviews-modal-content { 
+                transform: scale(0.95); opacity: 0; 
+                border-radius: 0.75rem; 
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease-in-out;
             }
-            .bottom-sheet-content {
-                max-width: 768px; /* max-w-2xl */
-                max-height: 80%;
-                border-radius: 0.75rem; /* rounded-lg */
-                transform: translateY(-20px); /* Slightly off-center for entrance animation */
-            }
-            .bottom-sheet-modal.open .bottom-sheet-content {
-                transform: translateY(0);
-            }
+            #all-reviews-modal.open #all-reviews-modal-content { transform: scale(1); opacity: 1; }
         }
     </style>
     <script>
@@ -369,20 +235,6 @@
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                     },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out',
-                        'slide-in-up': 'slideInUp 0.3s ease-out',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: 0 },
-                            '100%': { opacity: 1 },
-                        },
-                        slideInUp: {
-                            '0%': { transform: 'translateY(20%)', opacity: 0 },
-                            '100%': { transform: 'translateY(0)', opacity: 1 },
-                        },
-                    },
                 },
             },
         }
@@ -392,106 +244,23 @@
 <body class="antialiased">
 
     <header class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
-        <nav class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <a href="products.html" class="text-gray-600 hover:text-liyog-green transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                </a>
-                <a href="/" class="text-2xl font-extrabold text-liyog-green">Liyog</a>
-                <a href="/cart/" class="relative text-gray-600 hover:text-liyog-green transition-colors">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                    <span id="cart-count" class="absolute -top-1 -right-2 bg-liyog-orange text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">0</span>
-                </a>
-            </div>
-        </nav>
-    </header>
+        </header>
 
     <main id="main-content" class="max-w-screen-xl mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
         <div id="skeleton-loader">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-                <div class="relative overflow-hidden">
-                    <div class="aspect-square w-full bg-gray-200 rounded-lg shimmer"></div>
-                    <div class="skeleton-media-grid">
-                        <div class="skeleton-media-item shimmer"></div>
-                        <div class="skeleton-media-item shimmer"></div>
-                        <div class="skeleton-media-item shimmer"></div>
-                        <div class="skeleton-media-item shimmer hidden sm:block"></div>
-                        <div class="skeleton-media-item shimmer hidden lg:block"></div>
-                        <div class="skeleton-media-item shimmer hidden sm:block"></div>
-                        <div class="skeleton-media-item shimmer hidden lg:block"></div>
-                    </div>
-                </div>
-                <div class="space-y-6">
-                    <div class="h-4 bg-gray-200 rounded w-1/4 shimmer"></div>
-                    <div class="h-10 bg-gray-200 rounded w-full shimmer"></div>
-                    <div class="h-10 bg-gray-200 rounded w-5/6 shimmer"></div>
-                    <div class="flex items-center gap-4">
-                        <div class="h-5 bg-gray-200 rounded w-1/3 shimmer"></div>
-                        <div class="h-5 bg-gray-200 rounded w-1/4 shimmer"></div>
-                    </div>
-                    <div class="flex gap-3 mt-4 hide-scrollbar overflow-x-auto pb-2">
-                        <div class="px-3 py-1 bg-gray-200 rounded-full w-20 shimmer"></div>
-                        <div class="px-3 py-1 bg-gray-200 rounded-full w-24 shimmer"></div>
-                        <div class="px-3 py-1 bg-gray-200 rounded-full w-16 shimmer"></div>
-                    </div>
-                    <div class="my-6 bg-gray-100 p-4 rounded-lg border h-24 shimmer"></div>
-                    <div class="h-14 bg-gray-200 rounded-lg w-full shimmer"></div>
-                    <div class="h-14 bg-gray-200 rounded-lg w-full shimmer"></div>
-                    <div class="flex items-center gap-4 mt-6">
-                        <div class="h-8 bg-gray-200 rounded w-24 shimmer"></div>
-                        <div class="h-8 bg-gray-200 rounded w-24 shimmer"></div>
-                        <div class="h-8 bg-gray-200 rounded w-20 ml-auto shimmer"></div>
-                    </div>
-                </div>
             </div>
-            <div class="mt-16 bg-white p-6 rounded-lg border">
-                <div class="border-b border-gray-200 pb-4 mb-4">
-                    <div class="-mb-px flex space-x-8">
-                        <div class="h-6 bg-gray-200 rounded w-24 shimmer"></div>
-                        <div class="h-6 bg-gray-200 rounded w-24 shimmer"></div>
-                    </div>
-                </div>
-                <div class="py-6 space-y-3">
-                    <div class="h-4 bg-gray-200 rounded w-full shimmer"></div>
-                    <div class="h-4 bg-gray-200 rounded w-5/6 shimmer"></div>
-                    <div class="h-4 bg-gray-200 rounded w-full"></div>
-                    <div class="h-4 bg-gray-200 rounded w-4/5"></div>
-                </div>
-            </div>
-            <div class="mt-16">
-                <div class="h-8 bg-gray-200 rounded w-1/3 mb-6 shimmer"></div>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer"></div>
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer"></div>
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer hidden md:block"></div>
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer hidden lg:block"></div>
-                </div>
-            </div>
-             <div class="mt-16">
-                <div class="h-8 bg-gray-200 rounded w-1/3 mb-6 shimmer"></div>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer"></div>
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer"></div>
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer hidden md:block"></div>
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden border h-64 shimmer hidden lg:block"></div>
-                </div>
-            </div>
-        </div>
 
         <div id="product-content" class="hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+                
                 <section id="media-gallery" class="w-full">
                     <div id="main-media-viewer" class="relative w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden border mb-4 shadow-lg">
-                        <button id="media-prev" class="media-arrow left-0.5 transform -translate-y-1/2 rounded-full p-2 hidden">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-                        </button>
-                        <button id="media-next" class="media-arrow right-0.5 transform -translate-y-1/2 rounded-full p-2 hidden">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-                        </button>
-                        </div>
+                        <button id="media-prev" class="media-arrow left"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg></button>
+                        <button id="media-next" class="media-arrow right"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></button>
+                    </div>
                     <div id="thumbnails-container" class="w-full hide-scrollbar overflow-x-auto">
                         <div id="thumbnails-wrapper" class="flex gap-3 pb-2">
-                        </div>
+                            </div>
                     </div>
                 </section>
                 
@@ -503,36 +272,6 @@
                         </div>
                         <div id="stock-badge" class="mt-2 sm:mt-0 text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap self-start"></div>
                     </div>
-                    
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-3 text-sm">
-                        <div id="star-rating" class="flex items-center gap-1"></div>
-                        <a href="#reviews-section-start" class="font-bold text-gray-800 hover:text-liyog-green-dark hover:underline transition-colors" aria-label="View all reviews"><span id="avg-rating">0.0</span> (<span id="total-reviews">0</span> Reviews)</a>
-                        <span class="text-gray-300 hidden sm:block">|</span>
-                        <div class="flex items-center gap-1.5 mt-2 sm:mt-0">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            <span id="total-orders" class="font-semibold text-gray-600">0</span> <span class="text-gray-500">sold</span>
-                        </div>
-                    </div>
-
-                    <div id="tags-container" class="mt-4 flex items-center gap-2 overflow-x-auto hide-scrollbar pb-2">
-                    </div>
-
-                    <div class="my-6 bg-gray-50 p-4 rounded-lg border shadow-sm">
-                        <div class="flex items-baseline gap-3 flex-wrap">
-                            <span id="final-price" class="text-3xl sm:text-4xl font-extrabold text-liyog-green-dark"></span>
-                            <span id="original-price" class="text-base sm:text-xl line-through text-gray-400"></span>
-                            <span id="discount-percent" class="text-sm font-semibold text-red-600 ml-2" style="display: none;"></span>
-                        </div>
-                        <div class="flex items-center justify-between mt-2 text-sm text-gray-700 font-semibold">
-                            <div id="carton-info">
-                                <span id="carton-quantity"></span> <span id="carton-price"></span>
-                            </div>
-                            <div id="lxc-banner" class="text-amber-700">
-                                Earn <span id="liyogx-coins">0</span> LiyogX Coins (worth ₦<span id="liyogx-value">0.00</span>)
-                            </div>
-                        </div>
-                    </div>
-                    
                     <div class="flex items-center gap-2 text-sm text-gray-600 mb-4">
                         <span class="text-gray-500">Added by:</span>
                         <div id="added-by-user" class="flex items-center gap-1.5">
@@ -540,233 +279,58 @@
                             <span id="added-by-name" class="font-semibold text-gray-800"></span>
                         </div>
                     </div>
-
-                    <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mt-2 mb-4 border-t pt-4">
-                        <p id="product-created-at"><span class="font-medium text-gray-600">Created:</span> <span id="created-date"></span></p>
-                        <p id="product-updated-at" style="display: none;"><span class="font-medium text-gray-600">Last Updated:</span> <span id="updated-date"></span></p>
+                    <div class="text-xs text-gray-500 space-y-1 mb-4">
+                        <p>Created: <span id="product-created-at" class="font-semibold text-gray-700"></span></p>
+                        <p id="updated-at-container" class="hidden">Last Updated: <span id="product-updated-at" class="font-semibold text-gray-700"></span></p>
                     </div>
+                    </section>
 
-                    <div class="mt-auto pt-6 border-t space-y-4">
-                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-                            <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden flex-shrink-0">
-                                <button id="qty-decrement" class="px-4 py-3 text-lg font-bold hover:bg-gray-100 transition-colors rounded-l-lg" aria-label="Decrease quantity">−</button>
-                                <input id="quantity-input" type="number" value="1" min="1" class="w-16 text-center py-3 border-l border-r border-gray-300 font-bold text-lg focus:outline-none focus:ring-1 focus:ring-liyog-green" aria-label="Product quantity">
-                                <button id="qty-increment" class="px-4 py-3 text-lg font-bold hover:bg-gray-100 transition-colors rounded-r-lg" aria-label="Increase quantity">+</button>
-                            </div>
-                            <button id="add-to-cart-btn" class="flex-1 text-center font-bold text-lg text-white bg-liyog-green hover:bg-liyog-green-dark rounded-lg py-3 transition-colors shadow-md" aria-label="Add to cart">Add to Cart</button>
-                        </div>
-                        <button id="order-now-btn" class="w-full text-center font-bold text-lg text-white bg-liyog-orange hover:bg-orange-600 rounded-lg py-3 transition-colors shadow-md" aria-label="Order now">Order Now</button>
-                    </div>
-
-                    <div class="mt-6 flex items-center justify-between text-sm">
-                        <div class="flex items-center gap-4">
-                             <button id="like-btn" class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors group" aria-label="Like product">
-                                <svg id="like-icon" class="w-6 h-6 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 116.364 6.364L12 20.25l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>
-                                <span id="total-likes" class="font-semibold">0</span>
-                            </button>
-                            <button id="share-btn" class="flex items-center gap-2 text-gray-600 hover:text-liyog-green transition-colors group" aria-label="Share product">
-                                <svg class="w-6 h-6 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6.002l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path></svg>
-                                <span>Share</span>
-                            </button>
-                             <button id="copy-url-btn" class="flex items-center gap-2 text-gray-600 hover:text-liyog-green transition-colors group" aria-label="Copy product URL">
-                                <svg class="w-6 h-6 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.79 4.79a4.5 4.5 0 01-6.364-6.364l1.242-1.242m5.011-5.01a4.5 4.5 0 017.006 3.96m-5.01 5.01a4.5 4.5 0 00-7.006-3.96l-1.242 1.242"></path></svg>
-                                <span>Copy URL</span>
-                            </button>
-                        </div>
-                        <div class="text-gray-500">
-                            Views: <span id="total-views" class="font-semibold text-gray-700">0</span>
-                        </div>
-                    </div>
-                </section>
             </div>
 
             <section id="tabs-section" class="mt-16 bg-white p-6 rounded-lg border shadow-sm">
-                 <div class="border-b border-gray-200">
-                    <nav class="-mb-px flex space-x-4 sm:space-x-8" aria-label="Tabs">
-                        <button data-tab="description" class="tab-btn tab-btn-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm sm:text-base" aria-controls="tab-content-description" role="tab" aria-selected="true">Description</button>
-                        <button data-tab="reviews" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm sm:text-base" aria-controls="tab-content-reviews" role="tab" aria-selected="false">Reviews</button>
-                    </nav>
-                </div>
-                <div class="py-6">
-                    <div id="tab-content-description" class="tab-content prose max-w-none text-gray-600 text-sm sm:text-base leading-relaxed" role="tabpanel" aria-labelledby="description-tab"></div>
-                    <div id="tab-content-reviews" class="tab-content hidden" role="tabpanel" aria-labelledby="reviews-tab">
-                        <a id="reviews-section-start" class="sr-only" tabindex="-1">Reviews Section Anchor</a>
-                        <div id="reviews-dashboard" class="mb-8 p-4 sm:p-6 bg-liyog-deep-green text-white rounded-lg shadow-inner">
-                            <h3 class="text-2xl font-bold mb-4 text-center">Customer Reviews</h3>
-                            <div class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-                                <div class="flex items-center gap-2 text-3xl font-extrabold flex-shrink-0">
-                                    <span id="overall-avg-rating">0.0</span> / 5
-                                    <div id="overall-star-rating" class="flex items-center" role="img" aria-label="Overall average rating"></div>
-                                </div>
-                                <div class="text-sm text-gray-200 text-center md:text-left">Based on <span id="overall-total-reviews-count" class="animate-pulse-on-update">0</span> reviews</div>
+                <div id="tab-content-reviews" class="tab-content hidden" role="tabpanel" aria-labelledby="reviews-tab">
+                    <div id="reviews-list" class="space-y-6 pt-4" aria-live="polite" aria-atomic="true">
+                        <p class="text-center text-gray-500 py-4" id="no-reviews-message" style="display: none;"></p>
+                        <div id="review-skeleton-loader" class="space-y-6" style="display: none;">
                             </div>
-
-                            <div id="ratings-distribution-chart" class="space-y-3" role="group" aria-label="Rating distribution chart">
-                                </div>
-                            <div class="flex flex-wrap gap-2 mt-6 justify-center">
-                                <button data-rating-filter="0" class="filter-rating-btn px-4 py-2 text-sm font-semibold rounded-full bg-liyog-green text-white hover:bg-liyog-green-dark transition-colors active" aria-pressed="true">All Reviews</button>
-                                <button data-rating-filter="5" class="filter-rating-btn px-4 py-2 text-sm font-semibold rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors" aria-pressed="false">5 Stars</button>
-                                <button data-rating-filter="4" class="filter-rating-btn px-4 py-2 text-sm font-semibold rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors" aria-pressed="false">4 Stars</button>
-                                <button data-rating-filter="3" class="filter-rating-btn px-4 py-2 text-sm font-semibold rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors" aria-pressed="false">3 Stars</button>
-                                <button data-rating-filter="2" class="filter-rating-btn px-4 py-2 text-sm font-semibold rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors" aria-pressed="false">2 Stars</button>
-                                <button data-rating-filter="1" class="filter-rating-btn px-4 py-2 text-sm font-semibold rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors" aria-pressed="false">1 Star</button>
-                            </div>
-                        </div>
-
-                        <div id="login-to-review-message" class="mb-8 p-4 sm:p-6 bg-white rounded-lg shadow-md border text-center text-gray-700 font-semibold" style="display: none;">
-                            <p class="mb-4">Log in to share your review and help other shoppers!</p>
-                            <a href="/login.html" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-liyog-green hover:bg-liyog-green-dark transition-colors">
-                                Log In
-                            </a>
-                        </div>
-
-                        <div id="add-review-form-section" class="mb-8 p-4 sm:p-6 bg-white rounded-lg shadow-md border" style="display: none;">
-                            <h3 class="text-xl font-bold text-gray-900 mb-4">Add Your Review</h3>
-                            <form id="review-form" class="space-y-4" aria-label="Review submission form">
-                                <div class="flex items-center gap-3">
-                                    <div id="user-avatar-review-form" class="w-10 h-10 rounded-full overflow-hidden bg-liyog-green-light flex-shrink-0 flex items-center justify-center text-white text-lg font-bold" aria-hidden="true">
-                                    </div>
-                                    <span id="current-user-name-review-form" class="font-semibold text-gray-800"></span>
-                                </div>
-                                
-                                <div>
-                                    <label for="review-rating-5" class="block text-sm font-medium text-gray-700 mb-2">Your Rating: <span class="text-red-500">*</span></label>
-                                    <div id="review-rating-input" class="star-rating-input flex justify-end" role="radiogroup" aria-required="true" aria-label="Your product rating">
-                                    </div>
-                                    <input type="hidden" name="rating" id="selected-rating" value="0" required aria-hidden="true">
-                                    <p id="rating-error" class="error-message" style="display:none;">Please select a star rating.</p>
-                                </div>
-                                <div>
-                                    <label for="review-comment" class="block text-sm font-medium text-gray-700 mb-2">Your Comment: <span class="text-red-500">*</span></label>
-                                    <textarea id="review-comment" name="comment" rows="4" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-liyog-green focus:ring-liyog-green sm:text-sm p-3" placeholder="Share your thoughts about this product..." required minlength="10" maxlength="500" aria-describedby="comment-error"></textarea>
-                                    <p id="comment-error" class="error-message" style="display:none;">Comment must be between 10 and 500 characters.</p>
-                                </div>
-                                <button type="submit" id="submit-review-btn" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-liyog-green hover:bg-liyog-green-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-liyog-green">Submit Review</button>
-                            </form>
-                        </div>
-                        
-                        <div id="reviews-list-container" class="space-y-6 pt-4">
-                            <p class="text-center text-gray-500 py-4" id="no-reviews-message" style="display: none;">No reviews yet. Be the first to share your experience!</p>
-                             <div id="review-skeleton-loader" class="space-y-6" style="display: none;">
-                                <div class="flex gap-4 p-4 bg-white rounded-lg shadow-sm border border-gray-100 shimmer">
-                                    <div class="w-12 h-12 rounded-full bg-gray-200 flex-shrink-0"></div>
-                                    <div class="flex-1 space-y-2">
-                                        <div class="h-4 bg-gray-200 rounded w-1/3"></div>
-                                        <div class="h-4 bg-gray-200 rounded w-1/4"></div>
-                                        <div class="h-4 bg-gray-200 rounded w-full"></div>
-                                        <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-                                    </div>
-                                </div>
-                                <div class="flex gap-4 p-4 bg-white rounded-lg shadow-sm border border-gray-100 shimmer">
-                                    <div class="w-12 h-12 rounded-full bg-gray-200 flex-shrink-0"></div>
-                                    <div class="flex-1 space-y-2">
-                                        <div class="h-4 bg-gray-200 rounded w-1/3"></div>
-                                        <div class="h-4 bg-gray-200 rounded w-1/4"></div>
-                                        <div class="h-4 bg-gray-200 rounded w-full"></div>
-                                        <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="reviews-list" class="space-y-6" aria-live="polite" aria-atomic="true">
-                                </div>
-                        </div>
-
-                        <div id="initial-load-more-reviews-container" class="text-center mt-8 hidden">
-                            <button id="view-all-reviews-btn" class="px-6 py-3 border border-gray-300 rounded-lg font-bold text-liyog-green-dark bg-gray-50 hover:bg-gray-100 transition-colors shadow-sm" aria-label="View all reviews and filter">VIEW ALL REVIEWS AND FILTER ALONG</button>
-                        </div>
+                    </div>
+                    <div id="load-more-reviews-container" class="text-center mt-8 hidden">
+                        <button id="load-more-reviews-btn" class="px-6 py-3 font-bold text-lg text-white bg-liyog-green hover:bg-liyog-green-dark rounded-lg transition-colors shadow-md w-full sm:w-auto"></button>
                     </div>
                 </div>
             </section>
             
-            <section id="related-products-section" class="mt-16 hidden">
-                <h2 class="text-xl sm:text-2xl font-extrabold text-gray-900 mb-6">Related Products</h2>
-                <div id="related-products-carousel" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"></div>
-            </section>
-            
-            <section id="you-may-like-section" class="mt-16">
-                <h2 class="text-xl sm:text-2xl font-extrabold text-gray-900 mb-6">You May Also Like</h2>
-                <div id="you-may-like-carousel" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"></div>
-            </section>
-        </div>
+            </div>
     </main>
 
     <footer class="bg-white/80 backdrop-blur-lg mt-16 py-8 border-t">
-        <div class="text-center text-sm text-gray-500">
-            © <span id="footer-year"></span> Liyog. All Rights Reserved.
-        </div>
-    </footer>
+        </footer>
     
     <div id="mobile-sticky-footer" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t p-3 flex items-center gap-3 z-40 shadow-2xl">
-        <button id="mobile-add-to-cart-btn" class="flex-1 text-center font-bold text-liyog-green bg-green-100 hover:bg-green-200 rounded-lg py-3 transition-colors">Add to Cart</button>
-        <button id="mobile-order-now-btn" class="flex-1 text-center font-bold text-white bg-liyog-orange hover:bg-orange-600 rounded-lg py-3 transition-colors">Order Now</button>
-    </div>
+        </div>
 
     <div id="edit-review-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="edit-review-title">
-        <div class="modal-content">
-            <h3 id="edit-review-title" class="text-xl font-bold text-gray-900 mb-4">Edit Your Review</h3>
-            <form id="edit-review-form" class="space-y-4">
-                <div>
-                    <label for="edit-review-rating-5" class="block text-sm font-medium text-gray-700 mb-2">Your Rating:</label>
-                    <div id="edit-review-rating-input" class="star-rating-input flex justify-end" role="radiogroup" aria-label="Edit product rating">
-                    </div>
-                    <input type="hidden" name="rating" id="edit-selected-rating" value="0" aria-hidden="true">
-                    <p id="edit-rating-error" class="error-message" style="display:none;">Please select a star rating.</p>
-                </div>
-                <div>
-                    <label for="edit-review-comment" class="block text-sm font-medium text-gray-700 mb-2">Your Comment:</label>
-                    <textarea id="edit-review-comment" name="comment" rows="4" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-liyog-green focus:ring-liyog-green sm:text-sm p-3" placeholder="Share your thoughts about this product..." required minlength="10" maxlength="500"></textarea>
-                    <p id="edit-comment-error" class="error-message" style="display:none;">Comment must be between 10 and 500 characters.</p>
-                </div>
-                <div class="flex justify-end gap-3">
-                    <button type="button" id="cancel-edit-review-btn" class="px-4 py-2 text-sm font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">Cancel</button>
-                    <button type="submit" id="save-edit-review-btn" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-liyog-green hover:bg-liyog-green-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-liyog-green">Save Changes</button>
-                </div>
-            </form>
         </div>
-    </div>
 
-    <div id="full-reviews-modal" class="bottom-sheet-modal" role="dialog" aria-modal="true" aria-labelledby="full-reviews-modal-title">
-        <div class="bottom-sheet-content">
-            <div class="flex justify-between items-center p-4 border-b border-gray-200 flex-shrink-0">
-                <h3 id="full-reviews-modal-title" class="text-lg font-bold text-gray-900">All Customer Reviews</h3>
-                <button id="close-full-reviews-btn" class="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors" aria-label="Close reviews modal">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    <div id="all-reviews-modal" class="fixed inset-0 z-[1001] bg-black bg-opacity-75 flex items-end justify-center opacity-0 invisible transition-all duration-300 ease-in-out" role="dialog" aria-modal="true" aria-labelledby="all-reviews-title">
+        <div id="all-reviews-modal-content" class="bg-white w-full max-h-[90vh] rounded-t-2xl md:rounded-lg md:max-w-3xl md:h-auto md:max-h-[80vh] flex flex-col transform translate-y-full md:translate-y-0 transition-transform duration-300 ease-in-out">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center relative flex-shrink-0">
+                <h3 id="all-reviews-title" class="text-xl font-bold text-gray-900 text-center flex-1">All Customer Reviews</h3>
+                <button id="close-all-reviews-modal-btn" class="absolute right-4 text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors" aria-label="Close reviews modal">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <div class="p-4 sm:p-6 bg-liyog-deep-green text-white flex-shrink-0">
-                <div class="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
-                    <div class="flex items-center gap-2 text-2xl font-extrabold flex-shrink-0">
-                        <span id="full-modal-overall-avg-rating">0.0</span> / 5
-                        <div id="full-modal-overall-star-rating" class="flex items-center" role="img" aria-label="Overall average rating"></div>
+            <div class="overflow-y-auto flex-1 hide-scrollbar">
+                <div id="modal-reviews-dashboard-container">
                     </div>
-                    <div class="text-sm text-gray-200 text-center md:text-left">Based on <span id="full-modal-overall-total-reviews-count" class="animate-pulse-on-update">0</span> reviews</div>
-                </div>
-                <div id="full-modal-ratings-distribution-chart" class="space-y-2">
+                <div id="modal-reviews-list" class="space-y-6 p-4" aria-live="polite" aria-atomic="true">
                     </div>
-                <div class="flex flex-wrap gap-2 mt-4 justify-center">
-                    <button data-rating-filter="0" class="filter-rating-btn-modal px-4 py-2 text-sm font-semibold rounded-full bg-liyog-green text-white hover:bg-liyog-green-dark transition-colors active" aria-pressed="true">All Reviews</button>
-                    <button data-rating-filter="5" class="filter-rating-btn-modal px-4 py-2 text-sm font-semibold rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors" aria-pressed="false">5 Stars</button>
-                    <button data-rating-filter="4" class="filter-rating-btn-modal px-4 py-2 text-sm font-semibold rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors" aria-pressed="false">4 Stars</button>
-                    <button data-rating-filter="3" class="filter-rating-btn-modal px-4 py-2 text-sm font-semibold rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors" aria-pressed="false">3 Stars</button>
-                    <button data-rating-filter="2" class="filter-rating-btn-modal px-4 py-2 text-sm font-semibold rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors" aria-pressed="false">2 Stars</button>
-                    <button data-rating-filter="1" class="filter-rating-btn-modal px-4 py-2 text-sm font-semibold rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors" aria-pressed="false">1 Star</button>
-                </div>
-            </div>
-            
-            <div id="full-reviews-list-scroll-area" class="flex-1 overflow-y-auto p-4 sm:p-6 pb-20">
-                <div id="full-reviews-list" class="space-y-6" aria-live="polite" aria-atomic="true">
-                    </div>
-                <div id="full-reviews-load-more-container" class="text-center mt-8 hidden">
-                    <button id="full-reviews-load-more-btn" class="px-6 py-2 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors" aria-label="Load more reviews">Load More</button>
-                </div>
-                <p class="text-center text-gray-500 py-4" id="full-reviews-no-more-message" style="display: none;">This is where the reviews for this product end — more are coming!</p>
-                <p class="text-center text-gray-500 py-4" id="full-reviews-no-results-message" style="display: none;">No reviews match the current filter.</p>
+                <p class="text-center text-gray-500 py-4 mb-2" id="modal-end-of-reviews-message" style="display: none;">This is where the reviews for this product end — more are coming!</p>
             </div>
         </div>
     </div>
-
-
-<script type="module">
+    
+    <script type="module">
 // ===================================================================
 // CONFIG & INITIALIZATION
 // ===================================================================
@@ -782,7 +346,6 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 const REVIEW_MIN_LENGTH = 10;
 const REVIEW_MAX_LENGTH = 500;
 const TOAST_DURATION = 3000;
-const INITIAL_REVIEWS_COUNT = 5; // How many reviews to show on the product page initially
 
 // ===================================================================
 // STATE MANAGEMENT
@@ -791,30 +354,28 @@ let state = {
     product: null,
     currentUser: null,
     settings: { lxc_rate: 10 },
+    reviews: [], // Stores all fetched reviews for the current product
+    reviewsPage: 1,
+    reviewsPerPage: 5, // Controls how many reviews to fetch per page
+    hasMoreReviews: true,
     isLiked: false,
     
-    // UPDATED: Review state management for both initial page and modal
-    initialReviews: [], // Stores the first 5 reviews for the main page
-    modalReviews: [], // Stores all reviews for the bottom sheet modal
-    modalReviewsPage: 1,
-    modalReviewsPerPage: 10, // Fetch more reviews at a time in the modal
-    hasMoreModalReviews: true,
-    isFetchingModalReviews: false,
-
-    reviewsData: { // Processed review data for dashboard/chart
+    reviewsData: { // Processed review data for dashboard
         ratingCounts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
         totalReviews: 0,
         avgRating: 0.0,
     },
-    currentRatingFilter: 0, // 0 for all, 1-5 for specific stars
+    currentRatingFilter: 0, // 0 for all, 1-5 for specific ratings
     
     userLikedReviews: new Set(), // Stores review_ids liked by the current user
     
     // Media Gallery State
     currentMediaIndex: 0,
     mediaItems: [],
-};
 
+    // All Reviews Modal State
+    isReviewsModalOpen: false,
+};
 
 // ===================================================================
 // DOM ELEMENT SELECTORS
@@ -844,11 +405,9 @@ const DOMElements = {
     addedByUser: document.getElementById('added-by-user'),
     addedByAvatar: document.getElementById('added-by-avatar'),
     addedByName: document.getElementById('added-by-name'),
-    // NEW: Product date elements
     productCreatedAt: document.getElementById('product-created-at'),
-    createdDate: document.getElementById('created-date'),
     productUpdatedAt: document.getElementById('product-updated-at'),
-    updatedDate: document.getElementById('updated-date'),
+    updatedAtContainer: document.getElementById('updated-at-container'),
     quantityInput: document.getElementById('quantity-input'),
     qtyDecrement: document.getElementById('qty-decrement'),
     qtyIncrement: document.getElementById('qty-increment'),
@@ -860,12 +419,10 @@ const DOMElements = {
     shareBtn: document.getElementById('share-btn'),
     copyUrlBtn: document.getElementById('copy-url-btn'),
     totalViews: document.getElementById('total-views'),
-    // Tabs
     tabButtons: document.querySelectorAll('.tab-btn'),
     tabContents: document.querySelectorAll('.tab-content'),
     descriptionContent: document.getElementById('tab-content-description'),
     reviewsContent: document.getElementById('tab-content-reviews'),
-    // Reviews Section (Initial Page)
     reviewsDashboard: document.getElementById('reviews-dashboard'),
     overallAvgRating: document.getElementById('overall-avg-rating'),
     overallStarRating: document.getElementById('overall-star-rating'),
@@ -885,21 +442,17 @@ const DOMElements = {
     commentError: document.getElementById('comment-error'),
     reviewsList: document.getElementById('reviews-list'),
     noReviewsMessage: document.getElementById('no-reviews-message'),
-    initialLoadMoreContainer: document.getElementById('initial-load-more-reviews-container'),
-    viewAllReviewsBtn: document.getElementById('view-all-reviews-btn'),
+    loadMoreReviewsContainer: document.getElementById('load-more-reviews-container'),
+    loadMoreReviewsBtn: document.getElementById('load-more-reviews-btn'),
     reviewSkeletonLoader: document.getElementById('review-skeleton-loader'),
-    // Carousels
     relatedProductsSection: document.getElementById('related-products-section'),
     relatedProductsCarousel: document.getElementById('related-products-carousel'),
     youMayLikeSection: document.getElementById('you-may-like-section'),
     youMayLikeCarousel: document.getElementById('you-may-like-carousel'),
-    // Mobile
     mobileAddToCartBtn: document.getElementById('mobile-add-to-cart-btn'),
     mobileOrderNowBtn: document.getElementById('mobile-order-now-btn'),
-    // Media Navigation
     mediaPrevBtn: document.getElementById('media-prev'),
     mediaNextBtn: document.getElementById('media-next'),
-    // Edit Review Modal
     editReviewModal: document.getElementById('edit-review-modal'),
     editReviewForm: document.getElementById('edit-review-form'),
     editReviewRatingInput: document.getElementById('edit-review-rating-input'),
@@ -909,25 +462,16 @@ const DOMElements = {
     editCommentError: document.getElementById('edit-comment-error'),
     cancelEditReviewBtn: document.getElementById('cancel-edit-review-btn'),
     saveEditReviewBtn: document.getElementById('save-edit-review-btn'),
-    // NEW: Full Reviews Modal / Bottom Sheet
-    fullReviewsModal: document.getElementById('full-reviews-modal'),
-    closeFullReviewsBtn: document.getElementById('close-full-reviews-btn'),
-    fullModalAvgRating: document.getElementById('full-modal-overall-avg-rating'),
-    fullModalStarRating: document.getElementById('full-modal-overall-star-rating'),
-    fullModalTotalReviews: document.getElementById('full-modal-overall-total-reviews-count'),
-    fullModalRatingsChart: document.getElementById('full-modal-ratings-distribution-chart'),
-    fullModalFilterBtns: document.querySelectorAll('.filter-rating-btn-modal'),
-    fullReviewsListScrollArea: document.getElementById('full-reviews-list-scroll-area'),
-    fullReviewsList: document.getElementById('full-reviews-list'),
-    fullReviewsLoadMoreContainer: document.getElementById('full-reviews-load-more-container'),
-    fullReviewsLoadMoreBtn: document.getElementById('full-reviews-load-more-btn'),
-    fullReviewsNoMoreMessage: document.getElementById('full-reviews-no-more-message'),
-    fullReviewsNoResultsMessage: document.getElementById('full-reviews-no-results-message'),
+    allReviewsModal: document.getElementById('all-reviews-modal'),
+    allReviewsModalContent: document.getElementById('all-reviews-modal-content'),
+    closeAllReviewsModalBtn: document.getElementById('close-all-reviews-modal-btn'),
+    modalReviewsDashboardContainer: document.getElementById('modal-reviews-dashboard-container'),
+    modalReviewsList: document.getElementById('modal-reviews-list'),
+    modalEndOfReviewsMessage: document.getElementById('modal-end-of-reviews-message'),
 };
 
-
 // ===================================================================
-// HELPER UTILITIES & ANIMATIONS
+// HELPER UTILITIES
 // ===================================================================
 
 function showToast(message, type = 'success') {
@@ -944,130 +488,140 @@ function showToast(message, type = 'success') {
     }).showToast();
 }
 
-// NEW: Anonymizes a user's name for non-logged-in visitors
-function anonymizeName(name) {
-    if (!name || name.length <= 4) {
-        return name ? `${name.substring(0, 1)}***` : 'A***';
-    }
-    const firstChar = name.charAt(0);
-    const lastChar = name.charAt(name.length - 1);
-    const middle = '*'.repeat(Math.min(8, name.length - 2));
-    return `${firstChar}${middle}${lastChar}`;
-}
-
-// NEW: Formats date and time in a human-readable way
-function formatHumanReadableDate(dateString) {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
-        day: 'numeric', month: 'long', year: 'numeric'
-    });
-}
-
 function normalizeYoutubeUrl(url) {
     if (!url) return null;
     let videoId;
-    // This regex is more robust for various YouTube URL formats
-    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-    const match = url.match(regex);
-    videoId = match ? match[1] : null;
-    // Using modern embed options
-    return videoId ? `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=0&controls=1&showinfo=0&rel=0&modestbranding=1` : null;
+    const embedMatch = url.match(/(?:youtube\.com\/(?:embed\/|v\/)|youtu\.be\/|youtube-nocookie\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+    if (embedMatch && embedMatch[1]) {
+        videoId = embedMatch[1];
+    } else {
+        try {
+            const urlObj = new URL(url);
+            if (urlObj.hostname.includes('youtube.com') && urlObj.searchParams.has('v')) {
+                videoId = urlObj.searchParams.get('v');
+            } else if (urlObj.hostname.includes('youtu.be')) {
+                videoId = urlObj.pathname.substring(1);
+            }
+        } catch (e) {
+            console.error("Invalid URL for normalization:", url);
+            return null;
+        }
+    }
+    return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=1&showinfo=0&rel=0&loop=1&modestbranding=1` : null;
 }
 
 function generateAvatar(name, size = 'w-10 h-10', textSize = 'text-lg') {
-    const initials = (name || 'A').split(' ').map(n => n[0]).join('').toUpperCase().substring(0,2);
+    const initials = (name || 'A').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
     const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722', '#795548', '#607D8B'];
     const hashCode = (str) => {
         let hash = 0;
-        for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
         return hash;
     };
     const colorIndex = Math.abs(hashCode(initials)) % colors.length;
     const bgColor = colors[colorIndex];
 
-    return `<div class="${size} ${textSize} avatar-initials" style="background-color: ${bgColor};" aria-label="${name}'s avatar">${initials}</div>`;
+    return `<div class="${size} ${textSize} avatar-initials" style="background-color: ${bgColor}; color: white;" aria-label="${name}'s avatar">${initials}</div>`;
 }
 
-// NEW: Function to open/close the edit review modal
+function maskUserName(name) {
+    if (!name || name.length <= 3) return name || 'Anonymous';
+    const firstChar = name[0];
+    const lastChar = name[name.length - 1];
+    return `${firstChar}********${lastChar}`;
+}
+
+function animateNumber(element, start, end, duration = 1000) {
+    if (start === end) {
+        element.textContent = end.toLocaleString();
+        return;
+    }
+    const range = end - start;
+    let current = start;
+    const increment = end > start ? 1 : -1;
+    const stepTime = Math.abs(Math.floor(duration / range));
+
+    const timer = setInterval(() => {
+        current += increment;
+        element.textContent = current.toLocaleString();
+        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+            element.textContent = end.toLocaleString();
+            clearInterval(timer);
+        }
+    }, stepTime);
+}
+
+function createBubbles(container, emoji) {
+    if (!container) return;
+    for (let i = 0; i < 5; i++) {
+        const bubble = document.createElement('span');
+        bubble.textContent = emoji;
+        bubble.classList.add(emoji === '💕' ? 'like-bubble' : 'dislike-bubble');
+        const randX = Math.random() * 2 - 1; // -1 to 1
+        bubble.style.setProperty('--randX', randX);
+        bubble.style.left = '50%';
+        bubble.style.top = '50%';
+        container.appendChild(bubble);
+        bubble.addEventListener('animationend', () => bubble.remove());
+    }
+}
+
+function addSwipeListeners(element) {
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const minSwipeDistance = 50;
+
+    element.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+
+    element.addEventListener('touchmove', (e) => {
+        touchEndX = e.touches[0].clientX;
+    }, { passive: true });
+
+    element.addEventListener('touchend', () => {
+        if (touchEndX === 0 || touchStartX === 0) return;
+        const swipeDistance = touchEndX - touchStartX;
+        if (swipeDistance > minSwipeDistance) DOMElements.mediaPrevBtn.click();
+        else if (swipeDistance < -minSwipeDistance) DOMElements.mediaNextBtn.click();
+        touchStartX = 0;
+        touchEndX = 0;
+    }, { passive: true });
+}
+
 function toggleEditReviewModal(open, review = null) {
     if (open) {
         DOMElements.editReviewModal.classList.add('open');
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
-        DOMElements.editReviewModal.setAttribute('aria-hidden', 'false');
         if (review) {
             DOMElements.editReviewForm.dataset.reviewId = review.id;
             DOMElements.editReviewComment.value = review.comment;
-            
             DOMElements.editReviewRatingInput.innerHTML = renderStarRatingHTML(review.rating, 'w-6 h-6', true, 'edit-review-rating');
             DOMElements.editSelectedRating.value = review.rating;
+            
+            const initialRadio = document.getElementById(`edit-review-rating-${review.rating}`);
+            if (initialRadio) initialRadio.checked = true;
 
             document.querySelectorAll('#edit-review-rating-input input[type="radio"]').forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    DOMElements.editSelectedRating.value = e.target.value;
-                    document.querySelectorAll('#edit-review-rating-input input[type="radio"]').forEach(r => {
-                        if (r.checked) {
-                            r.classList.add('selected');
-                        } else {
-                            r.classList.remove('selected');
-                        }
-                    });
-                });
+                radio.addEventListener('change', (e) => DOMElements.editSelectedRating.value = e.target.value);
             });
-            const initialRadio = document.getElementById(`edit-review-rating-${review.rating}`);
-            if (initialRadio) {
-                initialRadio.checked = true;
-                initialRadio.classList.add('selected');
-            }
             DOMElements.editReviewComment.focus();
         }
     } else {
         DOMElements.editReviewModal.classList.remove('open');
-        document.body.style.overflow = ''; // Restore background scrolling
-        DOMElements.editReviewModal.setAttribute('aria-hidden', 'true');
         DOMElements.editReviewForm.reset();
-        DOMElements.editReviewComment.classList.remove('input-error');
         DOMElements.editCommentError.style.display = 'none';
         DOMElements.editRatingError.style.display = 'none';
         DOMElements.editSelectedRating.value = '0';
     }
 }
 
-
-// NEW: Animation for counting numbers up/down
-function animateCount(element, start, end, duration = 500) {
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        element.textContent = Math.floor(progress * (end - start) + start).toLocaleString();
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        }
-    };
-    window.requestAnimationFrame(step);
-}
-
-// NEW: Animation for like/dislike bubbles
-function spawnBubble(button, type = 'like') {
-    const icon = type === 'like' ? '💕' : '👎';
-    const className = type === 'like' ? 'like-bubble' : 'dislike-bubble';
     
-    // Create a burst of bubbles
-    for (let i = 0; i < 5; i++) { 
-        const bubble = document.createElement('span');
-        bubble.innerHTML = icon;
-        bubble.className = className;
-        bubble.style.left = `${Math.random() * 100}%`;
-        bubble.style.animationDelay = `${Math.random() * 0.3}s`;
-        button.appendChild(bubble);
 
-        setTimeout(() => bubble.remove(), 1500);
-    }
-}
+// ... All other functions will go here ...
 
-
-// ===================================================================
+    // ===================================================================
 // API/DATA FETCHING FUNCTIONS
 // ===================================================================
 
@@ -1083,17 +637,19 @@ async function fetchCurrentUser() {
                 .eq('id', session.user.id)
                 .single();
 
-            if (profileError && profileError.code !== 'PGRST116') console.warn("User profile not found:", profileError.message);
+            if (profileError && profileError.code !== 'PGRST116') console.warn("User profile not found, using session data:", profileError.message);
             
             state.currentUser = userProfile || { id: session.user.id, name: session.user.email, email: session.user.email, profile_image: null, role: 'user', referral_code: null };
             
+            // NEW: Fetch user's liked reviews
             const { data: likedReviews, error: likedReviewsError } = await supabaseClient
-                .from('user_review_likes')
+                .from('user_review_likes') // Using the new user_review_likes table
                 .select('review_id')
                 .eq('user_id', state.currentUser.id);
-
             if (likedReviewsError) console.error("Error fetching user liked reviews:", likedReviewsError.message);
-            else state.userLikedReviews = new Set(likedReviews.map(like => like.review_id));
+            else {
+                state.userLikedReviews = new Set(likedReviews.map(like => like.review_id));
+            }
 
         } else {
             state.currentUser = null;
@@ -1105,6 +661,7 @@ async function fetchCurrentUser() {
     }
 }
 
+// NEW: Fetch user details by ID
 async function fetchUserById(userId) {
     if (!userId) return null;
     try {
@@ -1186,88 +743,32 @@ async function fetchSettings() {
     }
 }
 
-// UPDATED: Fetches reviews for the initial page load (first 5)
-async function fetchInitialReviews() {
+    // NEW: Fetches reviews and includes user profile details
+async function fetchReviews(filter = state.currentRatingFilter) {
     if (!state.product) return;
 
-    DOMElements.reviewSkeletonLoader.style.display = 'block';
-    DOMElements.reviewsList.innerHTML = '';
-    DOMElements.noReviewsMessage.style.display = 'none';
+    DOMElements.reviewsList.innerHTML = ''; // Clear reviewslist for loading spinner
+    DOMElements.reviewSkeletonLoader.style.display = 'block'; // Show skeleton loader
+    DOMElements.loadMoreReviewsContainer.classList.add('hidden'); // Hide load more during fetch
 
-    try {
-        const { data, error } = await supabaseClient
-            .from('reviews')
-            .select(`*, user:users(id, name, profile_image, role)`)
-            .eq('product_id', state.product.id)
-            .order('created_at', { ascending: false })
-            .limit(INITIAL_REVIEWS_COUNT);
-        
-        if (error) throw error;
-        
-        state.initialReviews = data;
-        processReviewsData(state.initialReviews, DOMElements.overallAvgRating, DOMElements.overallStarRating, DOMElements.overallTotalReviewsCount, DOMElements.ratingsDistributionChart, DOMElements.filterRatingBtns);
-        renderInitialReviews();
-
-    } catch(err) {
-        console.error("Error fetching initial reviews:", err);
-        showToast('Could not load reviews.', 'error');
-        DOMElements.reviewsList.innerHTML = `<p class="text-center text-red-500 py-4">Error loading reviews.</p>`;
-    } finally {
-        DOMElements.reviewSkeletonLoader.style.display = 'none';
-    }
-}
-
-// NEW: Fetches reviews for the modal with infinite scroll and filters
-async function fetchModalReviews(isNewFilter = false) {
-    if (!state.product || state.isFetchingModalReviews) return;
-
-    state.isFetchingModalReviews = true;
-    DOMElements.fullReviewsNoMoreMessage.style.display = 'none';
-    DOMElements.fullReviewsNoResultsMessage.style.display = 'none';
-
-    if (isNewFilter) {
-        state.modalReviews = [];
-        state.modalReviewsPage = 1;
-        state.hasMoreModalReviews = true;
-        DOMElements.fullReviewsList.innerHTML = ''; // Clear list for new filter
-        // Show skeleton loader in modal if it's a new filter search
-        DOMElements.fullReviewsList.innerHTML = `
-            <div class="review-card flex gap-4 p-4 bg-white rounded-lg shadow-sm border border-gray-100 shimmer">
-                <div class="w-12 h-12 rounded-full bg-gray-200 flex-shrink-0"></div>
-                <div class="flex-1 space-y-2">
-                    <div class="h-4 bg-gray-200 rounded w-1/3"></div>
-                    <div class="h-4 bg-gray-200 rounded w-full"></div>
-                    <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-                </div>
-            </div>
-            <div class="review-card flex gap-4 p-4 bg-white rounded-lg shadow-sm border border-gray-100 shimmer">
-                <div class="w-12 h-12 rounded-full bg-gray-200 flex-shrink-0"></div>
-                <div class="flex-1 space-y-2">
-                    <div class="h-4 bg-gray-200 rounded w-1/3"></div>
-                    <div class="h-4 bg-gray-200 rounded w-full"></div>
-                    <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-                </div>
-            </div>
-        `;
-    }
-
-    if (!state.hasMoreModalReviews) {
-        DOMElements.fullReviewsList.innerHTML = ''; // Clear skeletons if no more data
-        if (state.modalReviews.length === 0) {
-            DOMElements.fullReviewsNoResultsMessage.style.display = 'block';
-        } else {
-             DOMElements.fullReviewsNoMoreMessage.style.display = 'block';
-        }
-        state.isFetchingModalReviews = false;
-        return;
+    // Reset for new filter or initial load
+    if (state.reviewsPage === 1 || filter !== state.currentRatingFilter) {
+        state.reviews = [];
+        state.hasMoreReviews = true;
+        state.currentRatingFilter = filter;
     }
     
-    DOMElements.fullReviewsLoadMoreContainer.classList.remove('hidden'); // Ensure button is visible while fetching
-    DOMElements.fullReviewsLoadMoreBtn.disabled = true;
-    DOMElements.fullReviewsLoadMoreBtn.textContent = 'Loading...';
+    if (!state.hasMoreReviews) {
+        DOMElements.reviewSkeletonLoader.style.display = 'none'; // Hide skeleton if no more reviews
+        return;
+    }
 
-    const from = (state.modalReviewsPage - 1) * state.modalReviewsPerPage;
-    const to = from + state.modalReviewsPerPage - 1;
+    DOMElements.loadMoreReviewsBtn.disabled = true;
+    DOMElements.loadMoreReviewsBtn.textContent = 'Loading...';
+
+
+    const from = (state.reviewsPage - 1) * state.reviewsPerPage;
+    const to = from + state.reviewsPerPage - 1;
 
     try {
         let query = supabaseClient
@@ -1275,8 +776,8 @@ async function fetchModalReviews(isNewFilter = false) {
             .select(`*, user:users(id, name, profile_image, role)`)
             .eq('product_id', state.product.id);
         
-        if (state.currentRatingFilter > 0) {
-            query = query.eq('rating', state.currentRatingFilter);
+        if (filter > 0) {
+            query = query.eq('rating', filter);
         }
 
         const { data, error } = await query
@@ -1284,55 +785,51 @@ async function fetchModalReviews(isNewFilter = false) {
             .range(from, to);
             
         if (error) { 
-            console.error("Error fetching modal reviews:", error);
-            showToast('Failed to load reviews in modal. Please try again.', 'error');
-            DOMElements.fullReviewsLoadMoreBtn.textContent = 'Failed to load reviews';
-            DOMElements.fullReviewsList.innerHTML = `<p class="text-center text-red-500 py-4">Error loading reviews.</p>`;
+            console.error("Error fetching reviews:", error);
+            showToast('Failed to load reviews. Please try again.', 'error');
+            DOMElements.loadMoreReviewsBtn.textContent = 'Failed to load reviews';
+            DOMElements.reviewsList.innerHTML = `<p class="text-center text-red-500 py-4">Error loading reviews.</p>`;
+            DOMElements.noReviewsMessage.style.display = 'none';
             return; 
         }
 
-        // Clear skeleton loader before rendering actual reviews if this is the first batch
-        if (isNewFilter && data.length > 0) {
-            DOMElements.fullReviewsList.innerHTML = ''; 
-        } else if (isNewFilter && data.length === 0) {
-             DOMElements.fullReviewsList.innerHTML = ''; 
-        }
+        state.reviews = [...state.reviews, ...data]; // Append new reviews
 
-        state.modalReviews.push(...data); // Append new reviews
-
-        if (data.length < state.modalReviewsPerPage) {
-            state.hasMoreModalReviews = false;
-            DOMElements.fullReviewsLoadMoreContainer.classList.add('hidden');
-            DOMElements.fullReviewsNoMoreMessage.style.display = 'block';
+        if (data.length < state.reviewsPerPage) {
+            state.hasMoreReviews = false;
+            DOMElements.loadMoreReviewsContainer.classList.add('hidden');
         } else {
-            DOMElements.fullReviewsLoadMoreContainer.classList.remove('hidden');
-            state.modalReviewsPage++;
+            DOMElements.loadMoreReviewsContainer.classList.remove('hidden');
         }
         
-        renderModalReviews(data); // Render ONLY the newly fetched reviews
-        DOMElements.fullReviewsLoadMoreBtn.textContent = 'Load More';
+        state.reviewsPage++;
+        
+        processReviewsData(state.reviews); // Process ALL collected reviews for dashboard
+        renderReviews(); // Render ALL collected reviews (filtered if applicable)
+        DOMElements.loadMoreReviewsBtn.textContent = 'Load More';
 
-        // Update dashboard stats in modal with ALL current modalReviews
-        processReviewsData(state.modalReviews, DOMElements.fullModalAvgRating, DOMElements.fullModalStarRating, DOMElements.fullModalTotalReviews, DOMElements.fullModalRatingsChart, DOMElements.fullModalFilterBtns);
+        // Scroll to top of reviews list after loading more (if not the very first load)
+        if (from > 0) {
+            DOMElements.reviewsContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
 
 
     } catch (error) {
-        console.error("Error in fetchModalReviews:", error);
-        showToast('Error loading reviews in modal. Please check your connection.', 'error');
-        DOMElements.fullReviewsLoadMoreBtn.textContent = 'Error loading reviews';
-        if (state.modalReviews.length === 0) DOMElements.fullReviewsNoResultsMessage.style.display = 'block';
+        console.error("Error in fetchReviews:", error);
+        showToast('Error loading reviews. Please check your connection.', 'error');
+        DOMElements.loadMoreReviewsBtn.textContent = 'Error loading reviews';
+        if (state.reviews.length === 0) DOMElements.noReviewsMessage.style.display = 'block';
     } finally {
-        DOMElements.fullReviewsLoadMoreBtn.disabled = false;
-        state.isFetchingModalReviews = false;
+        DOMElements.loadMoreReviewsBtn.disabled = false;
+        DOMElements.reviewSkeletonLoader.style.display = 'none'; // Hide skeleton loader
     }
 }
-
 
 async function fetchRelatedProducts(product) {
     try {
         const tags = (product.tags || '').split(',').map(t => t.trim()).filter(Boolean);
         let queryBuilder = supabaseClient.from('products').select('name, price, discount_price, image_urls, slug, avg_rating, total_reviews');
-        queryBuilder = queryBuilder.neq('id', product.id).eq('published', true);
+        queryBuilder = queryBuilder.neq('id', product.id).neq('published', false);
 
         let orConditions = [];
         if (product.category) {
@@ -1362,7 +859,7 @@ async function fetchYouMayLikeProducts() {
         const { data, error } = await supabaseClient
             .from('products')
             .select('name, price, discount_price, image_urls, slug, avg_rating, total_reviews')
-            .eq('published', true)
+            .neq('published', false)
             .order('total_orders', { ascending: false, nullsFirst: false })
             .limit(8);
             
@@ -1374,40 +871,269 @@ async function fetchYouMayLikeProducts() {
     }
 }
 
-
 // ===================================================================
-// RENDER FUNCTIONS (Continued from Part 2)
+// RENDER FUNCTIONS
 // ===================================================================
 
-// NEW: Reusable function to render star HTML (for display or interactive input)
+function renderProductDetails() {
+    const p = state.product;
+    if (!p) return;
+
+    // Header Info
+    DOMElements.productCategory.textContent = p.category || 'General';
+    DOMElements.productName.textContent = p.name;
+    document.title = `${p.name} • Liyog`;
+    
+    // Stock Status
+    if (p.published) {
+        DOMElements.stockBadge.textContent = 'In Stock';
+        DOMElements.stockBadge.className = 'text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap bg-green-100 text-green-800';
+        [DOMElements.addToCartBtn, DOMElements.orderNowBtn, DOMElements.mobileAddToCartBtn, DOMElements.mobileOrderNowBtn].forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        });
+    } else {
+        DOMElements.stockBadge.textContent = 'Out of Stock';
+        DOMElements.stockBadge.className = 'text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap bg-red-100 text-red-800';
+        [DOMElements.addToCartBtn, DOMElements.orderNowBtn, DOMElements.mobileAddToCartBtn, DOMElements.mobileOrderNowBtn].forEach(btn => {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+        });
+    }
+
+    // Ratings & Metrics (Product-level)
+    DOMElements.starRating.innerHTML = renderStarRatingHTML(p.avg_rating);
+    DOMElements.avgRating.textContent = (p.avg_rating || 0).toFixed(1);
+    DOMElements.totalReviews.textContent = (p.total_reviews || 0).toLocaleString();
+    DOMElements.totalOrders.textContent = (p.total_orders || 0).toLocaleString();
+    DOMElements.totalLikes.textContent = (p.total_likes || 0).toLocaleString();
+    DOMElements.totalViews.textContent = (p.total_views || 0).toLocaleString();
+
+    // Tags
+    const tags = (p.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+    DOMElements.tagsContainer.innerHTML = tags.map(tag => 
+        `<a href="#" class="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded-full whitespace-nowrap hover:bg-liyog-green hover:text-white transition-colors">${tag}</a>`
+    ).join('');
+
+    // Pricing
+    const finalPrice = p.discount_price ?? p.price;
+    const originalPrice = p.price;
+    DOMElements.finalPrice.textContent = `₦${finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+    if (p.discount_price != null && p.discount_price < originalPrice) {
+        DOMElements.originalPrice.textContent = `₦${originalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+        if (p.discount_percent) {
+            DOMElements.discountPercent.textContent = `${p.discount_percent}% off`;
+            DOMElements.discountPercent.style.display = 'inline';
+        } else {
+            DOMElements.discountPercent.style.display = 'none';
+        }
+    } else {
+        DOMElements.originalPrice.textContent = '';
+        DOMElements.discountPercent.style.display = 'none';
+    }
+    
+    // Carton Quantity and Price (NEW)
+    if (p.carton_quantity && p.carton_price) {
+        DOMElements.cartonQuantity.textContent = `One Bulk Unit: ${p.carton_quantity}`;
+        DOMElements.cartonPrice.textContent = `(₦${p.carton_price.toLocaleString(undefined, { minimumFractionDigits: 2 })})`;
+        DOMElements.cartonInfo.style.display = 'block';
+    } else {
+        DOMElements.cartonInfo.style.display = 'none';
+    }
+
+    // LiyogX Coins
+    const lxcValue = (p.liyogx_coins || 0) * state.settings.lxc_rate;
+    DOMElements.liyogxCoins.textContent = p.liyogx_coins || 0;
+    DOMElements.liyogxValue.textContent = lxcValue.toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+    // Added By User (NEW)
+    if (p.added_by) {
+        fetchUserById(p.added_by).then(user => {
+            if (user) {
+                DOMElements.addedByName.textContent = user.name || 'Unknown User';
+                if (user.profile_image) {
+                    DOMElements.addedByAvatar.innerHTML = `<img src="${user.profile_image}" alt="${user.name}'s profile" class="w-full h-full object-cover rounded-full">`;
+                } else {
+                    DOMElements.addedByAvatar.innerHTML = generateAvatar(user.name, 'w-6 h-6', 'text-xs');
+                }
+                DOMElements.addedByUser.style.display = 'flex';
+            } else {
+                DOMElements.addedByUser.style.display = 'none';
+            }
+        });
+    } else {
+        DOMElements.addedByUser.style.display = 'none';
+    }
+
+    // Description
+    DOMElements.descriptionContent.innerHTML = DOMPurify.sanitize(p.description_html || '<p class="text-gray-500">No detailed description available.</p>');
+    
+    // Set initial product like state
+    if (state.isLiked) {
+        DOMElements.likeIcon.classList.add('like-icon-filled');
+    } else {
+        DOMElements.likeIcon.classList.remove('like-icon-filled');
+    }
+}
+
+function renderMediaGallery() {
+    const p = state.product;
+    if (!p) return;
+
+    // Separate images and videos
+    const imageItems = (p.image_urls || []).map(url => ({ type: 'image', url }));
+    const videoItems = [];
+    if (p.youtube_url) videoItems.push({ type: 'youtube', url: normalizeYoutubeUrl(p.youtube_url) });
+    if (p.video_url) videoItems.push({ type: 'video', url: p.video_url });
+
+    // Prioritize images then videos
+    state.mediaItems = [...imageItems, ...videoItems];
+
+    if (state.mediaItems.length === 0) {
+        state.mediaItems.push({ type: 'image', url: 'https://via.placeholder.com/600?text=No+Media+Available' });
+    }
+
+    DOMElements.thumbnailsWrapper.innerHTML = ''; // Clear previous thumbnails
+
+    // Render image thumbnails in the first "row"
+    const imageThumbnailsHtml = imageItems.map((item, index) => {
+        return `
+            <button data-index="${index}" class="thumbnail-btn flex-shrink-0 w-20 h-20 border-2 border-transparent rounded-lg overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-liyog-green focus:ring-offset-2 transition-all duration-200">
+                <img src="${item.url}" alt="Product image thumbnail ${index + 1}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300" loading="lazy">
+            </button>
+        `;
+    }).join('');
+    
+    // Render video thumbnails in the second "row" or after images if not a two-row grid
+    const videoThumbnailsHtml = videoItems.map((item, indexOffset) => {
+        const index = imageItems.length + indexOffset; // Offset for videos
+        let thumbSrc = 'https://via.placeholder.com/80?text=Video';
+        if (item.type === 'youtube') {
+            const videoIdMatch = item.url.match(/embed\/([^?]+)/);
+            if (videoIdMatch && videoIdMatch[1]) {
+                thumbSrc = `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`;
+            }
+        } else if (item.type === 'video') {
+            // For uploaded videos, attempt to generate thumbnail or use a placeholder
+            // A server-side solution or a more complex client-side approach (canvas, video element) would be needed for dynamic generation.
+            // For now, use a generic video icon.
+            thumbSrc = 'https://via.placeholder.com/80/006400/FFFFFF?text=🎥';
+        }
+        return `
+            <button data-index="${index}" class="thumbnail-btn flex-shrink-0 w-20 h-20 border-2 border-transparent rounded-lg overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-liyog-green focus:ring-offset-2 transition-all duration-200">
+                <img src="${thumbSrc}" alt="Product video thumbnail ${index + 1}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300" loading="lazy">
+                ${item.type !== 'image' ? '<div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40"><svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3.25-2a1 1 0 000-1.664l-3.25-2z" clip-rule="evenodd"></path></svg></div>' : ''}
+            </button>
+        `;
+    }).join('');
+
+    DOMElements.thumbnailsWrapper.innerHTML = imageThumbnailsHtml + videoThumbnailsHtml;
+
+    // Apply two-row styling if both images and videos are present
+    if (imageItems.length > 0 && videoItems.length > 0 && state.mediaItems.length > 5) { // Arbitrary threshold for two rows
+         DOMElements.thumbnailsWrapper.classList.add('two-rows');
+    } else {
+        DOMElements.thumbnailsWrapper.classList.remove('two-rows');
+    }
+
+
+    renderMainMedia(state.currentMediaIndex, state.mediaItems); // Show current item
+
+    const thumbnailButtons = DOMElements.thumbnailsWrapper.querySelectorAll('.thumbnail-btn');
+    thumbnailButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const index = parseInt(btn.dataset.index, 10);
+            state.currentMediaIndex = index; // Update current index
+            renderMainMedia(state.currentMediaIndex, state.mediaItems);
+            thumbnailButtons.forEach(b => b.classList.remove('thumb-active'));
+            btn.classList.add('thumb-active');
+        });
+    });
+    // Set the initial active thumbnail
+    if (thumbnailButtons.length > 0) {
+        if (thumbnailButtons[state.currentMediaIndex]) {
+            thumbnailButtons[state.currentMediaIndex].classList.add('thumb-active');
+        } else { // Fallback if initial index is out of bounds
+            state.currentMediaIndex = 0;
+            thumbnailButtons[0].classList.add('thumb-active');
+        }
+    }
+    updateMediaNavButtons(); // Show/hide arrows
+}
+
+
+function renderMainMedia(index, mediaItems) {
+    const item = mediaItems[index];
+    DOMElements.mainMediaViewer.innerHTML = ''; // Clear previous content
+
+    if (!item) {
+        DOMElements.mainMediaViewer.innerHTML = `<img src="https://via.placeholder.com/600?text=Error" alt="Media load error" class="w-full h-full object-contain">`;
+        return;
+    }
+    
+    if (item.type === 'image') {
+        DOMElements.mainMediaViewer.innerHTML = `<img src="${item.url}" alt="Product image" class="w-full h-full object-contain rounded-lg transition-opacity duration-300 animate-fade-in" loading="eager">`;
+    } else if (item.type === 'video') {
+        DOMElements.mainMediaViewer.innerHTML = `<video src="${item.url}" class="w-full h-full object-contain rounded-lg" controls playsinline autoplay loop muted preload="metadata"></video>`;
+    } else if (item.type === 'youtube') {
+        // Use responsive container for YouTube iframe, ensuring rel=0 to prevent related videos
+        DOMElements.mainMediaViewer.innerHTML = `
+            <div class="responsive-iframe-container">
+                <iframe src="${item.url}" 
+                        allow="autoplay; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen 
+                        title="YouTube video player for ${state.product?.name || 'product'}"
+                        loading="lazy">
+                </iframe>
+            </div>
+        `;
+    }
+    updateMediaNavButtons();
+}
+
+// NEW: Updates visibility of media navigation buttons
+function updateMediaNavButtons() {
+    if (state.mediaItems.length <= 1) {
+        DOMElements.mediaPrevBtn.classList.add('hidden');
+        DOMElements.mediaNextBtn.classList.add('hidden');
+        return;
+    }
+    DOMElements.mediaPrevBtn.classList.remove('hidden');
+    DOMElements.mediaNextBtn.classList.remove('hidden');
+
+    if (state.currentMediaIndex === 0) {
+        DOMElements.mediaPrevBtn.classList.add('hidden');
+    }
+    if (state.currentMediaIndex === state.mediaItems.length - 1) {
+        DOMElements.mediaNextBtn.classList.add('hidden');
+    }
+}
+    
+    // NEW: Reusable function to render star HTML (for display or interactive input)
 function renderStarRatingHTML(rating = 0, size = 'w-4 h-4', interactive = false, inputName = 'review-rating') {
     let starsHTML = '';
     const fullStars = Math.floor(rating);
     const halfStar = rating % 1 >= 0.5;
     const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
     
-    // SVG path for a star, optimized for rendering
-    const starPath = "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z";
-
+    const fullStarSVG = `<svg class="${size} text-liyog-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`;
+    const emptyStarSVG = `<svg class="${size} text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`;
+    
     if (interactive) {
         for (let i = 5; i >= 1; i--) {
-            // Stars are generated in reverse order for RTL display, but with correct value order
             const checked = (i === Math.round(rating) ? 'checked' : '');
             starsHTML += `
                 <input type="radio" id="${inputName}-${i}" name="${inputName}" value="${i}" class="sr-only" ${checked} aria-label="${i} stars">
                 <label for="${inputName}-${i}" title="${i} stars" aria-hidden="true">
-                    <svg class="${size}" fill="currentColor" viewBox="0 0 20 20"><path d="${starPath}" /></svg>
+                    <svg class="${size}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>
                 </label>
             `;
         }
     } else {
-        const fullStarSVG = `<svg class="${size} text-liyog-gold" fill="currentColor" viewBox="0 0 20 20"><path d="${starPath}" /></svg>`;
-        const emptyStarSVG = `<svg class="${size} text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="${starPath}" /></svg>`;
-        
         for (let i = 0; i < fullStars; i++) starsHTML += fullStarSVG;
         if (halfStar) {
             const halfStarGradientId = `half_grad_${Math.random().toString(36).substr(2, 5)}`;
-            starsHTML += `<svg class="${size}" viewBox="0 0 20 20" fill="url(#${halfStarGradientId})"><defs><linearGradient id="${halfStarGradientId}"><stop offset="50%" stop-color="var(--liyog-gold)"/><stop offset="50%" stop-color="#e5e7eb"/></linearGradient></defs><path d="${starPath}" /></svg>`;
+            starsHTML += `<svg class="${size}" viewBox="0 0 20 20" fill="url(#${halfStarGradientId})"><defs><linearGradient id="${halfStarGradientId}"><stop offset="50%" stop-color="var(--liyog-gold)"/><stop offset="50%" stop-color="#e5e7eb"/></linearGradient></defs><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.92-.755 1.688-1.54 1.118L10 15.347l-3.883 2.678c-.784.57-1.84-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.126 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" /></svg>`;
         }
         for (let i = 0; i < emptyStars; i++) starsHTML += emptyStarSVG;
     }
@@ -1415,27 +1141,20 @@ function renderStarRatingHTML(rating = 0, size = 'w-4 h-4', interactive = false,
     return starsHTML;
 }
 
-// NEW: Renders the reviews dashboard (chart and overall average) for main page or modal
-function renderReviewsDashboard(ratingCounts, totalReviews, avgRating, isModal = false) {
-    const avgRatingElement = isModal ? DOMElements.fullModalAvgRating : DOMElements.overallAvgRating;
-    const starRatingElement = isModal ? DOMElements.fullModalStarRating : DOMElements.overallStarRating;
-    const totalReviewsElement = isModal ? DOMElements.fullModalTotalReviews : DOMElements.overallTotalReviewsCount;
-    const chartContainer = isModal ? DOMElements.fullModalRatingsChart : DOMElements.ratingsDistributionChart;
-    const filterBtns = isModal ? DOMElements.fullModalFilterBtns : DOMElements.filterRatingBtns;
+// NEW: Renders the reviews dashboard (chart and overall average)
+function renderReviewsDashboard(ratingCounts, totalReviews, avgRating) {
+    DOMElements.overallAvgRating.textContent = avgRating.toFixed(1);
+    DOMElements.overallStarRating.innerHTML = renderStarRatingHTML(avgRating, 'w-6 h-6');
+    DOMElements.overallTotalReviewsCount.textContent = totalReviews.toLocaleString();
 
-    avgRatingElement.textContent = avgRating.toFixed(1);
-    starRatingElement.innerHTML = renderStarRatingHTML(avgRating, 'w-6 h-6');
-    animateCount(totalReviewsElement, parseInt(totalReviewsElement.textContent.replace(/,/g, '') || '0'), totalReviews, 700);
-
-
-    chartContainer.innerHTML = ''; // Clear previous chart
+    DOMElements.ratingsDistributionChart.innerHTML = ''; // Clear previous chart
 
     for (let i = 5; i >= 1; i--) {
         const count = ratingCounts[i] || 0;
         const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
         const isActive = (state.currentRatingFilter === i);
 
-        chartContainer.innerHTML += `
+        DOMElements.ratingsDistributionChart.innerHTML += `
             <div class="flex items-center gap-3 group">
                 <button data-rating-filter="${i}" class="text-sm font-semibold w-8 text-right filter-rating-btn ${isActive ? 'text-liyog-gold' : 'text-gray-200'}" aria-pressed="${isActive}">
                     ${i} <span class="hidden sm:inline">Star</span>
@@ -1449,22 +1168,14 @@ function renderReviewsDashboard(ratingCounts, totalReviews, avgRating, isModal =
         `;
     }
 
-    // Attach listeners for filter buttons in the dashboard (for both main page and modal)
-    chartContainer.querySelectorAll('.filter-rating-btn, .rating-bar-wrapper').forEach(btn => {
+    document.querySelectorAll('#ratings-distribution-chart .filter-rating-btn, #ratings-distribution-chart .rating-bar-wrapper').forEach(btn => {
         btn.addEventListener('click', () => {
             const filterValue = parseInt(btn.dataset.ratingFilter, 10);
-            if (isModal) {
-                state.currentRatingFilter = filterValue;
-                updateModalFilterButtons();
-                fetchModalReviews(true);
-            } else {
-                applyReviewFilter(filterValue);
-            }
+            applyReviewFilter(filterValue);
         });
     });
 
-    // Update the state of the separate filter buttons below the dashboard
-    filterBtns.forEach(btn => {
+    DOMElements.filterRatingBtns.forEach(btn => {
         const rating = parseInt(btn.dataset.ratingFilter, 10);
         if (rating === state.currentRatingFilter) {
             btn.classList.add('active', 'bg-liyog-green');
@@ -1477,126 +1188,145 @@ function renderReviewsDashboard(ratingCounts, totalReviews, avgRating, isModal =
         }
     });
 }
-
-
 // NEW: Processes raw review data to calculate counts and averages for the dashboard
-function processReviewsData(reviewsToProcess, avgRatingEl, starRatingEl, totalReviewsEl, chartEl, filterBtnGroup) {
+function processReviewsData(reviews) {
     let ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     let totalRatingSum = 0;
     
-    reviewsToProcess.forEach(review => {
+    // Only count reviews that are NOT filtered out for the dashboard stats
+    const reviewsForDashboard = reviews.filter(review => {
+        return state.currentRatingFilter === 0 || review.rating === state.currentRatingFilter;
+    });
+
+    reviewsForDashboard.forEach(review => {
         ratingCounts[review.rating]++;
         totalRatingSum += review.rating;
     });
 
-    const totalCount = reviewsToProcess.length;
-    const averageRating = totalCount > 0 ? (totalRatingSum / totalCount) : 0;
-
-    // Update state.reviewsData for main page reference
     state.reviewsData.ratingCounts = ratingCounts;
-    state.reviewsData.totalReviews = totalCount;
-    state.reviewsData.avgRating = averageRating;
+    state.reviewsData.totalReviews = reviewsForDashboard.length;
+    state.reviewsData.avgRating = reviewsForDashboard.length > 0 ? (totalRatingSum / reviewsForDashboard.length) : 0;
 
-    // Render the specific dashboard UI elements
-    renderReviewsDashboard(ratingCounts, totalCount, averageRating, (totalReviewsEl === DOMElements.fullModalTotalReviews));
+    renderReviewsDashboard(ratingCounts, reviewsForDashboard.length, state.reviewsData.avgRating);
 }
 
-// Renders the review submission form based on user login status
-function renderReviewForm() {
-    if (state.currentUser) {
-        DOMElements.addReviewFormSection.style.display = 'block';
-        DOMElements.loginToReviewMessage.style.display = 'none';
-        DOMElements.currentUserNameReviewForm.textContent = state.currentUser.name || state.currentUser.email;
-        const avatarUrl = state.currentUser.profile_image ? `${state.currentUser.profile_image}?transform=w_80,h_80,f_webp` : null;
-        DOMElements.userAvatarReviewForm.innerHTML = avatarUrl 
-            ? `<img src="${avatarUrl}" alt="${state.currentUser.name}'s profile" class="w-full h-full object-cover rounded-full" loading="lazy">`
-            : generateAvatar(state.currentUser.name, 'w-10 h-10', 'text-lg');
-
-        DOMElements.reviewRatingInput.innerHTML = renderStarRatingHTML(0, 'w-6 h-6', true, 'review-rating');
-        document.querySelectorAll('#review-rating-input input[type="radio"]').forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                DOMElements.selectedRatingInput.value = e.target.value;
-                DOMElements.ratingError.style.display = 'none';
-                document.querySelectorAll('#review-rating-input input[type="radio"]').forEach(r => {
-                    if (r.checked) {
-                        r.classList.add('selected');
-                    } else {
-                        r.classList.remove('selected');
-                    }
-                });
-            });
-        });
-    } else {
-        DOMElements.addReviewFormSection.style.display = 'none';
-        DOMElements.loginToReviewMessage.style.display = 'block';
-    }
-}
-
-
-function renderInitialReviews() {
-    DOMElements.reviewsList.innerHTML = '';
-    DOMElements.reviewSkeletonLoader.style.display = 'none';
+// NEW: Function to generate HTML for a single review card
+function createReviewCardHTML(review) {
+    const user = review.user || { name: 'Anonymous', profile_image: null, id: null, role: 'user' };
+    const avatarHTML = user.profile_image 
+        ? `<img src="${user.profile_image}" alt="${user.name}'s profile" class="w-full h-full object-cover rounded-full" loading="lazy">`
+        : generateAvatar(user.name, 'w-12 h-12', 'text-xl');
     
-    if (state.initialReviews.length === 0) {
-        DOMElements.noReviewsMessage.textContent = 'No reviews yet for this product. Be the first to share your experience!';
+    const isOwner = state.currentUser && state.currentUser.id === user.id;
+    const isAdmin = state.currentUser && state.currentUser.role === 'admin';
+    const isLikedByUser = state.currentUser && state.userLikedReviews.has(review.id);
+
+    const formattedDate = new Date(review.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    return `
+        <div class="review-card flex gap-4 p-4 bg-white rounded-lg shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md" data-review-id="${review.id}" role="article" aria-labelledby="review-author-${review.id}">
+            <div class="flex-shrink-0">
+                <div class="w-12 h-12 rounded-full overflow-hidden bg-liyog-green-light flex-shrink-0 flex items-center justify-center text-white text-xl font-bold" aria-hidden="true">
+                    ${avatarHTML}
+                </div>
+            </div>
+            <div class="flex-1">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center flex-wrap gap-y-1">
+                    <p id="review-author-${review.id}" class="font-bold text-gray-900 text-base">${user.name}</p>
+                    <p class="text-xs text-gray-500">${formattedDate}</p>
+                </div>
+                <div class="flex items-center my-1" role="img" aria-label="${review.rating} out of 5 stars">
+                    ${renderStarRatingHTML(review.rating, 'w-4 h-4')}
+                </div>
+                <p class="text-gray-700 text-sm mt-1 leading-relaxed">${DOMPurify.sanitize(review.comment)}</p>
+                
+                <div class="flex items-center gap-4 mt-3">
+                    <button class="flex items-center gap-1 text-gray-500 hover:text-liyog-green transition-colors review-like-btn ${isLikedByUser ? 'text-liyog-green' : ''}" data-review-id="${review.id}" aria-label="${isLikedByUser ? 'Unlike' : 'Like'} this review">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6.382 10.118A4 4 0 0110 5.5V4a2 2 0 014 0v.5c1.11 0 2.08.402 2.592 1.182a4.004 4.004 0 01.13 5.48c-.069.166-.098.32-.098.47 0 .225.072.443.21.614l.004.007a.75.75 0 01.353.642v.001l-.007.004c-.001.002-.002.003-.002.003h-2.163c-.156.02-.31.03-.464.032H13.5a6.45 6.45 0 01-1.397.712A6.5 6.5 0 0110 16.5a6.463 6.463 0 01-3.618-1.118L2 10.5z" /></svg>
+                        <span class="font-semibold text-sm ${isLikedByUser ? 'text-liyog-green' : 'text-gray-700'}" data-review-likes="${review.id}">${review.totalreview_likes || 0}</span>
+                        <span class="text-xs text-gray-400">Helpful</span>
+                    </button>
+                    ${(isOwner || isAdmin) ? `
+                        <button class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors review-edit-btn" data-review-id="${review.id}" aria-label="Edit this review">Edit</button>
+                        <button class="text-sm font-semibold text-red-600 hover:text-red-800 transition-colors review-delete-btn" data-review-id="${review.id}" aria-label="Delete this review">Delete</button>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+function renderReviews() {
+    DOMElements.reviewSkeletonLoader.style.display = 'none'; // Hide skeleton loader
+
+    state.filteredReviews = state.reviews.filter(review => {
+        return state.currentRatingFilter === 0 || review.rating === state.currentRatingFilter;
+    });
+
+    if (state.filteredReviews.length === 0) {
+        DOMElements.reviewsList.innerHTML = '';
         DOMElements.noReviewsMessage.style.display = 'block';
-        DOMElements.initialLoadMoreContainer.classList.add('hidden');
+        if (state.currentRatingFilter === 0) {
+            DOMElements.noReviewsMessage.textContent = 'No reviews yet for this product. Be the first to share your experience!';
+        } else {
+            DOMElements.noReviewsMessage.textContent = `No ${state.currentRatingFilter}-star reviews found.`;
+        }
+        DOMElements.loadMoreReviewsContainer.classList.add('hidden');
         return;
     }
     
     DOMElements.noReviewsMessage.style.display = 'none';
-    DOMElements.reviewsList.innerHTML = state.initialReviews.map(createReviewCardHTML).join('');
     
-    if (state.product.total_reviews > INITIAL_REVIEWS_COUNT) {
-        DOMElements.initialLoadMoreContainer.classList.remove('hidden');
-    } else {
-        DOMElements.initialLoadMoreContainer.classList.add('hidden');
-        DOMElements.reviewsList.insertAdjacentHTML('beforeend', `<p class="text-center text-sm text-gray-500 py-4">This is where the reviews for this product end — more are coming!</p>`);
+    // Append new reviews instead of replacing all if not a filter change
+    const currentReviewIds = new Set(Array.from(DOMElements.reviewsList.children).map(el => el.dataset.reviewId));
+    const newReviewElements = state.filteredReviews
+        .filter(review => !currentReviewIds.has(review.id))
+        .map(createReviewCardHTML)
+        .join('');
+
+    // If filter changed or first load, replace entire content
+    if (state.reviewsPage === 1 && state.reviews.length === state.filteredReviews.length) { // First load for a given filter
+        DOMElements.reviewsList.innerHTML = state.filteredReviews.map(createReviewCardHTML).join('');
+    } else { // Append on load more
+        DOMElements.reviewsList.insertAdjacentHTML('beforeend', newReviewElements);
     }
     
+    // Re-attach listeners for review-specific actions (like, edit, delete)
     attachReviewActionListeners();
 }
 
 
-function renderModalReviews(newReviews) {
-    if (state.modalReviews.length === 0 && newReviews.length === 0) {
-        DOMElements.fullReviewsList.innerHTML = ''; // Clear any loading indicators
-        DOMElements.fullReviewsNoResultsMessage.style.display = 'block';
-        DOMElements.fullReviewsNoMoreMessage.style.display = 'none';
-        return;
-    }
-    DOMElements.fullReviewsNoResultsMessage.style.display = 'none';
-    DOMElements.fullReviewsNoMoreMessage.style.display = 'none';
-    
-    const newReviewsHTML = newReviews.map(createReviewCardHTML).join('');
-    DOMElements.fullReviewsList.insertAdjacentHTML('beforeend', newReviewsHTML);
-    attachReviewActionListeners();
+function createProductCardHTML(product) {
+    const finalPrice = product.discount_price ?? product.price;
+    return `
+        <a href="product.html?slug=${product.slug}" class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 group overflow-hidden border border-gray-200" aria-label="View product: ${product.name}">
+            <div class="aspect-square w-full overflow-hidden">
+                <img src="${product.image_urls?.[0] || 'https://via.placeholder.com/300?text=Liyog'}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
+            </div>
+            <div class="p-4">
+                <h3 class="font-bold text-gray-800 line-clamp-2 text-sm">${product.name}</h3>
+                <div class="flex items-center gap-2 mt-2">
+                    <div class="flex" role="img" aria-label="${(product.avg_rating || 0).toFixed(1)} out of 5 stars">
+                        ${renderStarRatingHTML(product.avg_rating || 0, 'w-4 h-4')}
+                    </div>
+                    <span class="text-xs text-gray-500">(${(product.total_reviews || 0)})</span>
+                </div>
+                <p class="text-base font-extrabold text-liyog-green-dark mt-2">₦${finalPrice.toLocaleString()}</p>
+            </div>
+        </a>
+    `;
 }
-
 // ===================================================================
-// EVENT HANDLERS
+// EVENT HANDLERS & UI LOGIC
 // ===================================================================
 
 function applyReviewFilter(filterValue) {
     if (state.currentRatingFilter === filterValue && filterValue !== 0) {
-        filterValue = 0; // Toggle filter off if already active
+        filterValue = 0;
     }
-    state.currentRatingFilter = filterValue;
-    state.initialReviews = []; // Clear current reviews
-    state.modalReviews = []; // Clear for modal too
-    state.modalReviewsPage = 1; // Reset modal pagination
-    state.hasMoreModalReviews = true; // Assume more reviews for new filter
-    
-    fetchInitialReviews(); // Re-fetch initial set with new filter
-    
-    // Update main page filter buttons
-    DOMElements.filterRatingBtns.forEach(btn => {
-        const rating = parseInt(btn.dataset.ratingFilter, 10);
-        btn.classList.toggle('active', rating === state.currentRatingFilter);
-        btn.classList.toggle('bg-liyog-green', rating === state.currentRatingFilter);
-        btn.classList.toggle('bg-gray-700', rating !== state.currentRatingFilter);
-        btn.setAttribute('aria-pressed', rating === state.currentRatingFilter);
-    });
+    state.reviewsPage = 1;
+    state.reviews = []; // Clear ALL reviews when filter changes
+    state.hasMoreReviews = true;
+    fetchReviews(filterValue);
 }
 
 // Client-side validation for review form
@@ -1659,7 +1389,14 @@ async function handleReviewFormSubmit(event) {
             radio.classList.remove('selected');
         });
 
-        await refreshAllProductData(); // Refresh all review data including counts and lists
+        // Trigger re-fetch of reviews
+        state.reviewsPage = 1;
+        state.reviews = [];
+        state.hasMoreReviews = true;
+        await fetchReviews(state.currentRatingFilter);
+
+        state.product = await fetchProduct(state.product.slug);
+        renderProductDetails();
 
     } catch (error) {
         console.error('Error submitting review:', error);
@@ -1669,8 +1406,6 @@ async function handleReviewFormSubmit(event) {
         DOMElements.submitReviewBtn.textContent = 'Submit Review';
     }
 }
-
-
 // Handles liking/unliking individual reviews (UPDATED)
 async function handleToggleReviewLike(event) {
     if (!state.currentUser) {
@@ -1682,7 +1417,7 @@ async function handleToggleReviewLike(event) {
     const reviewId = button.dataset.reviewId;
     if (!reviewId) return;
 
-    button.disabled = true; // Disable button to prevent double clicks
+    button.disabled = true;
 
     try {
         const isLikedByUser = state.userLikedReviews.has(reviewId);
@@ -1702,9 +1437,10 @@ async function handleToggleReviewLike(event) {
             if (rpcError) throw rpcError;
 
             state.userLikedReviews.delete(reviewId);
-            animateCount(likesSpan, currentLikes, currentLikes - 1); // Animate down
+            likesSpan.textContent = currentLikes - 1;
             button.classList.remove('text-liyog-green');
-            spawnBubble(button, 'dislike'); // Show dislike bubbles
+            likesSpan.classList.remove('text-liyog-green');
+            button.setAttribute('aria-label', 'Like this review');
             showToast('Review unliked.', 'success');
         } else {
             // Like: Insert into user_review_likes and increment review_likes
@@ -1717,11 +1453,12 @@ async function handleToggleReviewLike(event) {
             if (rpcError) throw rpcError;
 
             state.userLikedReviews.add(reviewId);
-            animateCount(likesSpan, currentLikes, currentLikes + 1); // Animate up
+            likesSpan.textContent = currentLikes + 1;
             button.classList.add('text-liyog-green');
+            likesSpan.classList.add('text-liyog-green');
             likesSpan.classList.add('glittering-active'); // Apply glitter effect
             setTimeout(() => likesSpan.classList.remove('glittering-active'), 1000); // Remove after short period
-            spawnBubble(button, 'like'); // Show like bubbles
+            button.setAttribute('aria-label', 'Unlike this review');
             showToast('Review liked!', 'success');
         }
 
@@ -1742,7 +1479,7 @@ async function handleEditReview(event) {
         showToast('You must be logged in to edit reviews.', 'info');
         return;
     }
-    const reviewToEdit = [...state.initialReviews, ...state.modalReviews].find(r => r.id === reviewId);
+    const reviewToEdit = state.reviews.find(r => r.id === reviewId);
     if (!reviewToEdit || (state.currentUser.id !== reviewToEdit.user.id && state.currentUser.role !== 'admin')) {
         showToast('You do not have permission to edit this review.', 'error');
         return;
@@ -1775,7 +1512,13 @@ async function handleEditReview(event) {
             showToast('Review updated successfully!', 'success');
             toggleEditReviewModal(false); // Close modal
 
-            await refreshAllProductData(); // Refresh all review data
+            state.reviewsPage = 1;
+            state.reviews = [];
+            state.hasMoreReviews = true;
+            await fetchReviews(state.currentRatingFilter);
+
+            state.product = await fetchProduct(state.product.slug);
+            renderProductDetails();
 
         } catch (error) {
             console.error('Error updating review:', error);
@@ -1787,8 +1530,7 @@ async function handleEditReview(event) {
     };
 }
 
-
-// FIXED: Handles review deletion
+// Handles review deletion
 async function handleDeleteReview(event) {
     const button = event.currentTarget;
     const reviewId = button.dataset.reviewId;
@@ -1798,7 +1540,7 @@ async function handleDeleteReview(event) {
         return;
     }
 
-    const reviewToDelete = [...state.initialReviews, ...state.modalReviews].find(r => r.id === reviewId);
+    const reviewToDelete = state.reviews.find(r => r.id === reviewId);
     if (!reviewToDelete || (state.currentUser.id !== reviewToDelete.user.id && state.currentUser.role !== 'admin')) {
         showToast('You do not have permission to delete this review.', 'error');
         return;
@@ -1817,7 +1559,13 @@ async function handleDeleteReview(event) {
         if (error) throw error;
 
         showToast('Review deleted successfully!', 'success');
-        await refreshAllProductData(); // Refresh all review data
+        state.reviewsPage = 1;
+        state.reviews = [];
+        state.hasMoreReviews = true;
+        await fetchReviews(state.currentRatingFilter);
+
+        state.product = await fetchProduct(state.product.slug);
+        renderProductDetails();
 
     } catch (error) {
         console.error('Error deleting review:', error);
@@ -1858,7 +1606,7 @@ function setupEventHandlers() {
 
     DOMElements.likeBtn.addEventListener('click', handleToggleLike); 
     DOMElements.shareBtn.addEventListener('click', handleShare);
-    DOMElements.copyUrlBtn.addEventListener('click', handleCopyUrl);
+    DOMElements.copyUrlBtn.addEventListener('click', handleCopyUrl); // NEW
 
     DOMElements.tabButtons.forEach(button => {
         button.addEventListener('click', () => {
@@ -1881,22 +1629,36 @@ function setupEventHandlers() {
                 if (state.currentUser) {
                     DOMElements.reviewCommentInput.focus();
                 } else {
-                    const loginLink = DOMElements.loginToReviewMessage.querySelector('a');
-                    if (loginLink) loginLink.focus();
+                    DOMElements.loginToReviewMessage.querySelector('a').focus();
                 }
             }
         });
     });
 
+// Load More Reviews
+    DOMElements.loadMoreReviewsBtn.addEventListener('click', fetchReviews);
+
     // Review form event listeners
     DOMElements.reviewForm.addEventListener('submit', handleReviewFormSubmit);
-    // Star rating input listeners are attached in `renderReviewForm` because they are dynamic
+    document.querySelectorAll('#review-rating-input input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            DOMElements.selectedRatingInput.value = e.target.value;
+            DOMElements.ratingError.style.display = 'none'; // Hide error on selection
+            document.querySelectorAll('#review-rating-input input[type="radio"]').forEach(r => {
+                if (r.checked) {
+                    r.classList.add('selected');
+                } else {
+                    r.classList.remove('selected');
+                }
+            });
+        });
+    });
     DOMElements.reviewCommentInput.addEventListener('input', () => {
         DOMElements.reviewCommentInput.classList.remove('input-error');
         DOMElements.commentError.style.display = 'none';
     });
     
-    // Filter buttons for ratings dashboard (main page)
+    // Filter buttons for ratings dashboard
     DOMElements.filterRatingBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const filterValue = parseInt(btn.dataset.ratingFilter, 10);
@@ -1908,58 +1670,28 @@ function setupEventHandlers() {
     DOMElements.mediaPrevBtn.addEventListener('click', () => {
         if (state.currentMediaIndex > 0) {
             state.currentMediaIndex--;
-            renderMainMedia(state.currentMediaIndex);
-            updateActiveThumbnail();
+            renderMainMedia(state.currentMediaIndex, state.mediaItems);
+            DOMElements.thumbnailsWrapper.children[state.currentMediaIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            DOMElements.thumbnailsWrapper.querySelectorAll('.thumbnail-btn').forEach(b => b.classList.remove('thumb-active'));
+            DOMElements.thumbnailsWrapper.children[state.currentMediaIndex].classList.add('thumb-active');
         }
     });
     DOMElements.mediaNextBtn.addEventListener('click', () => {
         if (state.currentMediaIndex < state.mediaItems.length - 1) {
             state.currentMediaIndex++;
-            renderMainMedia(state.currentMediaIndex);
-            updateActiveThumbnail();
+            renderMainMedia(state.currentMediaIndex, state.mediaItems);
+            DOMElements.thumbnailsWrapper.children[state.currentMediaIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            DOMElements.thumbnailsWrapper.querySelectorAll('.thumbnail-btn').forEach(b => b.classList.remove('thumb-active'));
+            DOMElements.thumbnailsWrapper.children[state.currentMediaIndex].classList.add('thumb-active');
         }
     });
 
     // Edit review modal buttons
     DOMElements.cancelEditReviewBtn.addEventListener('click', () => toggleEditReviewModal(false));
-
-    // NEW: View All Reviews button
-    DOMElements.viewAllReviewsBtn.addEventListener('click', openFullReviewsModal);
-
-    // NEW: Full Reviews Modal close buttons/swipe
-    DOMElements.closeFullReviewsBtn.addEventListener('click', closeFullReviewsModal);
-    DOMElements.fullReviewsModal.addEventListener('click', (e) => {
-        if (e.target === DOMElements.fullReviewsModal) {
-            closeFullReviewsModal();
-        }
-    });
-
-    // NEW: Modal filter buttons (these were already defined in DOMElements)
-    DOMElements.fullModalFilterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const filterValue = parseInt(btn.dataset.ratingFilter, 10);
-            if (state.currentRatingFilter === filterValue) {
-                state.currentRatingFilter = 0; // Toggle off if already active
-            } else {
-                state.currentRatingFilter = filterValue;
-            }
-            updateModalFilterButtons();
-            fetchModalReviews(true); // Fetch with new filter
-        });
-    });
-
-    // NEW: Infinite Scroll for Modal Reviews
-    DOMElements.fullReviewsListScrollArea.addEventListener('scroll', () => {
-        const { scrollTop, scrollHeight, clientHeight } = DOMElements.fullReviewsListScrollArea;
-        if (scrollHeight - scrollTop - clientHeight < 300) { // Fetch when 300px from bottom
-            fetchModalReviews();
-        }
-    });
-    DOMElements.fullReviewsLoadMoreBtn.addEventListener('click', () => fetchModalReviews());
 }
 
 
-// Attaches event listeners for dynamically rendered review cards (like, edit, delete)
+// Attaches event listeners for dynamically rendered review cards
 function attachReviewActionListeners() {
     document.querySelectorAll('.review-like-btn').forEach(button => {
         button.removeEventListener('click', handleToggleReviewLike); // Prevent duplicates
@@ -1973,8 +1705,43 @@ function attachReviewActionListeners() {
 
     document.querySelectorAll('.review-delete-btn').forEach(button => {
         button.removeEventListener('click', handleDeleteReview); // Prevent duplicates
-        button.addEventListener('click', handleDeleteReview);
+        button.addEventListener('click', handleDeleteDeleteReview);
     });
+}
+
+
+// Renders the review submission form based on user login status
+function renderReviewForm() {
+    if (state.currentUser) {
+        DOMElements.addReviewFormSection.style.display = 'block';
+        DOMElements.loginToReviewMessage.style.display = 'none'; // Hide login message
+        DOMElements.currentUserNameReviewForm.textContent = state.currentUser.name || state.currentUser.email;
+        if (state.currentUser.profile_image) {
+            DOMElements.userAvatarReviewForm.innerHTML = `<img src="${state.currentUser.profile_image}" alt="${state.currentUser.name}'s profile" class="w-full h-full object-cover rounded-full" loading="lazy">`;
+        } else {
+            DOMElements.userAvatarReviewForm.innerHTML = generateAvatar(state.currentUser.name, 'w-10 h-10', 'text-lg');
+        }
+        // Render interactive stars for the form
+        DOMElements.reviewRatingInput.innerHTML = renderStarRatingHTML(0, 'w-6 h-6', true, 'review-rating');
+        // Attach change listener for the dynamically rendered radio buttons
+        document.querySelectorAll('#review-rating-input input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                DOMElements.selectedRatingInput.value = e.target.value;
+                DOMElements.ratingError.style.display = 'none';
+                document.querySelectorAll('#review-rating-input input[type="radio"]').forEach(r => {
+                    if (r.checked) {
+                        r.classList.add('selected');
+                    } else {
+                        r.classList.remove('selected');
+                    }
+                });
+            });
+        });
+
+    } else {
+        DOMElements.addReviewFormSection.style.display = 'none';
+        DOMElements.loginToReviewMessage.style.display = 'block'; // Show login message
+    }
 }
 
 
@@ -2014,7 +1781,6 @@ async function handleToggleLike() {
             action = 'liked';
         }
         
-        // Re-fetch product data to get updated total_likes
         const { data: updatedProduct, error: fetchError } = await supabaseClient
             .from('products')
             .select('total_likes')
@@ -2023,9 +1789,7 @@ async function handleToggleLike() {
 
         if (fetchError) {
              console.error("Failed to re-fetch likes count:", fetchError);
-             // Best effort update
-             state.product.total_likes += (action === 'liked' ? 1 : -1);
-             state.isLiked = (action === 'liked');
+             if (action === 'liked') state.isLiked = true; else state.isLiked = false;
         } else {
             state.product.total_likes = updatedProduct.total_likes;
             state.isLiked = (action === 'liked');
@@ -2099,67 +1863,10 @@ async function handleCopyUrl() {
         showToast('Could not copy URL to clipboard. Please copy it manually.', 'error');
     }
 }
-
-
-// NEW: Central function to open the full reviews modal
-function openFullReviewsModal() {
-    document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    DOMElements.fullReviewsModal.classList.add('open');
-    DOMElements.fullReviewsModal.setAttribute('aria-hidden', 'false');
-
-    // Populate modal dashboard with latest data from product (which is fetched regularly)
-    DOMElements.fullModalAvgRating.textContent = (state.product.avg_rating || 0).toFixed(1);
-    DOMElements.fullModalStarRating.innerHTML = renderStarRatingHTML(state.product.avg_rating, 'w-6 h-6');
-    animateCount(DOMElements.fullModalTotalReviews, 0, state.product.total_reviews, 700);
-    
-    // Ensure the state.reviewsData is up-to-date for the chart.
-    // If not, calculate from `state.initialReviews` or re-fetch stats if necessary.
-    // For simplicity, we'll re-process using initial reviews as a base, assuming they're representative.
-    processReviewsData(state.initialReviews, DOMElements.fullModalAvgRating, DOMElements.fullModalStarRating, DOMElements.fullModalTotalReviews, DOMElements.fullModalRatingsChart, DOMElements.fullModalFilterBtns);
-
-    state.currentRatingFilter = 0; // Reset filter when opening modal
-    updateModalFilterButtons();
-    fetchModalReviews(true); // Fetch all reviews for modal
-}
-
-// NEW: Central function to close the full reviews modal
-function closeFullReviewsModal() {
-    document.body.style.overflow = ''; // Restore background scrolling
-    DOMElements.fullReviewsModal.classList.remove('open');
-    DOMElements.fullReviewsModal.setAttribute('aria-hidden', 'true');
-    // Optionally reset scroll position
-    DOMElements.fullReviewsListScrollArea.scrollTop = 0; 
-}
-
-// NEW: Update filter buttons in the modal
-function updateModalFilterButtons() {
-    DOMElements.fullModalFilterBtns.forEach(btn => {
-        const rating = parseInt(btn.dataset.ratingFilter, 10);
-        btn.classList.toggle('active', rating === state.currentRatingFilter);
-        btn.classList.toggle('bg-liyog-green', rating === state.currentRatingFilter);
-        btn.classList.toggle('bg-gray-700', rating !== state.currentRatingFilter);
-        btn.setAttribute('aria-pressed', rating === state.currentRatingFilter);
-    });
-}
-
 // ===================================================================
-// REALTIME & DATA REFRESH
+// REALTIME SUBSCRIPTIONS
 // ===================================================================
-
-async function refreshAllProductData() {
-    // This function becomes a central point for updating UI after a major change
-    const slug = state.product.slug;
-    state.product = await fetchProduct(slug); // Re-fetch product to get latest review counts etc.
-    renderProductDetails();
-    await fetchInitialReviews(); // Re-fetch initial set of reviews for main page
-
-    // If modal is open, refresh its contents too
-    if (DOMElements.fullReviewsModal.classList.contains('open')) {
-        await fetchModalReviews(true); // Re-fetch all reviews for the modal
-    }
-}
-
-function setupSupabaseRealtime() {
+function setupSupabaseRealtimeReviews() {
     if (!state.product) return;
 
     supabaseClient
@@ -2169,13 +1876,23 @@ function setupSupabaseRealtime() {
             { event: '*', schema: 'public', table: 'reviews', filter: `product_id=eq.${state.product.id}` },
             async (payload) => {
                 console.log('Realtime change received:', payload);
-                showToast('Reviews have been updated!', 'info');
-                await refreshAllProductData(); // Trigger full refresh
+                // When a change happens, re-fetch and re-render reviews
+                // This ensures the dashboard, review list, and like counts are always up-to-date
+                state.reviewsPage = 1;
+                state.reviews = [];
+                state.hasMoreReviews = true;
+                await fetchReviews(state.currentRatingFilter);
+
+                if (payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
+                    state.product = await fetchProduct(state.product.slug);
+                    renderProductDetails();
+                }
             }
         )
         .subscribe();
     console.log(`Subscribed to realtime changes for product reviews: ${state.product.id}`);
 }
+
 
 
 // ===================================================================
@@ -2229,18 +1946,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderMediaGallery();
         renderReviewForm();
 
-        // Animate total reviews count on load
-        const totalReviewsCount = state.product.total_reviews || 0;
-        // Start animation from 0 to current totalReviews, but only if it's not already showing 0
-        if (DOMElements.totalReviews.textContent === '0') {
-            animateCount(DOMElements.totalReviews, 0, totalReviewsCount, 1000);
-        } else {
-            DOMElements.totalReviews.textContent = totalReviewsCount.toLocaleString(); // Just set if already a number
-        }
-
-
         await Promise.all([
-            fetchInitialReviews(), // Fetches initial reviews for the main page
+            fetchReviews(),
             (async () => {
                 const related = await fetchRelatedProducts(state.product);
                 if (related && related.length > 0) {
@@ -2254,7 +1961,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             })()
         ]);
 
-        setupSupabaseRealtime(); // Setup realtime listeners after initial load
+        setupSupabaseRealtimeReviews();
 
         DOMElements.loader.classList.add('hidden');
         DOMElements.content.classList.remove('hidden');
@@ -2277,9 +1984,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         showToast(`Failed to load product: ${error.message}`, 'error');
     }
 });
-</script>
 
+
+</script>
 </body>
 </html>
-
-
