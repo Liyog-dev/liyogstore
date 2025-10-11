@@ -280,6 +280,45 @@
             margin-bottom: 0; /* Remove default margin-bottom from flex */
         }
 
+/* >>> ADD FOR PRODUCT GALLERY IMPROVEMENTS <<< */
+
+/* ensure main media covers area elegantly without distortion */
+#main-media-viewer img,
+#main-media-viewer video,
+#main-media-viewer iframe {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* preserve aspect ratio and avoid distortion */
+}
+
+/* video play overlay for thumbnails */
+.thumbnail-btn { position: relative; }
+.thumbnail-btn .video-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.32);
+  opacity: 0;
+  transition: opacity .18s ease;
+  border-radius: 0.5rem;
+}
+.thumbnail-btn:hover .video-overlay,
+.thumbnail-btn.active .video-overlay {
+  opacity: 1;
+}
+
+/* make arrows more tappable on mobile */
+.media-arrow { width: 44px; height: 44px; padding: 0.4rem; }
+
+/* small improvement for very long product names */
+#product-name {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
     </style>
     <script>
         tailwind.config = {
@@ -416,6 +455,9 @@
                             <div id="product-category" class="text-sm font-semibold text-liyog-green mb-1"></div>
                             <h1 id="product-name" class="text-3xl lg:text-4xl font-extrabold text-gray-900 leading-tight"></h1>
                         </div>
+<!-- ADD: product created / updated timestamps -->
+<div id="product-dates" class="product-timestamps text-gray-500 text-sm mt-2" aria-live="polite"></div>
+
                         <div id="stock-badge" class="mt-2 sm:mt-0 text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap self-start"></div>
                     </div>
                     
@@ -690,7 +732,8 @@ const DOMElements = {
     thumbnailsWrapper: document.getElementById('thumbnails-wrapper'),
     productCategory: document.getElementById('product-category'),
     productName: document.getElementById('product-name'),
-    stockBadge: document.getElementById('stock-badge'),
+    productDates: document.getElementById('product-dates'),
+stockBadge: document.getElementById('stock-badge'),
     starRating: document.getElementById('star-rating'),
     avgRating: document.getElementById('avg-rating'),
     totalReviews: document.getElementById('total-reviews'),
@@ -807,6 +850,103 @@ function normalizeYoutubeUrl(url) {
     }
     // Add rel=0 to prevent related videos, modestbranding to hide YouTube logo, controls for playback.
     return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=1&showinfo=0&rel=0&loop=1&modestbranding=1` : null;
+}
+
+// >>> ADD generateVideoThumbnail(videoUrl)
+// Attempts to extract a frame (at ~1.5s) from a cross-origin-friendly video resource.
+// Will fail if CORS prevents reading video pixels — server-side generation is recommended for production.
+async function generateVideoThumbnail(videoUrl, timeSec = 1.5, maxWidth = 640) {
+    return new Promise((resolve, reject) => {
+        try {
+            const video = document.createElement('video');
+            video.crossOrigin = 'anonymous';
+            video.preload = 'metadata';
+            video.muted = true;
+            video.src = videoUrl;
+
+            const onLoaded = () => {
+                // Clamp time to duration
+                const seekTo = Math.min(timeSec, Math.max(0, (video.duration || timeSec/2)));
+                const onSeeked = () => {
+                    try {
+                        // canvas size proportional to video
+                        const vw = video.videoWidth || maxWidth;
+                        const vh = video.videoHeight || Math.round((vw / video.videoWidth) * video.videoHeight) || Math.round(vw * 9 / 16);
+                        const canvas = document.createElement('canvas');
+                        const ratio = Math.min(1, maxWidth / vw);
+                        canvas.width = Math.round(vw * ratio);
+                        canvas.height = Math.round(vh * ratio);
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        const dataURL = canvas.toDataURL('image/jpeg', 0.75);
+                        cleanup();
+                        resolve(dataURL);
+                    } catch (err) {
+                        cleanup();
+                        reject(err);
+                    }
+                };
+                video.currentTime = seekTo;
+                video.addEventListener('seeked', onSeeked, { once: true });
+            };
+            const onError = (err) => { cleanup(); reject(new Error('Video load error or CORS blocked')); };
+            const cleanup = () => {
+                try { video.pause(); video.removeAttribute('src'); video.load(); } catch (e) {}
+            };
+
+            video.addEventListener('loadedmetadata', onLoaded, { once: true });
+            video.addEventListener('error', onError, { once: true });
+        } catch (err) {
+            reject(err);
+        }
+    });
+}
+
+// >>> ADD: touch handlers setup for main media viewer (used by gallery)
+function setupMediaTouchHandlers() {
+    const area = DOMElements.mainMediaViewer;
+    if (!area) return;
+    let startX = null;
+    let startY = null;
+    const threshold = 40;
+
+    function onTouchStart(e) {
+        if (!e.touches || e.touches.length === 0) return;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    }
+    function onTouchEnd(e) {
+        if (startX === null || !e.changedTouches || e.changedTouches.length === 0) return;
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = e.changedTouches[0].clientY - startY;
+        // ignore mostly-vertical swipes
+        if (Math.abs(dx) < threshold || Math.abs(dx) < Math.abs(dy)) { startX = null; startY = null; return; }
+        if (dx < 0) {
+            // swipe left -> next
+            if (state.currentMediaIndex < state.mediaItems.length - 1) {
+                state.currentMediaIndex++;
+                renderMainMedia(state.currentMediaIndex, state.mediaItems);
+                const btn = DOMElements.thumbnailsWrapper.querySelector(`.thumbnail-btn[data-index="${state.currentMediaIndex}"]`);
+                if (btn) { DOMElements.thumbnailsWrapper.querySelectorAll('.thumbnail-btn').forEach(b=>b.classList.remove('thumb-active')); btn.classList.add('thumb-active'); btn.scrollIntoView({behavior:'smooth', inline:'center'}); }
+            }
+        } else {
+            // swipe right -> prev
+            if (state.currentMediaIndex > 0) {
+                state.currentMediaIndex--;
+                renderMainMedia(state.currentMediaIndex, state.mediaItems);
+                const btn = DOMElements.thumbnailsWrapper.querySelector(`.thumbnail-btn[data-index="${state.currentMediaIndex}"]`);
+                if (btn) { DOMElements.thumbnailsWrapper.querySelectorAll('.thumbnail-btn').forEach(b=>b.classList.remove('thumb-active')); btn.classList.add('thumb-active'); btn.scrollIntoView({behavior:'smooth', inline:'center'}); }
+            }
+        }
+        startX = null; startY = null;
+    }
+
+    // Ensure not to attach duplicates
+    if (!area._touchAttached) {
+        area.addEventListener('touchstart', onTouchStart, { passive: true });
+        area.addEventListener('touchend', onTouchEnd, { passive: true });
+        area._touchAttached = true;
+    }
 }
 
 // Function to generate a dynamic avatar (initials)
@@ -1138,6 +1278,31 @@ function renderProductDetails() {
     // Header Info
     DOMElements.productCategory.textContent = p.category || 'General';
     DOMElements.productName.textContent = p.name;
+
+// >>> ADD: render human-readable created / updated timestamps
+(function renderTimestamps() {
+    try {
+        const created = p.created_at ? new Date(p.created_at) : null;
+        const updated = p.updated_at ? new Date(p.updated_at) : null;
+        if (!created) {
+            DOMElements.productDates && (DOMElements.productDates.textContent = '');
+            return;
+        }
+        // Use user's locale by default, show date + time in short format
+        const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        const createdStr = new Intl.DateTimeFormat(undefined, options).format(created);
+        let out = `Created: ${createdStr}`;
+        if (updated && updated.getTime() > created.getTime()) {
+            const updatedStr = new Intl.DateTimeFormat(undefined, options).format(updated);
+            out += ` • Updated: ${updatedStr}`;
+        }
+        if (DOMElements.productDates) DOMElements.productDates.textContent = out;
+    } catch (err) {
+        if (DOMElements.productDates) DOMElements.productDates.textContent = '';
+        console.debug('Error rendering product dates:', err);
+    }
+})();
+
     document.title = `${p.name} • Liyog`;
     
     // Stock Status
@@ -1233,92 +1398,138 @@ function renderProductDetails() {
     }
 }
 
-function renderMediaGallery() {
+// >>> REPLACE renderMediaGallery() with this improved version (supports thumbnails, video thumbs, lazy loading, swipe, keyboard) <<<
+async function renderMediaGallery() {
     const p = state.product;
     if (!p) return;
 
-    // Separate images and videos
-    const imageItems = (p.image_urls || []).map(url => ({ type: 'image', url }));
-    const videoItems = [];
-    if (p.youtube_url) videoItems.push({ type: 'youtube', url: normalizeYoutubeUrl(p.youtube_url) });
-    if (p.video_url) videoItems.push({ type: 'video', url: p.video_url });
+    // Build media arrays: images first then videos (youtube or direct video)
+    const images = Array.isArray(p.image_urls) ? p.image_urls.filter(Boolean) : [];
+    const media = images.map(url => ({ type: 'image', url }));
 
-    // Prioritize images then videos
-    state.mediaItems = [...imageItems, ...videoItems];
-
-    if (state.mediaItems.length === 0) {
-        state.mediaItems.push({ type: 'image', url: 'https://via.placeholder.com/600?text=No+Media+Available' });
+    if (p.youtube_url) {
+        const embed = normalizeYoutubeUrl(p.youtube_url);
+        if (embed) media.push({ type: 'youtube', url: embed, raw: p.youtube_url });
+    }
+    if (p.video_url) {
+        media.push({ type: 'video', url: p.video_url });
     }
 
-    DOMElements.thumbnailsWrapper.innerHTML = ''; // Clear previous thumbnails
+    // Ensure at least one media item
+    if (media.length === 0) {
+        media.push({ type: 'image', url: 'https://via.placeholder.com/800x800?text=No+Media+Available' });
+    }
 
-    // Render image thumbnails in the first "row"
-    const imageThumbnailsHtml = imageItems.map((item, index) => {
-        return `
-            <button data-index="${index}" class="thumbnail-btn flex-shrink-0 w-20 h-20 border-2 border-transparent rounded-lg overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-liyog-green focus:ring-offset-2 transition-all duration-200">
-                <img src="${item.url}" alt="Product image thumbnail ${index + 1}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300" loading="lazy">
-            </button>
-        `;
-    }).join('');
-    
-    // Render video thumbnails in the second "row" or after images if not a two-row grid
-    const videoThumbnailsHtml = videoItems.map((item, indexOffset) => {
-        const index = imageItems.length + indexOffset; // Offset for videos
-        let thumbSrc = 'https://via.placeholder.com/80?text=Video';
-        if (item.type === 'youtube') {
-            const videoIdMatch = item.url.match(/embed\/([^?]+)/);
-            if (videoIdMatch && videoIdMatch[1]) {
-                thumbSrc = `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`;
-            }
-        } else if (item.type === 'video') {
-            // For uploaded videos, attempt to generate thumbnail or use a placeholder
-            // A server-side solution or a more complex client-side approach (canvas, video element) would be needed for dynamic generation.
-            // For now, use a generic video icon.
+    state.mediaItems = media;
+    // If current index out of range, clamp
+    if (state.currentMediaIndex >= state.mediaItems.length) state.currentMediaIndex = 0;
+    if (state.currentMediaIndex < 0) state.currentMediaIndex = 0;
+
+    // Build thumbnails HTML (images then videos)
+    DOMElements.thumbnailsWrapper.innerHTML = ''; // clear
+    const frag = document.createDocumentFragment();
+
+    for (let i = 0; i < state.mediaItems.length; i++) {
+        const item = state.mediaItems[i];
+        const btn = document.createElement('button');
+        btn.className = 'thumbnail-btn flex-shrink-0 w-20 h-20 border-2 border-transparent rounded-lg overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-liyog-green focus:ring-offset-2 transition-all duration-200';
+        btn.dataset.index = i;
+        btn.setAttribute('aria-label', item.type === 'image' ? `Show image ${i+1}` : `Play video ${i+1}`);
+
+        // thumbnail source
+        let thumbSrc = '';
+        if (item.type === 'image') {
+            thumbSrc = item.url;
+            btn.innerHTML = `<img src="${thumbSrc}" alt="Product image thumbnail ${i+1}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300" loading="lazy">`;
+        } else if (item.type === 'youtube') {
+            // extract video id for YouTube thumbnail if possible
+            const m = (item.url || '').match(/embed\/([^?]+)/);
+            const vid = m && m[1] ? m[1] : null;
+            thumbSrc = vid ? `https://img.youtube.com/vi/${vid}/mqdefault.jpg` : 'https://via.placeholder.com/80?text=Video';
+            btn.innerHTML = `<img src="${thumbSrc}" alt="Product video thumbnail ${i+1}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300" loading="lazy">` +
+                            `<div class="video-overlay"><svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>`;
+        } else { // direct video upload
+            // try to generate a thumbnail client-side (non-blocking)
             thumbSrc = 'https://via.placeholder.com/80/006400/FFFFFF?text=🎥';
+            // optimistic: create an <img> then try to replace src with generated thumbnail when available
+            btn.innerHTML = `<img src="${thumbSrc}" alt="Product video thumbnail ${i+1}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300" loading="lazy">` +
+                            `<div class="video-overlay"><svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>`;
+            // Kick off generation but don't block rendering
+            (async () => {
+                try {
+                    const dataUrl = await generateVideoThumbnail(item.url);
+                    if (dataUrl) {
+                        const imgEl = btn.querySelector('img');
+                        if (imgEl) imgEl.src = dataUrl;
+                    }
+                } catch (err) {
+                    // ignore; fallback placeholder remains
+                    console.debug('video thumbnail generation failed:', err?.message || err);
+                }
+            })();
         }
-        return `
-            <button data-index="${index}" class="thumbnail-btn flex-shrink-0 w-20 h-20 border-2 border-transparent rounded-lg overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-liyog-green focus:ring-offset-2 transition-all duration-200">
-                <img src="${thumbSrc}" alt="Product video thumbnail ${index + 1}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300" loading="lazy">
-                ${item.type !== 'image' ? '<div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40"><svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3.25-2a1 1 0 000-1.664l-3.25-2z" clip-rule="evenodd"></path></svg></div>' : ''}
-            </button>
-        `;
-    }).join('');
 
-    DOMElements.thumbnailsWrapper.innerHTML = imageThumbnailsHtml + videoThumbnailsHtml;
-
-    // Apply two-row styling if both images and videos are present
-    if (imageItems.length > 0 && videoItems.length > 0 && state.mediaItems.length > 5) { // Arbitrary threshold for two rows
-         DOMElements.thumbnailsWrapper.classList.add('two-rows');
-    } else {
-        DOMElements.thumbnailsWrapper.classList.remove('two-rows');
-    }
-
-
-    renderMainMedia(state.currentMediaIndex, state.mediaItems); // Show current item
-
-    const thumbnailButtons = DOMElements.thumbnailsWrapper.querySelectorAll('.thumbnail-btn');
-    thumbnailButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const index = parseInt(btn.dataset.index, 10);
-            state.currentMediaIndex = index; // Update current index
+        // Click handler
+        btn.addEventListener('click', (e) => {
+            const idx = Number(btn.dataset.index);
+            state.currentMediaIndex = idx;
             renderMainMedia(state.currentMediaIndex, state.mediaItems);
-            thumbnailButtons.forEach(b => b.classList.remove('thumb-active'));
+            // update active class
+            DOMElements.thumbnailsWrapper.querySelectorAll('.thumbnail-btn').forEach(b => b.classList.remove('thumb-active'));
             btn.classList.add('thumb-active');
+            // ensure visible
+            btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         });
-    });
-    // Set the initial active thumbnail
-    if (thumbnailButtons.length > 0) {
-        if (thumbnailButtons[state.currentMediaIndex]) {
-            thumbnailButtons[state.currentMediaIndex].classList.add('thumb-active');
-        } else { // Fallback if initial index is out of bounds
-            state.currentMediaIndex = 0;
-            thumbnailButtons[0].classList.add('thumb-active');
-        }
+
+        frag.appendChild(btn);
     }
-    updateMediaNavButtons(); // Show/hide arrows
+
+    DOMElements.thumbnailsWrapper.appendChild(frag);
+
+    // Set initial active class
+    const thumbs = DOMElements.thumbnailsWrapper.querySelectorAll('.thumbnail-btn');
+    thumbs.forEach(b => b.classList.remove('thumb-active'));
+    if (thumbs[state.currentMediaIndex]) thumbs[state.currentMediaIndex].classList.add('thumb-active');
+
+    // Render the main media
+    renderMainMedia(state.currentMediaIndex, state.mediaItems);
+
+    // Setup touch/swipe handlers on main viewer for mobile
+    setupMediaTouchHandlers();
+
+    // keyboard navigation: left/right to navigate; Enter to toggle play/pause for video
+    if (!renderMediaGallery._keyboardAttached) {
+        window.addEventListener('keydown', (e) => {
+            if (['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+            if (e.key === 'ArrowRight') {
+                if (state.currentMediaIndex < state.mediaItems.length - 1) {
+                    state.currentMediaIndex++;
+                    renderMainMedia(state.currentMediaIndex, state.mediaItems);
+                    const btn = DOMElements.thumbnailsWrapper.querySelector(`.thumbnail-btn[data-index="${state.currentMediaIndex}"]`);
+                    if (btn) { DOMElements.thumbnailsWrapper.querySelectorAll('.thumbnail-btn').forEach(b => b.classList.remove('thumb-active')); btn.classList.add('thumb-active'); btn.scrollIntoView({ behavior: 'smooth', inline: 'center' }); }
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (state.currentMediaIndex > 0) {
+                    state.currentMediaIndex--;
+                    renderMainMedia(state.currentMediaIndex, state.mediaItems);
+                    const btn = DOMElements.thumbnailsWrapper.querySelector(`.thumbnail-btn[data-index="${state.currentMediaIndex}"]`);
+                    if (btn) { DOMElements.thumbnailsWrapper.querySelectorAll('.thumbnail-btn').forEach(b => b.classList.remove('thumb-active')); btn.classList.add('thumb-active'); btn.scrollIntoView({ behavior: 'smooth', inline: 'center' }); }
+                }
+            } else if (e.key === 'Enter') {
+                // toggle play/pause if main is video
+                const vid = DOMElements.mainMediaViewer.querySelector('video');
+                if (vid) {
+                    if (vid.paused) vid.play().catch(()=>{});
+                    else vid.pause();
+                }
+            }
+        });
+        renderMediaGallery._keyboardAttached = true;
+    }
 }
 
 
+// >>> REPLACE renderMainMedia() - improved fallback, lazy loads, accessible titles <<<
 function renderMainMedia(index, mediaItems) {
     const item = mediaItems[index];
     DOMElements.mainMediaViewer.innerHTML = ''; // Clear previous content
@@ -1327,30 +1538,55 @@ function renderMainMedia(index, mediaItems) {
         DOMElements.mainMediaViewer.innerHTML = `<img src="https://via.placeholder.com/600?text=Error" alt="Media load error" class="w-full h-full object-contain">`;
         return;
     }
-    
+
     if (item.type === 'image') {
-        DOMElements.mainMediaViewer.innerHTML = `<img src="${item.url}" alt="Product image" class="w-full h-full object-contain rounded-lg transition-opacity duration-300 animate-fade-in" loading="eager">`;
+        const img = document.createElement('img');
+        img.src = item.url;
+        img.alt = `${state.product?.name || 'Product'} image ${index + 1}`;
+        img.className = 'w-full h-full object-contain rounded-lg transition-opacity duration-300 animate-fade-in';
+        // For the main display we can use eager loading for the visible image
+        img.loading = 'eager';
+        img.decoding = 'async';
+        DOMElements.mainMediaViewer.appendChild(img);
     } else if (item.type === 'video') {
-        DOMElements.mainMediaViewer.innerHTML = `<video src="${item.url}" class="w-full h-full object-contain rounded-lg" controls playsinline autoplay loop muted preload="metadata"></video>`;
+        const video = document.createElement('video');
+        video.src = item.url;
+        video.controls = true;
+        video.playsInline = true;
+        video.preload = 'metadata';
+        video.autoplay = false; // avoid autoplay surprises; user can press play
+        video.muted = false;
+        video.className = 'w-full h-full object-contain rounded-lg';
+        DOMElements.mainMediaViewer.appendChild(video);
+
+        // auto-hide native controls overlay isn't reliable cross-browser.
+        // Provide keyboard focus & ensure accessible labels
+        video.setAttribute('aria-label', `Product video for ${state.product?.name || 'product'}`);
     } else if (item.type === 'youtube') {
-        // Use responsive container for YouTube iframe, ensuring rel=0 to prevent related videos
-        DOMElements.mainMediaViewer.innerHTML = `
-            <div class="responsive-iframe-container">
-                <iframe src="${item.url}" 
-                        allow="autoplay; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen 
-                        title="YouTube video player for ${state.product?.name || 'product'}"
-                        loading="lazy">
-                </iframe>
-            </div>
-        `;
+        // Embed YouTube in responsive container (use embed url already from normalizeYoutubeUrl)
+        const container = document.createElement('div');
+        container.className = 'responsive-iframe-container';
+        const iframe = document.createElement('iframe');
+        iframe.src = item.url;
+        iframe.setAttribute('allow', 'autoplay; encrypted-media; gyroscope; picture-in-picture');
+        iframe.setAttribute('allowfullscreen', '');
+        iframe.title = `YouTube video player for ${state.product?.name || 'product'}`;
+        iframe.loading = 'lazy';
+        container.appendChild(iframe);
+        DOMElements.mainMediaViewer.appendChild(container);
     }
+
+    // update nav buttons
     updateMediaNavButtons();
 }
 
 // NEW: Updates visibility of media navigation buttons
 function updateMediaNavButtons() {
-    if (state.mediaItems.length <= 1) {
+    const total = state.mediaItems.length;
+    if (!DOMElements.mediaPrevBtn || !DOMElements.mediaNextBtn) return;
+
+    // Show/hide based on count
+    if (total <= 1) {
         DOMElements.mediaPrevBtn.classList.add('hidden');
         DOMElements.mediaNextBtn.classList.add('hidden');
         return;
@@ -1358,11 +1594,16 @@ function updateMediaNavButtons() {
     DOMElements.mediaPrevBtn.classList.remove('hidden');
     DOMElements.mediaNextBtn.classList.remove('hidden');
 
-    if (state.currentMediaIndex === 0) {
+    if (state.currentMediaIndex <= 0) {
         DOMElements.mediaPrevBtn.classList.add('hidden');
+    } else {
+        DOMElements.mediaPrevBtn.classList.remove('hidden');
     }
-    if (state.currentMediaIndex === state.mediaItems.length - 1) {
+
+    if (state.currentMediaIndex >= total - 1) {
         DOMElements.mediaNextBtn.classList.add('hidden');
+    } else {
+        DOMElements.mediaNextBtn.classList.remove('hidden');
     }
 }
 
@@ -1972,10 +2213,9 @@ function attachReviewActionListeners() {
     });
 
     document.querySelectorAll('.review-delete-btn').forEach(button => {
-        button.removeEventListener('click', handleDeleteReview); // Prevent duplicates
-        button.addEventListener('click', handleDeleteDeleteReview);
-    });
-}
+    button.removeEventListener('click', handleDeleteReview); // Prevent duplicates
+    button.addEventListener('click', handleDeleteReview);
+});
 
 
 // Renders the review submission form based on user login status
