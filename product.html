@@ -243,25 +243,7 @@
             transform: translateY(0);
         }
 
-        /* Media Gallery Arrows */
-        .media-arrow {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 0.5rem;
-            border-radius: 9999px;
-            cursor: pointer;
-            z-index: 10;
-            opacity: 0.8;
-            transition: opacity 0.2s ease;
-        }
-        .media-arrow:hover { opacity: 1; }
-        .media-arrow.left { left: 0.5rem; }
-        .media-arrow.right { right: 0.5rem; }
-        .media-arrow svg { width: 1.5rem; height: 1.5rem; }
-
+        
         /* Two-row thumbnails */
         #thumbnails-wrapper.two-rows {
             display: grid;
@@ -503,14 +485,14 @@
                     <div id="thumbnails-container" class="w-full hide-scrollbar overflow-x-auto">
                         <div id="thumbnails-wrapper" class="flex gap-3 pb-2">
                         </div>
+                    </div>
+                </section>
 
 <div id="media-gallery-container" class="relative">
   <div id="main-media-viewer" class="gallery-wrapper"></div>
   <button id="media-prev" class="media-arrow left-arrow hidden">‹</button>
   <button id="media-next" class="media-arrow right-arrow hidden">›</button>
 </div>
-                    </div>
-                </section>
                 
                 <section id="product-details" class="flex flex-col">
                     <div class="flex flex-col sm:flex-row justify-between sm:items-start">
@@ -2676,7 +2658,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 </body>
 </html>
-
 
 
 
