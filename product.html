@@ -389,60 +389,6 @@ body, html {
 overscroll-behavior: contain;
 }
 
-/* --- PLAYER ICON: PRO UI DESIGN --- */
-
-/* Pulse animation for main button */
-@keyframes pulse-player {
-  0%, 100% { 
-    transform: scale(1); 
-    opacity: 1; 
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); 
-  }
-  50% { 
-    transform: scale(1.1); 
-    opacity: 0.85; 
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); 
-  }
-}
-.animate-pulse-player {
-  animation: pulse-player 2s infinite ease-in-out;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* Hover: subtle grow + stronger glow */
-#gallery-video-button:hover {
-  transform: scale(1.15);
-  box-shadow: 0 0 25px rgba(255, 223, 0, 0.8), 0 0 15px rgba(255, 122, 0, 0.6);
-}
-
-/* Pointer cursor and keyboard focus accessibility */
-#gallery-video-button {
-  cursor: pointer;
-  outline: none;
-  border: none;
-}
-#gallery-video-button:focus {
-  box-shadow: 0 0 30px rgba(255, 223, 0, 0.9), 0 0 20px rgba(255, 122, 0, 0.7);
-}
-
-/* --- Green Ping Dot: Pro UI Tweak --- */
-#gallery-video-button > .animate-ping {
-  animation: ping-dot 1.5s infinite ease-in-out;
-  transform-origin: center;
-}
-
-@keyframes ping-dot {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-    box-shadow: 0 0 4px #22c55e, 0 0 6px #22c55e55;
-  }
-  50% {
-    transform: scale(1.5);
-    opacity: 0.6;
-    box-shadow: 0 0 8px #22c55e, 0 0 12px #22c55e55;
-  }
-}
 
 </style>
 
