@@ -1,483 +1,750 @@
 /*
-  Modern Advanced Global AI Error Debugger
-  - Includes Gemini API for smart suggestions.
-  - Drop this file into your project: <script src="/path/to/global-debugger.js"></script>
-  - Include the HTML overlay (global-debugger.html) near </body>
+  NEXT-GEN SELF-CONTAINED DEBUGGER v1.0
+  - Single JS file. Injects UI + styles automatically.
+  - No external AI keys. Smart heuristics built-in.
+  - Usage: include <script src="..."></script> before end of </body> (or inline).
+  - Safe-guards to avoid infinite loops and self-logging.
 */
 
-(async () => {
-  /* ========== Configuration ========== */
+(function () {
+  // ---------- Singleton guard ----------
+  if (window.__NEXTGEN_DEBUGGER_LOADED__) {
+    console.info('NextGen Debugger already loaded.');
+    return;
+  }
+  window.__NEXTGEN_DEBUGGER_LOADED__ = true;
+
+  // ---------- Constants & config ----------
+  const SIGNATURE = '[NextGen-Debugger]';
   const CONFIG = {
-    ENABLE_OVERLAY: true,
-    SHOW_CONSOLE_ERRORS: true,
-    REMOTE_LOG_ENDPOINT: null, // e.g., 'https://your.api/logs'
-    REMOTE_LOG_AUTH: null,     // e.g., 'Bearer ...'
-    CONTEXT_LINES: 5,
-    MAX_SNIPPET_CHARS: 3200,
-    IS_DEV_ONLY: false,
-    SEND_DEBOUNCE_MS: 600,
+    maxEntries: 400,               // keep memory bounded
+    debounceRemoteMs: 800,         // min gap between remote sends
+    enabled: true,
+    uiKeyboardToggle: '`',         // toggle key (backtick) optionally with ctrl
+    attachToBottom: true,
+    shrinkToBadge: true,           // show runtime badge separate from main panel
+    badgePosition: { bottom: 12, right: 12 },
+    themeAccent: '#67e8f9',        // neon accent
+    themeDanger: '#fb7185',
+    autoOpenOnError: true,
+    fetchSnippetContext: 5,
+    snippetMaxChars: 3200,
   };
 
-  // --- AI Configuration ---
-  // IMPORTANT: Leave apiKey as "" - it will be supplied by the environment.
-  const GEMINI_API_KEY = "AIzaSyB0IU7q3fsNZm5VG4kHF3HX8LR_9p4GAQM";
-  const GEMINI_API_URL = `https://generativelen.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`;
-  
-  // This prompt defines the AI's role and expected output.
-  const AI_SYSTEM_PROMPT = `You are an expert web developer and a senior debugging assistant.
-Analyze the following JavaScript runtime error details. Provide a clear, step-by-step explanation and a suggested code fix.
-You MUST respond in valid JSON format matching this schema:
-{
-  "type": "object",
-  "properties": {
-    "explanation": { "type": "string", "description": "A clear, simple explanation of what the error means and what likely caused it." },
-    "suggestedFix": { "type": "string", "description": "A code snippet (using markdown \`\`\`javascript) showing the suggested fix. If no specific fix is possible, provide a general approach." }
-  },
-  "required": ["explanation", "suggestedFix"]
-}`;
-
-  // This schema is sent to the API to enforce the JSON output.
-  const AI_RESPONSE_SCHEMA = {
-    type: "OBJECT",
-    properties: {
-      "explanation": { "type": "STRING" },
-      "suggestedFix": { "type": "STRING" }
-    },
-    required: ["explanation", "suggestedFix"]
+  // ---------- Internal state ----------
+  const state = {
+    entries: [],
+    counts: { error: 0, warn: 0, info: 0, fetch: 0 },
+    lastRemoteAt: 0,
+    isPanelOpen: false,
+    isDragging: false,
+    dragOffset: { x: 0, y: 0 },
   };
 
-  /* CRITICAL: Grab original fetch before it's wrapped.
-    This prevents an infinite loop if our *own* logging or AI calls fail.
-  */
-  const origFetch = window.fetch;
+  // ---------- Preserve originals ----------
+  const origConsole = {
+    log: console.log.bind(console),
+    warn: console.warn.bind(console),
+    error: console.error.bind(console),
+  };
+  const origFetch = window.fetch.bind(window);
+  const origXHR = window.XMLHttpRequest;
 
-  /* ========== Tiny helpers ========== */
-  function nowISO() { return new Date().toISOString(); }
-  function safeStr(v) {
-    try { return (typeof v === 'string' ? v : JSON.stringify(v, null, 2)); }
-    catch (e) { return String(v); }
+  // ---------- Utility helpers ----------
+  function now() { return new Date().toISOString(); }
+  function safeString(x) {
+    try { return typeof x === 'string' ? x : JSON.stringify(x, null, 2); }
+    catch (e) { return String(x); }
   }
-  function el(id) { return document.getElementById(id); }
-
-  /* ========== Overlay UI ========== */
-  const overlay = el('global-error-box');
-  const titleEl = el('global-error-title');
-  const summaryEl = el('global-error-summary');
-  const fullEl = el('global-error-full');
-  const detailsEl = el('global-error-details');
-  const btnClose = el('global-error-close');
-  const btnCopy = el('global-error-copy');
-  const aiContainerEl = el('global-error-ai-container');
-  const aiContentEl = el('global-error-ai-content');
-
-  // UI Listeners
-  if (btnClose) btnClose.addEventListener('click', () => overlay && (overlay.style.display = 'none'));
-  
-  // Use execCommand for clipboard access in iFrames
-  if (btnCopy) btnCopy.addEventListener('click', () => {
-    try {
-      const summaryText = summaryEl.textContent || '';
-      const fullText = fullEl.textContent || '';
-      const aiText = aiContentEl.textContent || '';
-      
-      const payload = `[Error Summary]\n${summaryText}\n\n[Full Error Details]\n${fullText}\n\n[AI Suggestion]\n${aiText}`;
-
-      const textarea = document.createElement('textarea');
-      textarea.value = payload;
-      textarea.style.position = 'fixed'; // Prevent scrolling to bottom
-      textarea.style.top = '-9999px';
-      textarea.style.left = '-9999px';
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-
-      btnCopy.textContent = 'Copied';
-      setTimeout(() => { btnCopy.textContent = 'Copy'; }, 1500);
-    } catch (err) {
-      console.warn('Copy failed', err);
-      btnCopy.textContent = 'Failed';
-      setTimeout(() => { btnCopy.textContent = 'Copy'; }, 1500);
+  function el(sel) { return document.querySelector(sel); }
+  function create(tag, attrs = {}, html = '') {
+    const d = document.createElement(tag);
+    for (const k in attrs) {
+      if (k === 'style') Object.assign(d.style, attrs[k]);
+      else if (k.startsWith('data-')) d.setAttribute(k, attrs[k]);
+      else d[k] = attrs[k];
     }
-  });
+    if (html) d.innerHTML = html;
+    return d;
+  }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
-  /**
-   * Shows the overlay with initial data and AI loading state.
-   */
-  function showOverlay(shortMsg, fullText, isAiLoading = false) {
-    if (CONFIG.IS_DEV_ONLY && !/localhost|127\.0\.0\.1/.test(location.hostname)) {
-      return;
+  // ---------- Safe self-log (does not re-enter handlers) ----------
+  function selfLog(...args) {
+    try { origConsole.log(SIGNATURE, ...args); } catch (e) {}
+  }
+
+  // ---------- Create UI & styles ----------
+  function injectStyles() {
+    if (document.getElementById('ng-debugger-styles')) return;
+    const s = create('style', { id: 'ng-debugger-styles' });
+    s.textContent = `
+/* NEXT-GEN Debugger Styles (injected) */
+.ngdb-root { position: fixed; ${CONFIG.attachToBottom ? 'bottom: 0; left: 0; right: 0;' : 'top: 0; left: 0;'} z-index: 2147483647; display:flex; justify-content:center; pointer-events:none; }
+.ngdb-panel {
+  pointer-events:auto;
+  width: min(980px, calc(100% - 28px));
+  margin: 12px auto;
+  background: linear-gradient(180deg, rgba(7,10,20,0.88), rgba(6,8,14,0.95));
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(2,6,23,0.8), inset 0 1px 0 rgba(255,255,255,0.02);
+  color: #e6eef8;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  overflow: hidden;
+  border: 1px solid rgba(100,200,255,0.06);
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.ngdb-header {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  cursor: grab;
+  user-select: none;
+}
+.ngdb-title { font-weight:700; font-size:14px; color: ${CONFIG.themeAccent}; letter-spacing:0.2px; }
+.ngdb-controls { margin-left:auto; display:flex; gap:8px; align-items:center; }
+
+.ngdb-btn {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.03);
+  padding:6px 8px;
+  border-radius:8px;
+  color: #cfefff;
+  font-weight:600;
+  font-size:12px;
+  cursor:pointer;
+}
+.ngdb-btn:hover { transform: translateY(-1px); }
+
+.ngdb-body { display:flex; gap:12px; padding:12px; align-items:stretch; }
+.ngdb-left { flex: 1 1 60%; overflow:auto; max-height: calc(60vh - 120px); }
+.ngdb-right { width: 340px; min-width: 220px; max-height: calc(60vh - 120px); overflow:auto; background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00)); border-radius:8px; padding:8px; border:1px solid rgba(255,255,255,0.02); }
+
+.ngdb-entry {
+  border-radius:8px;
+  padding:8px;
+  margin-bottom:8px;
+  font-size:13px;
+  line-height:1.35;
+  border: 1px solid rgba(255,255,255,0.02);
+  background: linear-gradient(180deg, rgba(255,255,255,0.006), rgba(255,255,255,0.002));
+  cursor: pointer;
+}
+.ngdb-entry:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.3); transform: translateY(-2px); }
+.ngdb-entry .meta { font-size:11px; color:#9fb6c9; margin-bottom:6px; }
+.ngdb-entry .message { color:#e6eef8; font-weight:600; }
+.ngdb-entry.error { border-left: 4px solid ${CONFIG.themeDanger}; }
+.ngdb-entry.warn { border-left: 4px solid #f59e0b; }
+.ngdb-entry.info { border-left: 4px solid ${CONFIG.themeAccent}; }
+
+.ngdb-snippet { margin-top:8px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace; font-size:12px; background: rgba(2,6,23,0.6); padding:8px; border-radius:6px; color:#dbeafe; overflow:auto; max-height:220px; white-space:pre; border:1px solid rgba(255,255,255,0.02); }
+
+.ngdb-right h4 { margin:6px 0; color:#cde9ff; font-size:13px; }
+.ngdb-controls .count { font-size:12px; color:#cfeffb; padding:4px 8px; border-radius:6px; background: rgba(10,14,22,0.5); border:1px solid rgba(255,255,255,0.02); }
+
+.ngdb-footer { display:flex; gap:8px; align-items:center; padding:10px 12px; border-top:1px solid rgba(255,255,255,0.02); }
+.ngdb-search { flex:1; padding:8px 10px; border-radius:8px; background: rgba(255,255,255,0.02); border: none; color:#e6eef8; outline:none; font-size:13px; }
+
+.ngdb-badge {
+  position: fixed;
+  z-index: 2147483650;
+  pointer-events: auto;
+  background: linear-gradient(180deg, rgba(10,14,20,0.95), rgba(8,10,16,0.98));
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow: 0 8px 30px rgba(2,6,23,0.7);
+  border: 1px solid rgba(255,255,255,0.03);
+  color: #dbeafe;
+  font-weight:700;
+  font-size:12px;
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.ngdb-badge .dot { width:10px; height:10px; border-radius:6px; background: ${CONFIG.themeAccent}; box-shadow: 0 0 8px ${CONFIG.themeAccent}; }
+.ngdb-hidden { display:none !important; }
+`;
+    document.head.appendChild(s);
+  }
+
+  function createUI() {
+    if (document.getElementById('ngdb-root')) return;
+
+    // Root container
+    const root = create('div', { id: 'ngdb-root', className: 'ngdb-root' });
+    root.style.pointerEvents = 'none';
+
+    // Panel
+    const panel = create('div', { id: 'ngdb-panel', className: 'ngdb-panel', role: 'dialog', 'aria-label': 'Debug Console' });
+
+    // Header
+    const header = create('div', { className: 'ngdb-header', id: 'ngdb-header' });
+    header.innerHTML = `
+      <div class="ngdb-title">⚡ NEXT-GEN Debugger</div>
+      <div class="ngdb-controls">
+        <div class="count" id="ngdb-counts">E:0 W:0 I:0 F:0</div>
+        <button class="ngdb-btn" id="ngdb-clear">Clear</button>
+        <button class="ngdb-btn" id="ngdb-copy">Copy All</button>
+        <button class="ngdb-btn" id="ngdb-close">Close</button>
+      </div>
+    `;
+    panel.appendChild(header);
+
+    // Body
+    const body = create('div', { className: 'ngdb-body' });
+    const left = create('div', { className: 'ngdb-left', id: 'ngdb-left' });
+    const right = create('div', { className: 'ngdb-right', id: 'ngdb-right' });
+
+    // Right panel: details and suggestions
+    right.innerHTML = `
+      <h4>Selected</h4>
+      <div id="ngdb-selected" style="font-size:13px; color:#9fb6c9; min-height:40px;">No entry selected</div>
+      <h4>Smart Suggestions</h4>
+      <div id="ngdb-suggestions" style="font-size:13px; color:#cfefff; min-height:60px;">No suggestions</div>
+      <h4>Full Stack / Extra</h4>
+      <div id="ngdb-fullstack" style="font-size:12px; color:#9fb6c9; min-height:60px; white-space:pre-wrap;"></div>
+    `;
+
+    // Footer: search & controls
+    const footer = create('div', { className: 'ngdb-footer' });
+    const search = create('input', { className: 'ngdb-search', id: 'ngdb-search', placeholder: 'Search logs (press Enter)' });
+    footer.appendChild(search);
+
+    body.appendChild(left);
+    body.appendChild(right);
+    panel.appendChild(body);
+    panel.appendChild(footer);
+    root.appendChild(panel);
+    document.body.appendChild(root);
+
+    // Badge (compact runtime board)
+    const badge = create('div', { id: 'ngdb-badge', className: 'ngdb-badge' });
+    badge.style.bottom = `${CONFIG.badgePosition.bottom}px`;
+    badge.style.right = `${CONFIG.badgePosition.right}px`;
+    badge.innerHTML = `<div class="dot" id="ngdb-badge-dot"></div><div id="ngdb-badge-text">Debug</div>`;
+    document.body.appendChild(badge);
+
+    // Set up interactions
+    const leftEl = document.getElementById('ngdb-left');
+    const selectedEl = document.getElementById('ngdb-selected');
+    const suggestionsEl = document.getElementById('ngdb-suggestions');
+    const fullStackEl = document.getElementById('ngdb-fullstack');
+    const countsEl = document.getElementById('ngdb-counts');
+
+    function updateCounts() {
+      countsEl.textContent = `E:${state.counts.error} W:${state.counts.warn} I:${state.counts.info} F:${state.counts.fetch}`;
+      const badgeText = `${state.counts.error}⚠︎ ${state.counts.fetch}⤓`;
+      document.getElementById('ngdb-badge-text').textContent = badgeText;
     }
-    if (!CONFIG.ENABLE_OVERLAY || !overlay) {
-      if (CONFIG.SHOW_CONSOLE_ERRORS && !overlay) console.warn('Global Error Overlay not found in DOM.');
-      return;
+
+    function clearEntries() {
+      state.entries = [];
+      state.counts = { error: 0, warn: 0, info: 0, fetch: 0 };
+      leftEl.innerHTML = '';
+      selectedEl.textContent = 'No entry selected';
+      suggestionsEl.textContent = 'No suggestions';
+      fullStackEl.textContent = '';
+      updateCounts();
     }
-    titleEl.textContent = 'Runtime Error Detected';
-    summaryEl.textContent = shortMsg;
-    fullEl.textContent = fullText;
+
+    document.getElementById('ngdb-clear').addEventListener('click', clearEntries);
+    document.getElementById('ngdb-close').addEventListener('click', togglePanel);
+    document.getElementById('ngdb-copy').addEventListener('click', copyAll);
+
+    // Badge toggles panel
+    badge.addEventListener('click', () => openPanel(true));
+
+    // Search handler
+    search.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') {
+        const q = ev.target.value.trim().toLowerCase();
+        filterEntries(q);
+      }
+    });
+
+    // Dragging
+    header.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', dragging);
+    document.addEventListener('mouseup', endDrag);
+
+    // Clicking entries
+    leftEl.addEventListener('click', (ev) => {
+      const item = ev.target.closest('.ngdb-entry');
+      if (!item) return;
+      const idx = Number(item.getAttribute('data-idx'));
+      selectEntry(idx);
+    });
+
+    // expose updateCounts
+    return { root, panel, leftEl, updateCounts, openPanel, closePanel: closePanelInternal, togglePanel };
     
-    if (aiContainerEl) aiContainerEl.style.display = 'block';
-    if (aiContentEl) {
-      if (isAiLoading) {
-        aiContentEl.innerHTML = '<span style="color:#9ca3af;">Analyzing error with AI...</span>';
+    // local helper definitions
+    function selectEntry(i) {
+      const entry = state.entries[i];
+      if (!entry) return;
+      // highlight
+      Array.from(leftEl.children).forEach(ch => ch.classList.remove('selected'));
+      const node = leftEl.querySelector(`.ngdb-entry[data-idx="${i}"]`);
+      if (node) node.classList.add('selected');
+
+      selectedEl.innerHTML = `<div style="font-weight:700;color:${entry.type==='error'?CONFIG.themeDanger:CONFIG.themeAccent}">${escapeHtml(entry.message)}</div>
+        <div style="font-size:12px;color:#9fb6c9;margin-top:6px;">${escapeHtml(entry.meta)}</div>`;
+
+      // suggestions
+      suggestionsEl.innerHTML = `<div style="font-size:13px;color:#dbeafe">${escapeHtml(entry.suggestion || '(no suggestion)')}</div>`;
+
+      // full stack
+      fullStackEl.textContent = entry.stack || '(no stack)';
+    }
+
+    function filterEntries(q) {
+      if (!q) {
+        // show all
+        renderEntries();
+        return;
+      }
+      const matches = state.entries.map((e, idx) => ({ e, idx })).filter(x => {
+        const hay = (x.e.message + ' ' + (x.e.meta || '') + ' ' + (x.e.stack || '')).toLowerCase();
+        return hay.includes(q);
+      });
+      leftEl.innerHTML = '';
+      matches.forEach(item => {
+        leftEl.appendChild(renderEntry(item.e, item.idx));
+      });
+    }
+
+    function renderEntries() {
+      leftEl.innerHTML = '';
+      for (let i = 0; i < state.entries.length; i++) {
+        leftEl.appendChild(renderEntry(state.entries[i], i));
       }
     }
-    
-    overlay.style.display = 'block';
-    // Automatically open the details
-    if(detailsEl) detailsEl.open = true;
-  }
-  
-  /**
-   * Updates the overlay with the AI's suggestions after they arrive.
-   */
-  function updateOverlayWithAi(aiSuggestion) {
-    if (!aiContentEl) return;
 
-    if (aiSuggestion) {
-      // Format the AI response into clean HTML
-      const explanationHtml = aiSuggestion.explanation
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/\n/g, '<br>');
-        
-      // A simple markdown parser for code blocks
-      const fixHtml = aiSuggestion.suggestedFix
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/```javascript\n?([\s\S]*?)\n?```/g, 
-          '<pre style="background:#0f172a; color:#e2e8f0; padding:10px; border-radius:6px; margin-top:8px; font-size:11px; border: 1px solid #1e293b; overflow-x: auto;"><code>$1</code></pre>'
-        );
-
-      aiContentEl.innerHTML = `
-        <p style="margin:0 0 8px 0;">${explanationHtml}</p>
-        ${fixHtml}
-      `;
-    } else {
-      aiContentEl.innerHTML = '<span style="color:#f87171;">AI analysis failed or is unavailable.</span>';
+    function renderEntry(entry, idx) {
+      const div = create('div', { className: 'ngdb-entry ' + (entry.type || 'info'), 'data-idx': idx });
+      div.innerHTML = `<div class="meta">${escapeHtml(entry.time)} • ${escapeHtml(entry.source)}</div>
+        <div class="message">${escapeHtml(truncate(entry.message, 260))}</div>
+        ${entry.snippet ? `<div class="ngdb-snippet">${escapeHtml(truncate(entry.snippet, 1000))}</div>` : ''}`;
+      return div;
     }
-  }
 
-  /**
-   * Wrapper for fetch with exponential backoff.
-   * Uses origFetch to avoid loop.
-   */
-  async function retryFetch(url, options, retries = 3, delay = 1000) {
-    for (let i = 0; i < retries; i++) {
+    function openPanel(focusBadge) {
+      // show panel
+      root.style.pointerEvents = 'auto';
+      panel.style.transform = '';
+      panel.style.display = 'flex';
+      state.isPanelOpen = true;
+      document.getElementById('ngdb-root').classList.remove('ngdb-hidden');
+      document.getElementById('ngdb-panel').style.maxHeight = '60vh';
+      updateCounts();
+      if (focusBadge) {
+        // nothing
+      }
+    }
+
+    function closePanelInternal() {
+      panel.style.display = 'none';
+      document.getElementById('ngdb-root').classList.add('ngdb-hidden');
+      state.isPanelOpen = false;
+    }
+
+    function togglePanel() {
+      if (state.isPanelOpen) closePanelInternal();
+      else openPanel();
+    }
+
+    function copyAll() {
       try {
-        const response = await origFetch(url, options);
-        if (response.ok) return response;
-        // Don't retry on client errors (4xx)
-        if (response.status >= 400 && response.status < 500) {
-          console.warn(`Global Debugger: AI request failed with ${response.status}. Not retrying.`);
-          return null;
-        }
-      } catch (error) {
-        // Network error, will retry
+        const all = state.entries.map(e => `[${e.type.toUpperCase()}] ${e.time}\n${e.message}\n${e.meta}\n\n${e.stack || ''}\n\n`).join('\n\n');
+        copyTextToClipboard(all);
+        flash('Copied');
+      } catch (err) {
+        flash('Copy failed');
       }
-      // Wait with exponential backoff
-      await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
     }
-    console.warn('Global Debugger: AI request failed after all retries.');
+
+    function flash(msg) {
+      const btn = document.getElementById('ngdb-copy');
+      const orig = btn.textContent;
+      btn.textContent = msg;
+      setTimeout(() => btn.textContent = orig, 1200);
+    }
+
+    // Drag helpers
+    function startDrag(ev) {
+      state.isDragging = true;
+      header.style.cursor = 'grabbing';
+      state.dragOffset.x = ev.clientX;
+      state.dragOffset.y = ev.clientY;
+    }
+    function dragging(ev) {
+      if (!state.isDragging) return;
+      // limit movement by translating panel slightly for UX (not absolute positioning to avoid overlay issues)
+      const dx = ev.clientX - state.dragOffset.x;
+      const dy = ev.clientY - state.dragOffset.y;
+      state.dragOffset.x = ev.clientX;
+      state.dragOffset.y = ev.clientY;
+      // apply small transform for natural feel
+      panel.style.transform = `translate(${clamp(dx, -120, 120)}px, ${clamp(dy, -60, 60)}px)`;
+      // reset transform after short timeout
+      clearTimeout(panel.resetTransformTimer);
+      panel.resetTransformTimer = setTimeout(() => { panel.style.transform = ''; }, 320);
+    }
+    function endDrag() { state.isDragging = false; header.style.cursor = 'grab'; }
+
+    // helper utility inside UI scope
+    function escapeHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function truncate(s, n) { if (!s) return ''; return s.length>n? s.slice(0,n-1)+'…' : s; }
+  }
+
+  // ---------- Smart suggestion heuristics ----------
+  function makeSuggestion(message, parsed) {
+    if (!message) return null;
+    const m = message;
+    if (/Cannot read properties of null|Cannot read property '.*' of null/i.test(m)) {
+      return "Check that the DOM element exists before accessing its properties. Example:\n\n```javascript\nconst el = document.getElementById('x');\nif (el) { /* use el */ }\n```\n";
+    }
+    if (/Cannot read properties of undefined|Cannot read property '.*' of undefined/i.test(m)) {
+      return "A variable is undefined. Add guards or default values:\n\n```javascript\nconst val = obj?.prop ?? defaultValue;\n```\n";
+    }
+    if (/is not a function/i.test(m)) {
+      return "You're calling a value as function which is not callable. Verify type or bind correct function:\n\n```javascript\nif (typeof maybeFn === 'function') maybeFn();\n```\n";
+    }
+    if (/Failed to fetch/i.test(m) || /NetworkError/i.test(m)) {
+      return "Network request failed. Check CORS, network connectivity, and endpoint correctness. Example retry pattern:\n\n```javascript\n// simple retry\nasync function tryFetch(url){\n  for(let i=0;i<3;i++){\n    try { return await fetch(url); } catch(e){ await new Promise(r=>setTimeout(r, 200 * Math.pow(2,i))); }\n  }\n}\n```\n";
+    }
+    if (/Unexpected token/i.test(m)) {
+      return "Syntax error in JSON or JS. Check file/response for invalid characters, trailing commas or improper quotes.\n";
+    }
+    // fallback
+    if (parsed && parsed.file && parsed.line) {
+      return `Check ${parsed.file} around line ${parsed.line}. If source not available (CORS), open devtools and inspect network / map files.`;
+    }
     return null;
   }
 
-  /**
-   * Gets smart suggestions from the Gemini API.
-   */
-  async function getAiSuggestions(diag) {
-    try {
-      const userQuery = `
-Here is the error information:
-- Message: ${diag.message}
-- File: ${diag.file}:${diag.line}:${diag.column}
-- Stack Trace:
-${diag.stack}
-
-- Source Code Snippet (if available):
-${diag.snippet}
-
-Please analyze this and provide the JSON response.
-      `;
-
-      const payload = {
-        contents: [{ parts: [{ text: userQuery }] }],
-        systemInstruction: {
-          parts: [{ text: AI_SYSTEM_PROMPT }]
-        },
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: AI_RESPONSE_SCHEMA,
-          temperature: 0.2,
-        }
-      };
-
-      const response = await retryFetch(GEMINI_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response) return null;
-
-      const result = await response.json();
-      const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-      if (text) {
-        // The API returns a JSON *string* which we must parse.
-        return JSON.parse(text); 
-      }
-      return null;
-    } catch (err) {
-      if (CONFIG.SHOW_CONSOLE_ERRORS) console.error('Global Debugger: AI suggestion failed:', err);
-      return null;
-    }
-  }
-
-
-  /* ========== Parse stack traces ========== */
+  // ---------- Stack parsing ----------
   function parseStack(stackStr) {
     if (!stackStr) return null;
-    const lines = stackStr.split('\n').map(l => l.trim()).filter(Boolean);
+    const lines = stackStr.split(/\n/).map(l => l.trim()).filter(Boolean);
     for (let line of lines) {
-      const chromeMatch = line.match(/at\s+(.*?)\s+\(?(.+?):(\d+):(\d+)\)?$/);
-      if (chromeMatch) {
-        return { func: chromeMatch[1], file: chromeMatch[2], line: Number(chromeMatch[3]), column: Number(chromeMatch[4]), stack: stackStr };
-      }
-      const ffMatch = line.match(/(.*?)@(.+?):(\d+):(\d+)$/);
-      if (ffMatch) {
-        return { func: ffMatch[1], file: ffMatch[2], line: Number(ffMatch[3]), column: Number(ffMatch[4]), stack: stackStr };
-      }
+      // Chrome format: at func (file:line:col)
+      const chrome = line.match(/at\s+(.*?)\s+\(?(.+?):(\d+):(\d+)\)?$/);
+      if (chrome) return { func: chrome[1], file: chrome[2], line: Number(chrome[3]), column: Number(chrome[4]), stack: stackStr };
+      // Firefox format: func@file:line:col
+      const ff = line.match(/(.*?)@(.+?):(\d+):(\d+)$/);
+      if (ff) return { func: ff[1], file: ff[2], line: Number(ff[3]), column: Number(ff[4]), stack: stackStr };
     }
     const urlMatch = stackStr.match(/(https?:\/\/[^\s)]+):(\d+):(\d+)/);
-    if (urlMatch) {
-      return { file: urlMatch[1], line: Number(urlMatch[2]), column: Number(urlMatch[3]), stack: stackStr };
-    }
+    if (urlMatch) return { file: urlMatch[1], line: Number(urlMatch[2]), column: Number(urlMatch[3]), stack: stackStr };
     return { stack: stackStr };
   }
 
-  /* ========== Fetch source snippet ========== */
-  async function fetchSourceSnippet(url, line, column, contextLines = CONFIG.CONTEXT_LINES) {
-    if (!url) return null;
+  // ---------- Try fetching source snippet (CORS-safe) ----------
+  async function fetchSourceSnippet(file, line, context = CONFIG.fetchSnippetContext) {
+    if (!file || !/^https?:\/\//.test(file)) return null;
     try {
-      if (!/^https?:\/\//.test(url) && !/^\//.test(url)) {
-        return null; // Not a fetchable URL
-      }
-      // Use origFetch to avoid loops
-      const res = await origFetch(url, { cache: 'no-store' });
+      const res = await origFetch(file, { cache: 'no-store' });
       if (!res.ok) return null;
-      const text = await res.text();
-      const lines = text.split(/\r?\n/);
-      const idx = Math.max(0, line - 1);
-      const start = Math.max(0, idx - contextLines);
-      const end = Math.min(lines.length - 1, idx + contextLines);
-      const snippetLines = lines.slice(start, end + 1);
-      const numbered = snippetLines.map((ln, i) => {
-        const lnNum = start + i + 1;
-        const pointer = (lnNum === line) ? '>> ' : '   ';
-        return `${pointer}${lnNum.toString().padStart(4, ' ')} | ${ln}`;
+      const txt = await res.text();
+      const lines = txt.split(/\r?\n/);
+      const idx = Math.max(0, (line || 1) - 1);
+      const start = Math.max(0, idx - context);
+      const end = Math.min(lines.length - 1, idx + context);
+      const snippet = lines.slice(start, end + 1).map((ln, i) => {
+        const num = start + i + 1;
+        const marker = (num === line) ? '>>' : '  ';
+        return `${marker} ${String(num).padStart(4)} | ${ln}`;
       }).join('\n');
-      return (`Source: ${url}\n\n${numbered}`.slice(0, CONFIG.MAX_SNIPPET_CHARS));
+      return snippet.slice(0, CONFIG.snippetMaxChars);
     } catch (err) {
-      return null;
+      return null; // likely CORS or network
     }
   }
 
-  /* ========== Suggest simple fixes (Fallback) ========== */
-  function suggestFixes(message, parsed) {
-    // This is now a fallback in case AI fails, but still good to have.
-    const suggestions = [];
-    if (!message) return suggestions;
-    if (/Cannot read properties of null/i.test(message)) {
-      suggestions.push("Fallback: Check for a missing DOM element (getElementById/querySelector).");
-    }
-    if (/Cannot read properties of undefined/i.test(message)) {
-      suggestions.push("Fallback: A variable is undefined. Add a check (e.g., `if (obj && obj.prop)`).");
-    }
-    if (parsed && parsed.file && parsed.line) {
-      suggestions.push(`Fallback: Check ${parsed.file} around line ${parsed.line}.`);
-    }
-    return suggestions;
-  }
-
-  /* ========== Throttle remote logging ========= */
-  let lastSentAt = 0;
-  async function sendRemoteLog(payload) {
-    if (!CONFIG.REMOTE_LOG_ENDPOINT) return;
-    const now = Date.now();
-    if (now - lastSentAt < CONFIG.SEND_DEBOUNCE_MS) return;
-    lastSentAt = now;
+  // ---------- Add entry to UI & state ----------
+  async function pushEntry({ type = 'info', message = '', meta = '', source = '', stack = '', origin = '', timestamp = now() }) {
     try {
-      // Use origFetch to avoid loops
-      await origFetch(CONFIG.REMOTE_LOG_ENDPOINT, {
+      if (!CONFIG.enabled) return;
+      const parsed = parseStack(stack || '');
+      const snippet = await fetchSourceSnippet(parsed?.file || source, parsed?.line || null).catch(() => null);
+      const suggestion = makeSuggestion(message, parsed);
+
+      const entry = { type, message, meta, source, stack, time: timestamp, snippet, suggestion };
+      // safety: avoid logging our own internal messages
+      const combined = (message + ' ' + meta + ' ' + (stack || '')).toLowerCase();
+      if (combined.includes(SIGNATURE.toLowerCase())) return;
+
+      state.entries.unshift(entry);
+      state.entries = state.entries.slice(0, CONFIG.maxEntries);
+
+      // update counts
+      if (type === 'error') state.counts.error++;
+      if (type === 'warn') state.counts.warn++;
+      if (type === 'info') state.counts.info++;
+      if (type === 'fetch') state.counts.fetch++;
+
+      // push into UI
+      // lazy create UI
+      if (!document.getElementById('ngdb-root')) {
+        injectStyles();
+        createUI();
+      }
+      const left = document.getElementById('ngdb-left');
+      if (left) {
+        const node = document.createElement('div');
+        node.className = `ngdb-entry ${type}`;
+        node.setAttribute('data-idx', 0); // we'll re-render below
+        node.innerHTML = `<div class="meta">${timestamp} • ${escapeHtml(origin || source || 'client')}</div>
+          <div class="message">${escapeHtml(truncateText(message, 260))}</div>
+          ${snippet ? `<div class="ngdb-snippet">${escapeHtml(truncateText(snippet, 1000))}</div>` : ''}`;
+        left.insertBefore(node, left.firstChild);
+        // reindex nodes
+        Array.from(left.children).forEach((ch, idx) => ch.setAttribute('data-idx', idx));
+      }
+
+      // update counts on header & badge
+      const countsEl = document.getElementById('ngdb-counts');
+      if (countsEl) countsEl.textContent = `E:${state.counts.error} W:${state.counts.warn} I:${state.counts.info} F:${state.counts.fetch}`;
+      const badgeText = document.getElementById('ngdb-badge-text');
+      if (badgeText) badgeText.textContent = `${state.counts.error}⚠︎ ${state.counts.fetch}⤓`;
+
+      // optionally open panel on errors
+      if (type === 'error' && CONFIG.autoOpenOnError) {
+        const root = document.getElementById('ngdb-root');
+        if (root) root.classList.remove('ngdb-hidden');
+        const panel = document.getElementById('ngdb-panel');
+        if (panel) panel.style.display = 'flex';
+      }
+
+      // optional remote send (debounced)
+      sendRemote({ entry }).catch(() => {});
+    } catch (err) {
+      // swallow to avoid loop
+      try { origConsole.error(SIGNATURE, 'pushEntry failed', err); } catch (e) {}
+    }
+  }
+
+  // ---------- Helpers ----------
+  function truncateText(s, n) { if (!s) return ''; return s.length>n ? s.slice(0,n-1)+'…' : s; }
+  function escapeHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function copyTextToClipboard(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+
+  // ---------- Remote logging hook (no-op until endpoint set) ----------
+  let REMOTE = { url: null, auth: null };
+  async function sendRemote({ entry } = {}) {
+    if (!REMOTE.url) return;
+    const nowTs = Date.now();
+    if (nowTs - state.lastRemoteAt < CONFIG.debounceRemoteMs) return;
+    state.lastRemoteAt = nowTs;
+    try {
+      await origFetch(REMOTE.url, {
         method: 'POST',
-        headers: Object.assign({
-          'Content-Type': 'application/json'
-        }, CONFIG.REMOTE_LOG_AUTH ? { 'Authorization': CONFIG.REMOTE_LOG_AUTH } : {}),
-        body: JSON.stringify(payload)
+        headers: Object.assign({ 'Content-Type': 'application/json' }, REMOTE.auth ? { Authorization: REMOTE.auth } : {}),
+        body: JSON.stringify({ timestamp: now(), entry })
       });
-    } catch (err) {
-      if (CONFIG.SHOW_CONSOLE_ERRORS) console.warn('Remote log failed:', err);
+    } catch (e) {
+      // ignore
     }
   }
 
-  /* ========== Build full diagnostic payload ========== */
-  async function buildDiagnostic({ message, file, line, column, stack, extra = {} }) {
-    const parsed = parseStack(stack || '');
-    const snippet = await fetchSourceSnippet(file || parsed?.file, line || parsed?.line || 0, column || parsed?.column || 0);
-    const suggestions = suggestFixes(message, parsed); // Fallback suggestions
-    const payload = {
-      timestamp: nowISO(),
-      message: message || (stack ? stack.split('\n')[0] : 'Unknown'),
-      file: file || parsed?.file || '',
-      line: line || parsed?.line || null,
-      column: column || parsed?.column || null,
-      stack: stack || '',
-      snippet: snippet || '(source unavailable due to CORS or not retrieved)',
-      userAgent: navigator.userAgent,
-      url: location.href,
-      suggestions,
-      extra
-    };
-    return payload;
-  }
-
-  /* ========== Normalized display wrapper ========= */
-  async function handleErrorEvent({ message, filename, lineno, colno, errorObj, origin = 'window.onerror' }) {
+  // ---------- Console wrappers (safeguarded) ----------
+  (function wrapConsole() {
     try {
-      const stack = (errorObj && errorObj.stack) ? errorObj.stack : (new Error()).stack;
-      
-      // 1. Build the core diagnostic
-      const diag = await buildDiagnostic({ message, file: filename, line: lineno, column: colno, stack, extra: { origin } });
-      
-      const short = `${diag.message}\n${diag.file ? `${diag.file}:${diag.line || '?'}:${diag.column || '?'}` : ''}`;
-      const full = [
-        `Time: ${diag.timestamp}`,
-        `Message: ${diag.message}`,
-        `File: ${diag.file}:${diag.line || ''}:${diag.column || ''}`,
-        ``,
-        `Stack:\n${diag.stack}`,
-        ``,
-        `Source snippet (if available):\n${diag.snippet}`,
-        ``,
-        `Fallback Suggestions:\n${diag.suggestions.join('\n\n') || '(none)'}`
-      ].join('\n\n');
+      ['log','warn','error'].forEach(level => {
+        const orig = origConsole[level];
+        console[level] = function (...args) {
+          try {
+            // build message
+            const msg = args.map(a => (a && a.stack) ? a.stack : (typeof a === 'string' ? a : safeString(a))).join(' ');
+            // avoid logging our own messages
+            if (String(msg || '').includes(SIGNATURE)) return orig(...args);
+            // push entry (non-blocking)
+            pushEntry({ type: level === 'warn' ? 'warn' : (level === 'error' ? 'error' : 'info'),
+                        message: String(msg), meta: '', source: 'console', stack: (args[0] && args[0].stack) || '', origin: 'console' }).catch(() => {});
+          } catch (e) {}
+          try { orig.apply(console, args); } catch (e) {}
+        };
+      });
+    } catch (e) { origConsole.error(SIGNATURE, 'wrapConsole failed', e); }
+  })();
 
-      if (CONFIG.SHOW_CONSOLE_ERRORS) {
-        console.groupCollapsed('🚨 Global AI Debugger');
-        console.error(short);
-        console.log('Full diagnostic object:', diag);
-        console.groupEnd();
-      }
-
-      // 2. Show the overlay immediately with "AI loading"
-      showOverlay(short, full, true);
-      
-      // 3. Post to remote logging (if configured)
-      sendRemoteLog(diag);
-      
-      // 4. Get AI suggestions (this is the new part)
-      const aiSuggestion = await getAiSuggestions(diag);
-
-      // 5. Update the overlay with the AI's response
-      updateOverlayWithAi(aiSuggestion);
-
-    } catch (err) {
-      // If building diagnostic fails, fallback to simple overlay
-      const fallback = `${message || 'Unknown error'}\n${filename || ''}:${lineno || ''}:${colno || ''}\nSee console for more.`;
-      showOverlay(fallback, safeStr(err), false); // false = not loading AI
-      if (aiContentEl) aiContentEl.innerHTML = '<span style="color:#f87171;">Failed to build diagnostic.</span>';
-      if (CONFIG.SHOW_CONSOLE_ERRORS) console.error('Error building diagnostic:', err);
-    }
-  }
-
-  /* ========== Attach global handlers (Unchanged from your script) ========== */
-
-  // 1) Synchronous runtime errors
-  window.addEventListener('error', (ev) => {
-    handleErrorEvent({ message: ev.message, filename: ev.filename, lineno: ev.lineno, colno: ev.colno, errorObj: ev.error, origin: 'window.onerror' });
+  // ---------- window.onerror and unhandledrejection ----------
+  window.addEventListener('error', function (ev) {
+    try {
+      // ev: { message, filename, lineno, colno, error }
+      const msg = ev && ev.message ? ev.message : 'Uncaught error';
+      const stack = ev && ev.error && ev.error.stack ? ev.error.stack : (new Error()).stack;
+      pushEntry({
+        type: 'error',
+        message: msg,
+        meta: `${ev.filename || ''}:${ev.lineno||''}:${ev.colno||''}`,
+        source: ev.filename || '',
+        stack,
+        origin: 'window.onerror',
+      }).catch(() => {});
+    } catch (e) {}
   });
 
-  // 2) Unhandled Promise Rejections
-  window.addEventListener('unhandledrejection', (ev) => {
-    const reason = ev.reason;
-    const message = reason && reason.message ? reason.message : String(reason);
-    const stack = reason && reason.stack ? reason.stack : (new Error()).stack;
-    handleErrorEvent({ message: `UnhandledPromiseRejection: ${message}`, filename: null, lineno: null, colno: null, errorObj: { stack }, origin: 'unhandledrejection' });
+  window.addEventListener('unhandledrejection', function (ev) {
+    try {
+      const reason = ev && ev.reason ? (ev.reason.message || safeString(ev.reason)) : 'Unhandled rejection';
+      const stack = ev && ev.reason && ev.reason.stack ? ev.reason.stack : (new Error()).stack;
+      pushEntry({
+        type: 'error',
+        message: `UnhandledPromiseRejection: ${reason}`,
+        meta: '',
+        source: '',
+        stack,
+        origin: 'unhandledrejection'
+      }).catch(() => {});
+    } catch (e) {}
   });
 
-  // 3) Wrap fetch to capture HTTP errors
-  // This is your wrapper, now using 'origFetch' internally
-  window.fetch = async function (...args) {
+  // ---------- fetch wrapper (uses origFetch to avoid recursion) ----------
+  (function wrapFetch() {
     try {
-      const resp = await origFetch.apply(this, args);
-      if (!resp.ok) {
-        const message = `HTTP ${resp.status} ${resp.statusText} for ${args[0]}`;
-        handleErrorEvent({ message, filename: String(args[0]), lineno: null, colno: null, errorObj: { stack: message }, origin: 'fetch' });
-      }
-      return resp;
-    } catch (err) {
-      const message = `Fetch failed for ${args[0]}: ${err.message || err}`;
-      handleErrorEvent({ message, filename: String(args[0]), lineno: null, colno: null, errorObj: err, origin: 'fetch' });
-      throw err;
-    }
-  };
-
-  // 4) Wrap XMLHttpRequest
-  try {
-    const OrigXHR = window.XMLHttpRequest;
-    function PatchedXHR() {
-      const xhr = new OrigXHR();
-      xhr.addEventListener('error', function () {
-        handleErrorEvent({ message: `XHR error to ${xhr.responseURL}`, filename: xhr.responseURL, lineno: null, colno: null, errorObj: { stack: 'XHR error' }, origin: 'xhr' });
-      });
-      xhr.addEventListener('load', function () {
-        if (xhr.status >= 400) {
-          handleErrorEvent({ message: `XHR ${xhr.status} ${xhr.statusText} to ${xhr.responseURL}`, filename: xhr.responseURL, lineno: null, colno: null, errorObj: { stack: 'XHR error status' }, origin: 'xhr' });
+      window.fetch = async function (...args) {
+        try {
+          const resp = await origFetch.apply(this, args);
+          if (!resp.ok) {
+            const msg = `HTTP ${resp.status} ${resp.statusText} for ${String(args[0])}`;
+            pushEntry({
+              type: 'fetch',
+              message: msg,
+              meta: '',
+              source: String(args[0]),
+              stack: msg,
+              origin: 'fetch'
+            }).catch(() => {});
+          }
+          return resp;
+        } catch (err) {
+          const msg = `Fetch failed for ${String(args[0])}: ${err && err.message ? err.message : safeString(err)}`;
+          pushEntry({
+            type: 'fetch',
+            message: msg,
+            meta: '',
+            source: String(args[0]),
+            stack: err && err.stack ? err.stack : (new Error()).stack,
+            origin: 'fetch'
+          }).catch(() => {});
+          throw err;
         }
-      });
-      return xhr;
-    }
-    PatchedXHR.prototype = OrigXHR.prototype;
-    window.XMLHttpRequest = PatchedXHR;
-  } catch (err) {
-    if (CONFIG.SHOW_CONSOLE_ERRORS) console.warn('XHR wrap failed:', err);
-  }
+      };
+    } catch (e) { origConsole.error(SIGNATURE, 'wrapFetch failed', e); }
+  })();
 
-  // 5) Capture console.error calls
-  if (console && console.error) {
-    const origConsoleError = console.error.bind(console);
-    console.error = function (...args) {
-      origConsoleError(...args);
-      try {
-        const msg = args.map(a => (a && a.message) ? a.message : (typeof a === 'string' ? a : safeStr(a))).join(' ');
-        // Avoid noisy/feedback loops from our own tool
-        if (msg.includes('Global Debugger') || msg.includes('Error building diagnostic')) return;
-        
-        handleErrorEvent({ message: `[console.error] ${msg}`, filename: null, lineno: null, colno: null, errorObj: { stack: (new Error()).stack }, origin: 'console.error' });
-      } catch (err) {
-        origConsoleError('Error in console.error wrapper:', err);
+  // ---------- XMLHttpRequest wrapper ----------
+  (function wrapXHR() {
+    try {
+      if (!origXHR) return;
+      function PatchedXHR() {
+        const xhr = new origXHR();
+        // intercept errors and statuses
+        xhr.addEventListener('error', function () {
+          try {
+            pushEntry({
+              type: 'fetch',
+              message: `XHR error to ${xhr.responseURL || '(unknown)'}`,
+              meta: '',
+              source: xhr.responseURL || '',
+              stack: 'XHR error',
+              origin: 'xhr'
+            }).catch(()=>{});
+          } catch (e) {}
+        });
+        xhr.addEventListener('load', function () {
+          try {
+            if (xhr.status >= 400) {
+              pushEntry({
+                type: 'fetch',
+                message: `XHR ${xhr.status} ${xhr.statusText} to ${xhr.responseURL}`,
+                meta: '',
+                source: xhr.responseURL || '',
+                stack: 'XHR status error',
+                origin: 'xhr'
+              }).catch(()=>{});
+            }
+          } catch (e) {}
+        });
+        return xhr;
       }
-    };
-  }
+      // copy prototype so instanceof checks pass
+      PatchedXHR.prototype = origXHR.prototype;
+      window.XMLHttpRequest = PatchedXHR;
+    } catch (e) { origConsole.error(SIGNATURE, 'wrapXHR failed', e); }
+  })();
 
-  if (CONFIG.SHOW_CONSOLE_ERRORS) {
-    console.info('%c🤖 Global AI Debugger Active', 'color: #67e8f9; font-weight:bold; font-size: 12px;');
-  }
-
-  /* ========== Public helper (Unchanged) ========== */
-  window.__GlobalErrorDebugger = {
-    showOverlay,
-    buildDiagnostic,
-    handleErrorEvent,
-    setRemoteEndpoint: (url, auth) => {
-      CONFIG.REMOTE_LOG_ENDPOINT = url;
-      CONFIG.REMOTE_LOG_AUTH = auth;
+  // ---------- Expose API for remote endpoint and toggles ----------
+  window.__NEXTGEN_DEBUGGER = {
+    setRemoteEndpoint: (url, auth) => { REMOTE.url = url; REMOTE.auth = auth || null; selfLog('set remote', url); },
+    enable: (v=true) => { CONFIG.enabled = !!v; },
+    open: () => {
+      const root = document.getElementById('ngdb-root');
+      if (root) root.classList.remove('ngdb-hidden');
+      const panel = document.getElementById('ngdb-panel');
+      if (panel) panel.style.display = 'flex';
+      state.isPanelOpen = true;
     },
-    setDevOnly: (v) => { CONFIG.IS_DEV_ONLY = !!v; },
-    setEnabled: (v) => { CONFIG.ENABLE_OVERLAY = !!v; }
+    close: () => {
+      const panel = document.getElementById('ngdb-panel');
+      if (panel) panel && (panel.style.display = 'none');
+      state.isPanelOpen = false;
+    },
+    clear: () => {
+      const left = document.getElementById('ngdb-left');
+      if (left) left.innerHTML = '';
+      state.entries = [];
+      state.counts = { error:0, warn:0, info:0, fetch:0 };
+      const countsEl = document.getElementById('ngdb-counts'); if (countsEl) countsEl.textContent = 'E:0 W:0 I:0 F:0';
+    }
   };
+
+  // ---------- Keyboard toggle ----------
+  document.addEventListener('keydown', function (ev) {
+    const keyOk = ev.key === CONFIG.uiKeyboardToggle && (ev.ctrlKey || ev.metaKey || true); // allow simple toggle with backtick
+    if (!keyOk) return;
+    const panel = document.getElementById('ngdb-panel');
+    if (!panel) {
+      injectStyles();
+      createUI();
+    } else {
+      if (panel.style.display === 'none' || panel.style.display === '') {
+        window.__NEXTGEN_DEBUGGER.open();
+      } else {
+        window.__NEXTGEN_DEBUGGER.close();
+      }
+    }
+  });
+
+  // ---------- Initialize styles & minimal UI immediately ----------
+  try {
+    injectStyles();
+    createUI();
+    // hide panel by default to avoid shaking UI; rely on badge
+    const panel = document.getElementById('ngdb-panel');
+    if (panel) panel.style.display = 'none';
+  } catch (err) {
+    try { origConsole.error(SIGNATURE, 'init failed', err); } catch (e) {}
+  }
+
+  // ---------- Small friendly message ----------
+  try { origConsole.info('%c' + SIGNATURE + ' initialized', 'color:' + CONFIG.themeAccent + '; font-weight:700;'); } catch (e) {}
 
 })();
-
-
