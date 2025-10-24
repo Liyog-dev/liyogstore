@@ -939,58 +939,7 @@ body:has(.video-fullscreen-active) {
   </div>
 </div>
 
-<!--
-  AI Global Debugger UI
-  Place this near the end of <body>, before your main scripts or before </body>
--->
-<div id="global-error-box" aria-live="polite" role="alert" style="display:none; position:fixed; bottom:1rem; right:1rem; z-index:9999999; max-width:420px; min-width:300px; background:linear-gradient(160deg, #071022, #0b1220); color:#fff; border-radius:12px; padding:16px; box-shadow:0 10px 40px rgba(2,6,23,0.7); font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Helvetica Neue', monospace; border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
-  
-  <div style="display:flex; align-items:flex-start; gap:12px;">
-    <!-- Icon -->
-    <div style="font-size:24px; line-height:1.1; margin-top: 2px; color: #f87171;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <line x1="12" y1="8" x2="12" y2="12" />
-        <line x1="12" y1="16" x2="12.01" y2="16" />
-      </svg>
-    </div>
 
-    <!-- Content -->
-    <div style="flex:1; min-width: 0;">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-        <strong id="global-error-title" style="font-weight:700; font-size: 15px; color: #fecaca;">Runtime Error Detected</strong>
-        <div style="display:flex; gap:8px;">
-          <button id="global-error-copy" title="Copy details" style="background:#1e293b; color:#cbd5e1; border:1px solid #334155; padding:4px 8px; border-radius:6px; cursor:pointer; font-size: 12px; font-weight: 500;">Copy</button>
-          <button id="global-error-close" title="Close" style="background:#f1f5f9; color:#1e293b; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size: 12px; font-weight: 600;">Dismiss</button>
-        </div>
-      </div>
-      
-      <!-- Summary Message -->
-      <div id="global-error-summary" style="margin-top:10px; color:#e2e8f0; font-size:13px; max-height:80px; overflow-y:auto; white-space:pre-wrap; line-height: 1.4; background: rgba(0,0,0,0.1); padding: 8px; border-radius: 6px;"></div>
-      
-      <!-- Collapsible Details -->
-      <details id="global-error-details" style="margin-top:12px; color:#cfe9ff; font-size:12px; max-height:420px; overflow-y:auto; border-top:1px dashed rgba(255,255,255,0.1); padding-top:12px;">
-        <summary style="cursor:pointer; font-weight: 500; color: #94a3b8;">Show details & AI analysis</summary>
-        
-        <!-- AI Suggestions -->
-        <div id="global-error-ai-container" style="margin-top:12px; border-top:1px solid rgba(100, 230, 255, 0.15); padding-top:12px;">
-          <strong style="color:#67e8f9; font-weight:600; font-size: 13px; display: block; margin-bottom: 8px;">AI Smart Suggestion</strong>
-          <div id="global-error-ai-content" style="font-size:12px; line-height:1.5; color: #dbeafe;">
-            <span style="color:#9ca3af;">Analyzing error with AI...</span>
-          </div>
-        </div>
-
-        <!-- Full Error Details -->
-        <div id="global-error-full-container" style="margin-top:12px; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
-          <strong style="color:#a5b4fc; font-weight:600; font-size: 13px; display: block; margin-bottom: 8px;">Full Error Details</strong>
-          <div id="global-error-full" style="margin-top:8px; white-space:pre-wrap; font-size:11px; line-height:1.4; color: #94a3b8; max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.1); padding: 8px; border-radius: 6px;"></div>
-        </div>
-
-      </details>
-    </div>
-  </div>
-</div>
-    
 <script type="module">
     window.addEventListener('error', e => {
   alert('Error: ' + e.message);
