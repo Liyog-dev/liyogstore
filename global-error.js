@@ -20,7 +20,7 @@
 
   // --- AI Configuration ---
   // IMPORTANT: Leave apiKey as "" - it will be supplied by the environment.
-  const GEMINI_API_KEY = "";
+  const GEMINI_API_KEY = "AIzaSyB0IU7q3fsNZm5VG4kHF3HX8LR_9p4GAQM";
   const GEMINI_API_URL = `https://generativelen.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`;
   
   // This prompt defines the AI's role and expected output.
