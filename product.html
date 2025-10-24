@@ -939,27 +939,18 @@ body:has(.video-fullscreen-active) {
   </div>
 </div>
 
-<!-- global-error-overlay.html -->
-<!-- Place this near the end of <body>, before your main scripts or before </body> -->
-<div id="global-error-box" aria-live="polite" role="alert" style="display:none;position:fixed;bottom:1rem;right:1rem;z-index:9999999;max-width:420px;min-width:260px;background:linear-gradient(180deg,#0b1220, #071022);color:#fff;border-radius:10px;padding:14px;box-shadow:0 8px 30px rgba(2,6,23,0.6);font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Helvetica Neue", monospace;">
-  <div style="display:flex;align-items:flex-start;gap:10px;">
-    <div style="font-size:20px;line-height:1.1">⚠️</div>
-    <div style="flex:1">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-        <strong id="global-error-title" style="font-weight:700">Runtime error detected</strong>
-        <div style="display:flex;gap:8px">
-          <button id="global-error-copy" title="Copy details" style="background:#0f1724;color:#fff;border:1px solid rgba(255,255,255,0.06);padding:4px 8px;border-radius:6px;cursor:pointer">Copy</button>
-          <button id="global-error-close" title="Close" style="background:#fff;color:#111;border:none;padding:4px 8px;border-radius:6px;cursor:pointer">Dismiss</button>
-        </div>
-      </div>
-      <div id="global-error-summary" style="margin-top:8px;color:#e6eef8;font-size:13px;max-height:64px;overflow:auto;white-space:pre-wrap;"></div>
-      <details id="global-error-details" style="margin-top:8px;color:#cfe9ff;font-size:12px;max-height:360px;overflow:auto;border-top:1px dashed rgba(255,255,255,0.04);padding-top:8px">
-        <summary style="cursor:pointer">Show full details & suggested fixes</summary>
-        <div id="global-error-full" style="margin-top:8px;white-space:pre-wrap;font-size:12px;line-height:1.35;"></div>
-      </details>
-    </div>
-  </div>
-</div>
+<script>
+‎(function loadDebuggerUI() {
+‎  fetch("https://liyog-dev.github.io/liyogstore/global-error-overlay.html") // raw GitHub URL
+‎    .then(res => res.text())
+‎    .then(html => {
+‎      const div = document.createElement("div");
+‎      div.innerHTML = html;
+‎      document.body.appendChild(div);
+‎    })
+‎    .catch(err => console.error("Debugger UI failed to load:", err));
+‎})();
+‎</script>
     
 <script type="module">
     window.addEventListener('error', e => {
