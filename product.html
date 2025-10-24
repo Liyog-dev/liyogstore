@@ -1428,7 +1428,7 @@ async function fetchReviews(filter = state.currentRatingFilter) {
 
     DOMElements.reviewsList.innerHTML = ''; // Clear reviewslist for loading spinner
     DOMElements.reviewSkeletonLoader.style.display = 'block'; // Show skeleton loader
-    DOMElements.loadMoreReviewsContainer.classList.add('hidden'); // Hide load more during fetch
+    
 
     // Reset for new filter or initial load
     if (state.reviewsPage === 1 || filter !== state.currentRatingFilter) {
