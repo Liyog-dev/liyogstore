@@ -788,6 +788,50 @@ body:has(.video-fullscreen-active) {
             },
         }
     </script>
+    <style>
+        /* === Premium Pulse Animation for Online Indicator === */
+@keyframes premiumPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.85; }
+}
+.animate-premium-pulse {
+  animation: premiumPulse 1.4s ease-in-out infinite;
+}
+
+/* === Floating Tooltip Animations === */
+@keyframes tooltipFloatIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 4px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -2px) scale(1);
+  }
+}
+
+/* === Tooltip Core Styles === */
+.badge-tooltip {
+  @apply absolute bottom-full left-1/2 mb-1.5 -translate-x-1/2 whitespace-nowrap text-[10px] 
+         text-white bg-gray-900/90 backdrop-blur-sm px-2 py-1 rounded-md shadow-md opacity-0 
+         pointer-events-none transform scale-95 transition-all duration-200 ease-out z-50;
+}
+
+/* === Tooltip Hover Activation === */
+.badge-hover:hover .badge-tooltip {
+  animation: tooltipFloatIn 0.25s ease-out forwards;
+  opacity: 1 !important;
+}
+
+/* === Optional Glow for Premium Feel === */
+.badge-hover:hover .badge-tooltip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.375rem;
+  box-shadow: 0 0 6px rgba(255, 215, 0, 0.35), 0 0 10px rgba(255, 165, 0, 0.25);
+}
+    </style>
 </head>
 
 <body class="antialiased">
