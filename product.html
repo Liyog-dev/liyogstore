@@ -1384,15 +1384,13 @@ function generateUserBadges(user) {
 // === Generate Role Badge (placed under avatar, centered, UI only + tooltip) ===
 function generateRoleBadge(user) {
   if (!user) return '';
-
   const { role = 'user' } = user;
 
   if (role === 'admin') {
     return `
       <div class="role-badge-container mt-2 flex justify-center">
         <span class="relative inline-flex items-center justify-center group cursor-pointer">
-
-          <!-- UI Badge Only -->
+          <!-- Admin Badge Only -->
           <span class="w-5 h-5 rounded-full bg-gradient-to-br
                        from-[var(--liyog-gold)] to-yellow-500
                        text-[var(--liyog-green)] shadow-sm flex items-center justify-center">
@@ -1401,61 +1399,77 @@ function generateRoleBadge(user) {
               12 19.771 4.2 24l1.866-9.008L.132 9.21l8.2-1.192z"/>
             </svg>
           </span>
-
           <!-- Tooltip -->
-          <span class="absolute top-7 left-1/2 -translate-x-1/2 px-2 py-1 
-                       text-xs rounded-md bg-black text-white opacity-0 
+          <span class="absolute top-7 left-1/2 -translate-x-1/2 px-2 py-1
+                       text-xs rounded-md bg-black text-white opacity-0
                        group-hover:opacity-100 transition pointer-events-none z-50">
             Admin
           </span>
-
         </span>
       </div>
     `;
-  }
-
-else if (role === 'super_admin') {
+  } else if (role === 'super_admin') {
     return `
-      <div class="role-badge-container mt-2 flex justify-center">
-        <span class="relative inline-flex items-center justify-center group cursor-pointer">
+      <div class="role-badge-container mt-2 flex justify-center relative">
+        <div class="flex flex-col items-center relative group">
 
-          <!-- UI Badge Only -->
-          <span class="w-5.5 h-5.5 rounded-full relative flex items-center justify-center">
-
-            <span class="absolute inset-0 rounded-full p-[1px] shadow-lg"
-                  style="background: linear-gradient(45deg,
-                    var(--liyog-green),var(--liyog-gold),
-                    var(--liyog-orange),black);"></span>
-
-            <span class="relative flex items-center justify-center bg-[var(--liyog-gold)]
-                         rounded-full w-full h-full">
-              <svg class="w-3.5 h-3.5 text-[var(--liyog-green)]"
-                   fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782L19.8 24 
-                12 19.771 4.2 24l1.866-9.008L.132 9.21l8.2-1.192z"/>
-              </svg>
-
-              <span class="absolute w-1.5 h-1.5 bg-[var(--liyog-orange)]
-                           border border-black rounded-full"
-                    style="right:6px; bottom:6px;"></span>
+          <!-- Super Admin Badge (Top, bigger) -->
+          <span class="relative inline-flex items-center justify-center mb-1 cursor-pointer">
+            <span class="w-5.5 h-5.5 rounded-full relative flex items-center justify-center">
+              <span class="absolute inset-0 rounded-full p-[1px] shadow-lg"
+                    style="background: linear-gradient(45deg,
+                      var(--liyog-green),var(--liyog-gold),
+                      var(--liyog-orange),black);"></span>
+              <span class="relative flex items-center justify-center bg-[var(--liyog-gold)]
+                           rounded-full w-full h-full">
+                <svg class="w-3.5 h-3.5 text-[var(--liyog-green)]"
+                     fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782L19.8 24 
+                  12 19.771 4.2 24l1.866-9.008L.132 9.21l8.2-1.192z"/>
+                </svg>
+                <span class="absolute w-1.5 h-1.5 bg-[var(--liyog-orange)]
+                             border border-black rounded-full"
+                      style="right:6px; bottom:6px;"></span>
+              </span>
+            </span>
+            <!-- Tooltip -->
+            <span class="absolute top-7 left-1/2 -translate-x-1/2 px-2 py-1
+                         text-xs rounded-md bg-black text-white opacity-0
+                         group-hover:opacity-100 transition pointer-events-none z-50">
+              Super Admin
             </span>
           </span>
 
-          <!-- Tooltip -->
-          <span class="absolute top-7 left-1/2 -translate-x-1/2 px-2 py-1 
-                       text-xs rounded-md bg-black text-white opacity-0 
-                       group-hover:opacity-100 transition pointer-events-none z-50">
-            Super Admin
+          <!-- Vertical Connector Line -->
+          <span class="w-[2px] h-3 bg-[var(--liyog-green)]"></span>
+
+          <!-- Admin Badge (Bottom, smaller) -->
+          <span class="relative inline-flex items-center justify-center cursor-pointer">
+            <span class="w-4 h-4 rounded-full bg-gradient-to-br
+                         from-[var(--liyog-gold)] to-yellow-500
+                         text-[var(--liyog-green)] shadow-sm flex items-center justify-center">
+              <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782L19.8 24 
+                12 19.771 4.2 24l1.866-9.008L.132 9.21l8.2-1.192z"/>
+              </svg>
+            </span>
+            <!-- Tooltip -->
+            <span class="absolute top-6 left-1/2 -translate-x-1/2 px-2 py-1
+                         text-xs rounded-md bg-black text-white opacity-0
+                         group-hover:opacity-100 transition pointer-events-none z-50">
+              Admin
+            </span>
           </span>
 
-        </span>
+        </div>
       </div>
     `;
   }
 
-// For normal users, return empty string so nothing shows under avatar
+  // Normal users -> no badge
   return '';
 }
+
 
 
 function showToast(message, type = 'success') {
