@@ -821,7 +821,7 @@ body:has(.video-fullscreen-active) {
            This makes the background 95% opaque (very dark) 
            while still letting a little blur shine through.
         */
-        background: rgba(0, 0, 0, 0.98); 
+        background: rgba(0, 0, 0, 1.5); 
         border: 1px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
@@ -1452,7 +1452,7 @@ function generateUserBadges(user) {
         tooltipText = "Verified Brand";
     } else if (role === 'super_admin') {
         // Updated text
-        tooltipText = "Verified Super Brand+";
+        tooltipText = "Verified Brand+";
     }
 
     // 2. Optimized Badge UI: Layered approach for perfect circle and border
