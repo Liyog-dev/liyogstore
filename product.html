@@ -2134,15 +2134,31 @@ async function fetchCurrentUser() {
     }
 }
 
+
 // Fetch user details by ID
 async function fetchUserById(userId) {
     if (!userId) return null;
     try {
         const { data, error } = await supabaseClient
             .from('users')
-            .select('id, name, profile_image, role')
+            .select(`
+                id,
+                username,
+                name,
+                profile_image,
+                cover_image,
+                verified,
+                is_online,
+                last_seen_at,
+                bio,
+                location,
+                referral_code,
+                created_at,
+                role
+            `)
             .eq('id', userId)
             .single();
+
         if (error) {
             if (error.code !== 'PGRST116') console.error("Error fetching user by ID:", error.message);
             return null;
@@ -2154,6 +2170,7 @@ async function fetchUserById(userId) {
     }
 }
 
+    
 
 async function fetchProduct(slug) {
     try {
