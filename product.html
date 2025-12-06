@@ -2513,10 +2513,28 @@ if (reviewsTabButton) {
     DOMElements.liyogxCoins.textContent = p.liyogx_coins || 0;
     DOMElements.liyogxValue.textContent = lxcValue.toLocaleString(undefined, { minimumFractionDigits: 2 });
 
-// ✅ Always visible: Added By User
+    // ✅ Always visible: Added By User
 if (p.added_by) {
     fetchUserById(p.added_by).then(user => {
         const name = user?.name || 'Admin';
+        
+        // --- 1. Generate badges ---
+        // We still call the functions to get the HTML strings
+        const verifiedBadgeHTML = generateUserBadges(user) || '';
+        const roleBadgeHTML = generateRoleBadge(user) || ''; // This contains the mt-3/flex/justify-center wrapper
+
+        // --- 2. Set user's name with Verified Badge attached (inline) ---
+        // The Verified Badge stays here, right next to the name.
+        DOMElements.addedByName.innerHTML = `
+            <span class="inline-flex items-center space-x-1">
+                <span>${name}</span>
+                ${verifiedBadgeHTML}
+            </span>
+        `;
+
+        // --- 3. Set user's avatar AND Role Badge (stacked vertically) ---
+        // We wrap the avatar and the role badge in a vertical flex container (flex-col) 
+        // inside the DOMElements.addedByAvatar container.
         const avatarHTML = user?.profile_image
             ? `<img src="${user.profile_image}" 
                     alt="${name}'s profile" 
@@ -2524,22 +2542,16 @@ if (p.added_by) {
                     loading="lazy">`
             : generateAvatar(name, 'w-6 h-6', 'text-xs');
 
-        // --- 1. Generate badges ---
-        const verifiedBadgeHTML = generateUserBadges(user) || '';
-        const roleBadgeHTML = generateRoleBadge(user) || '';
-
-        // --- 2. Set user's name with verified badge AND role badge attached ---
-        // Inline-flex ensures badges stay aligned next to the name
-        DOMElements.addedByName.innerHTML = `
-            <span class="inline-flex items-center space-x-1">
-                <span>${name}</span>
-                ${verifiedBadgeHTML}
-                ${roleBadgeHTML}
-            </span>
+        // The addedByAvatar element will now hold the avatar and the role badge underneath it.
+        // We use 'items-center' to ensure the avatar and role badge are centered relative to each other.
+        DOMElements.addedByAvatar.innerHTML = `
+            <div class="flex flex-col items-center">
+                <div class="w-6 h-6 rounded-full flex-shrink-0">
+                    ${avatarHTML}
+                </div>
+                ${roleBadgeHTML} 
+            </div>
         `;
-
-        // --- 3. Set user's avatar ---
-        DOMElements.addedByAvatar.innerHTML = avatarHTML;
 
         // --- 4. Ensure visibility ---
         DOMElements.addedByUser.style.display = 'flex';
@@ -2550,14 +2562,25 @@ if (p.added_by) {
         const fallbackVerifiedBadge = generateUserBadges(null) || '';
         const fallbackRoleBadge = generateRoleBadge(null) || '';
 
+        // Fallback for AddedByName (Name + Verified Badge)
         DOMElements.addedByName.innerHTML = `
             <span class="inline-flex items-center space-x-1">
-                <span>Unavailable</span>
+                <span>ADMIN</span>
                 ${fallbackVerifiedBadge}
-                ${fallbackRoleBadge}
             </span>
         `;
-        DOMElements.addedByAvatar.innerHTML = generateAvatar('?', 'w-6 h-6', 'text-xs');
+
+        // Fallback for AddedByAvatar (Avatar + Role Badge)
+        const fallbackAvatarHTML = generateAvatar('?', 'w-6 h-6', 'text-xs');
+        DOMElements.addedByAvatar.innerHTML = `
+            <div class="flex flex-col items-center">
+                <div class="w-6 h-6 rounded-full flex-shrink-0">
+                    ${fallbackAvatarHTML}
+                </div>
+                ${fallbackRoleBadge}
+            </div>
+        `;
+        
         DOMElements.addedByUser.style.display = 'flex';
         DOMElements.addedByUser.classList.remove('hidden');
     });
@@ -2566,17 +2589,31 @@ if (p.added_by) {
     const fallbackVerifiedBadge = generateUserBadges(null) || '';
     const fallbackRoleBadge = generateRoleBadge(null) || '';
 
+    // Placeholder for AddedByName (Name + Verified Badge)
     DOMElements.addedByName.innerHTML = `
         <span class="inline-flex items-center space-x-1">
             <span>Admin</span>
             ${fallbackVerifiedBadge}
-            ${fallbackRoleBadge}
         </span>
     `;
-    DOMElements.addedByAvatar.innerHTML = generateAvatar('S', 'w-6 h-6', 'text-xs');
+
+    // Placeholder for AddedByAvatar (Avatar + Role Badge)
+    const placeholderAvatarHTML = generateAvatar('S', 'w-6 h-6', 'text-xs');
+    DOMElements.addedByAvatar.innerHTML = `
+        <div class="flex flex-col items-center">
+            <div class="w-6 h-6 rounded-full flex-shrink-0">
+                ${placeholderAvatarHTML}
+            </div>
+            ${fallbackRoleBadge}
+        </div>
+    `;
+    
     DOMElements.addedByUser.style.display = 'flex';
     DOMElements.addedByUser.classList.remove('hidden');
 }
+
+    
+
     // Description
     DOMElements.descriptionContent.innerHTML = DOMPurify.sanitize(p.description_html || '<p class="text-gray-500">No detailed description available.</p>');
     
