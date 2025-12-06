@@ -2531,15 +2531,26 @@ if (reviewsTabButton) {
 
  
  // ✅ Always visible: Added By User (Enhanced with Verified & Role Badges)
+
 if (p.added_by) {
+
     fetchUserById(p.added_by).then(user => {
+
         const name = user?.name || 'Admin';
+
         const usernameContainer = DOMElements.addedByName;
         const avatarContainer = DOMElements.addedByAvatar;
-
-        // Show user's name
-        usernameContainer.textContent = name;
-
+        
+        // **NEW ELEMENT:** Create a container for the username/badges
+        const infoContainer = document.createElement('div');
+        // Apply Flexbox to align name/badges horizontally and vertically center them
+        infoContainer.classList.add('flex', 'items-center', 'ml-2'); // ml-2 for spacing from avatar
+        
+        // Show user's name (temporarily in a separate span for inline alignment)
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = name;
+        nameSpan.classList.add('whitespace-nowrap'); // Prevent name from wrapping
+        
         // Inject avatar or fallback
         if (user?.profile_image) {
             avatarContainer.innerHTML = `
@@ -2552,20 +2563,21 @@ if (p.added_by) {
             avatarContainer.innerHTML = generateAvatar(name, 'w-6 h-6', 'text-xs');
         }
 
+
         // Generate Verified Badge HTML
         let verifiedBadgeHTML = '';
         if (user?.verified) {
             let tooltipText = 'Verified User';
-            if (user.role === 'admin') tooltipText = 'Verified Admin';
-            else if (user.role === 'super_admin') tooltipText = 'Verified Super Admin';
+            if (user.role === 'admin') tooltipText = 'Verified BRAND';
+            else if (user.role === 'super_admin') tooltipText = 'Verified BRAND+';
             
             verifiedBadgeHTML = `
             <span class="inline-flex items-center relative group cursor-pointer ml-1" role="img" aria-label="Verified badge">
                 <div class="relative w-5 h-5 flex items-center justify-center rounded-full
-                            bg-gradient-to-tr from-yellow-400 to-yellow-600
-                            shadow-lg transition-transform duration-200 transform hover:scale-110">
+                             bg-gradient-to-tr from-yellow-400 to-yellow-600
+                             shadow-lg transition-transform duration-200 transform hover:scale-110">
                     <div class="verified-badge-core w-4 h-4 flex items-center justify-center
-                                rounded-full border border-gray-900/10 absolute inset-0 m-auto">
+                                 rounded-full border border-gray-900/10 absolute inset-0 m-auto">
                         <svg class="w-3 h-3 text-white" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd"
                                   d="M16.707 5.293a1 1 0 010 1.414l-7.01 7.01a1 1 0 01-1.414 0l-3.01-3.01a1 1 0 011.414-1.414L9 11.586l6.293-6.293a1 1 0 011.414 0z"
@@ -2582,83 +2594,143 @@ if (p.added_by) {
             </span>`;
         }
 
+
         // Generate Role Badge HTML
         let roleBadgeHTML = '';
         if (user?.role === 'admin') {
             roleBadgeHTML = `
-            <span class="inline-flex items-center relative group cursor-pointer ml-1" role="img" aria-label="Admin role badge">
-                <div class="relative w-6 h-6 flex items-center justify-center">
-                    <svg class="w-full h-full drop-shadow-md transition-transform group-hover:scale-110"
-                         viewBox="0 0 24 24">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02
-                                         12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
-                                 fill="url(#goldGradient)"
-                                 stroke="#28A428"
-                                 stroke-width="1.5"
-                                 stroke-linejoin="round"/>
-                    </svg>
-                    <div class="absolute z-20 w-1 h-1 bg-orange-500 border border-black rounded-full shadow-md top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
-                    <div class="absolute inset-0 overflow-hidden pointer-events-none"
-                         style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);">
-                        <div class="shimmer-overlay"></div>
-                    </div>
-                </div>
-                <span class="glass-tooltip absolute -top-8 left-1/2 -translate-x-1/2
-                             px-3 py-1 text-[10px] font-bold tracking-wider text-yellow-400 uppercase
-                             rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300
-                             transform group-hover:-translate-y-1 whitespace-nowrap">
-                    Admin
-                </span>
+            <span class="inline-flex items-center relative group cursor-pointer ml-1" role="img" aria-label="Admin role badge"><div class="relative w-6 h-6 flex items-center justify-center">
+            <!-- Layer 1: Base Star (Red Top Segment) -->
+            <svg class="w-full h-full drop-shadow-md transform transition-transform group-hover:scale-110 duration-300" viewBox="0 0 24 24">
+                <!-- Full star shape -->
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                         fill="url(#goldGradient)"
+                         stroke="#FF0000"
+                         stroke-width="1.5"
+                         stroke-linejoin="round"/>
+                <!-- Green border overlay (covers all except top point) -->
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                         fill="url(#goldGradient)"
+                         stroke="#28A428"
+                         stroke-width="1.5"
+                         stroke-linejoin="round"
+                         style="clip-path: polygon(0 35%, 100% 35%, 100% 100%, 0 100%);"/>
+            </svg>
+
+            <!-- Center Dot (Reactor) -->
+            <div class="absolute z-20 w-1 h-1 bg-liyog-orange border border-black rounded-full shadow-[0_0_3px_rgba(255,122,0,0.8)] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+
+            <!-- Glitter shimmer overlay -->
+            <div class="absolute inset-0 overflow-hidden pointer-events-none"
+                 style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);">
+                <div class="shimmer-overlay"></div>
+            </div>
+        </div>
+
+        <!-- Tooltip -->
+        <span class="glass-tooltip absolute -top-8 left-1/2 -translate-x-1/2 px-3 py-1 text-[10px] font-bold tracking-wider text-liyog-gold uppercase rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:-translate-y-1 z-50 whitespace-nowrap">
+            BRAND
+        </span>
             </span>`;
-        } else if (user?.role === 'super_admin') {
+        } 
+
+
+else if (user?.role === 'super_admin') {
             roleBadgeHTML = `
             <span class="inline-flex items-center relative group cursor-pointer ml-1" role="img" aria-label="Super Admin role badge">
                 <div class="relative w-8 h-8 flex items-center justify-center">
-                    <div class="absolute inset-0 bg-yellow-400/30 blur-md rounded-full scale-0 group-hover:scale-150 transition-transform duration-500"></div>
-                    <svg class="w-full h-full drop-shadow-lg z-10 transition-transform group-hover:rotate-12"
-                         viewBox="0 0 24 24">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02
-                                         12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
-                                 fill="url(#goldGradient)"
-                                 stroke="url(#superAdminBorder)"
-                                 stroke-width="1.5"
-                                 stroke-linejoin="round"/>
-                    </svg>
-                    <div class="absolute z-20 w-1.5 h-1.5 bg-orange-500 border border-black rounded-full shadow-md top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
-                    <div class="absolute inset-0 overflow-hidden pointer-events-none"
-                         style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);">
-                        <div class="shimmer-overlay" style="animation-duration: 2s;"></div>
-                    </div>
-                </div>
-                <span class="glass-tooltip absolute -top-9 left-1/2 -translate-x-1/2
-                             px-3 py-1 text-[10px] font-extrabold tracking-wider text-yellow-400 uppercase
-                             rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300
-                             transform group-hover:-translate-y-1 whitespace-nowrap shadow-lg">
-                    SUPER ADMIN
-                </span>
+            <!-- Glow Aura -->
+            <div class="absolute inset-0 bg-yellow-400/30 blur-md rounded-full scale-0 group-hover:scale-150 transition-transform duration-500"></div>
+
+            <!-- Star SVG -->
+            <svg class="w-full h-full drop-shadow-lg z-10 transform transition-transform group-hover:rotate-12 duration-500 ease-out" viewBox="0 0 24 24">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                         fill="url(#goldGradient)"
+                         stroke="url(#superAdminBorder)"
+                         stroke-width="1.5"
+                         stroke-linejoin="round"/>
+            </svg>
+
+            <!-- Center Dot (Reactor) -->
+            <div class="absolute z-20 w-1.5 h-1.5 bg-liyog-orange border border-black rounded-full shadow-[0_0_4px_rgba(255,122,0,0.8)] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+
+            <!-- Glitter shimmer overlay -->
+            <div class="absolute inset-0 overflow-hidden pointer-events-none z-20"
+                 style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);">
+                <div class="shimmer-overlay" style="animation-duration: 2s;"></div>
+            </div>
+        </div>
+
+        <!-- Tooltip -->
+        <span class="glass-tooltip absolute -top-9 left-1/2 -translate-x-1/2 px-3 py-1 text-[10px] font-extrabold tracking-wider text-liyog-gold uppercase rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:-translate-y-1 whitespace-nowrap shadow-lg">
+            BRAND+
+        </span>
+
             </span>`;
         }
 
-        // Append badges inline next to username
-        usernameContainer.innerHTML = name + verifiedBadgeHTML + roleBadgeHTML;
+
+        // **MODIFIED LOGIC:** Assemble the new structure
+        
+        // 1. Clear the old username container
+        usernameContainer.innerHTML = ''; 
+        
+        // 2. Put the name, verified badge, and role badge into the new 'infoContainer'
+        infoContainer.appendChild(nameSpan); // Add the name span
+        
+        // Safely insert the HTML strings as actual DOM elements
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = verifiedBadgeHTML + roleBadgeHTML;
+        while (tempDiv.firstChild) {
+            infoContainer.appendChild(tempDiv.firstChild);
+        }
+
+        // 3. Clear and append the new structure to the parent 
+        // We assume DOMElements.addedByUser contains both avatarContainer and what's next to it
+        // We must ensure DOMElements.addedByUser has its children rearranged.
+        
+        // Clear children of the main container (DOMElements.addedByUser)
+        DOMElements.addedByUser.innerHTML = '';
+        
+        // Append Avatar and the new Info Container
+        DOMElements.addedByUser.appendChild(avatarContainer);
+        DOMElements.addedByUser.appendChild(infoContainer);
+        
+        // Apply the necessary Flexbox styles to the main container
+        DOMElements.addedByUser.classList.add('flex', 'items-center');
+
 
         // Ensure container is visible
-        DOMElements.addedByUser.style.display = 'flex';
+        DOMElements.addedByUser.style.display = 'flex'; // Redundant with class but safer
         DOMElements.addedByUser.classList.remove('hidden');
 
+
     }).catch(() => {
+
         DOMElements.addedByName.textContent = 'Unavailable';
         DOMElements.addedByAvatar.innerHTML = generateAvatar('?', 'w-6 h-6', 'text-xs');
         DOMElements.addedByUser.style.display = 'flex';
         DOMElements.addedByUser.classList.remove('hidden');
+        DOMElements.addedByUser.classList.add('flex', 'items-center'); // Added class on error path too
+        
+        // In the error state, addedByName should be wrapped/positioned as well, 
+        // but since we don't have the original HTML structure, 
+        // we'll apply the Flexbox class to the parent DOMElements.addedByUser 
+        // to handle the existing structure which places the name element after the avatar.
+
     });
+
 } else {
+
     // Placeholder when no added_by field
     DOMElements.addedByName.textContent = 'Admin';
     DOMElements.addedByAvatar.innerHTML = generateAvatar('S', 'w-6 h-6', 'text-xs');
     DOMElements.addedByUser.style.display = 'flex';
     DOMElements.addedByUser.classList.remove('hidden');
-}
+    DOMElements.addedByUser.classList.add('flex', 'items-center'); // Added class on fallback path too
+    }
+    
+
 
     
     // Description
