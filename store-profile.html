@@ -1,115 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Store Profile</title>
-<script type="module" src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js"></script>
-<style>
-    body { font-family: Arial, sans-serif; background: #f9f9f9; margin: 0; padding: 20px; }
-    .profile-container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
-    .name { font-size: 24px; font-weight: bold; margin: 10px 0 5px; display: flex; align-items: center; gap: 8px; }
-    .username { color: #555; }
-    .badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: gold; color: white; font-size: 14px; font-weight: bold; }
-    .bio { margin: 15px 0; font-size: 16px; }
-    .location { font-size: 14px; color: #777; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Profile</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script>
+        // ============================================================
+        // CONFIG & INITIALIZATION
+        // ============================================================
+        const SUPABASE_URL = "https://snwwlewjriuqrodpjhry.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3dsZXdqcml1cXJvZHBqaHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDY3MDAsImV4cCI6MjA2ODE4MjcwMH0.WxOmEHxLcEHmMKFjsgrzcb22mPs-sJwW_G3GOuXX2c8";
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ============================================================
+        // Helper: fetch user by ID
+        // ============================================================
+        async function fetchSafeUserById(userId) {
+            if (!userId) return null;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('safe_users')
+                    .select(`
+                        id, username, name, profile_image, cover_image,
+                        verified, is_online, last_seen_at, bio, location,
+                        referral_code, created_at, role
+                    `)
+                    .eq('id', userId)
+                    .single();
+                if (error) {
+                    if (error.code !== 'PGRST116') console.error("Error fetching user:", error.message);
+                    return null;
+                }
+                return data;
+            } catch (err) {
+                console.error("Error in fetchSafeUserById:", err.message);
+                return null;
+            }
+        }
+
+        // ============================================================
+        // Helper: Generate fallback avatar
+        // ============================================================
+        function generateAvatar(name, size='w-16 h-16', textSize='text-lg') {
+            const initials = (name || '?').split(' ').map(n => n[0]).join('').toUpperCase();
+            return `<div class="flex items-center justify-center bg-gray-300 rounded-full ${size}">
+                        <span class="${textSize} font-bold text-gray-800">${initials}</span>
+                    </div>`;
+        }
+
+        // ============================================================
+        // Helper: Render the user profile
+        // ============================================================
+        function renderUserProfile(user) {
+            const container = document.getElementById('profile-container');
+
+            // Cover image
+            const cover = document.createElement('div');
+            cover.className = 'cover h-40 w-full bg-gray-200 relative overflow-hidden';
+            if (user.cover_image) {
+                cover.innerHTML = `<img src="${user.cover_image}" alt="Cover" class="w-full h-full object-cover">`;
+            }
+            container.appendChild(cover);
+
+            // Avatar + name + badges
+            const avatarWrapper = document.createElement('div');
+            avatarWrapper.className = 'flex items-center mt-[-40px] ml-4';
+            
+            // Avatar
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar w-20 h-20 rounded-full border-4 border-white overflow-hidden';
+            if (user.profile_image) {
+                avatar.innerHTML = `<img src="${user.profile_image}" alt="${user.name}" class="w-full h-full object-cover">`;
+            } else {
+                avatar.innerHTML = generateAvatar(user.name, 'w-20 h-20', 'text-2xl');
+            }
+            avatarWrapper.appendChild(avatar);
+
+            // Name + badges
+            const info = document.createElement('div');
+            info.className = 'ml-4 flex items-center';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = user.name || 'Admin';
+            nameSpan.className = 'font-bold text-xl whitespace-nowrap';
+            info.appendChild(nameSpan);
+
+            if (user.verified) {
+                const verifiedBadge = document.createElement('span');
+                verifiedBadge.textContent = '✔️';
+                verifiedBadge.title = user.role === 'admin' ? 'Verified BRAND' : user.role === 'super_admin' ? 'Verified BRAND+' : 'Verified User';
+                verifiedBadge.className = 'ml-2 text-yellow-500';
+                info.appendChild(verifiedBadge);
+            }
+
+            if (user.role) {
+                const roleBadge = document.createElement('span');
+                roleBadge.textContent = user.role.toUpperCase();
+                roleBadge.className = 'ml-2 px-2 py-1 bg-gray-800 text-white rounded text-xs';
+                info.appendChild(roleBadge);
+            }
+
+            avatarWrapper.appendChild(info);
+            container.appendChild(avatarWrapper);
+
+            // Bio & location
+            const bioEl = document.createElement('p');
+            bioEl.textContent = user.bio || 'No bio available.';
+            bioEl.className = 'mt-4 ml-4 text-gray-700';
+            container.appendChild(bioEl);
+
+            const locationEl = document.createElement('p');
+            locationEl.textContent = user.location ? `Location: ${user.location}` : '';
+            locationEl.className = 'ml-4 mt-1 text-gray-500';
+            container.appendChild(locationEl);
+        }
+
+        // ============================================================
+        // Main: Detect user ID from sessionStorage or slug
+        // ============================================================
+        async function loadProfile() {
+            let userId = sessionStorage.getItem('profile_target_id');
+
+            // Optional: fallback to slug in URL (e.g., /p/john-doe)
+            if (!userId) {
+                const pathParts = window.location.pathname.split('/');
+                if (pathParts[1] === 'p' && pathParts[2]) {
+                    const slug = pathParts[2];
+                    // Search Supabase for user by username or fallback name
+                    const { data: users } = await supabaseClient
+                        .from('safe_users')
+                        .select('*');
+                    const matched = users.find(u => {
+                        const slugFromUser = (u.username || u.name || 'user')
+                            .trim().toLowerCase().replace(/\s+/g, '-');
+                        return slugFromUser === slug.toLowerCase();
+                    });
+                    if (matched) userId = matched.id;
+                }
+            }
+
+            if (!userId) {
+                document.getElementById('profile-container').innerHTML = '<p class="text-red-600 mt-4 ml-4">User not found.</p>';
+                return;
+            }
+
+            const user = await fetchSafeUserById(userId);
+            if (user) renderUserProfile(user);
+            else document.getElementById('profile-container').innerHTML = '<p class="text-red-600 mt-4 ml-4">User not found.</p>';
+        }
+
+        window.addEventListener('DOMContentLoaded', loadProfile);
+    </script>
+
+    <style>
+        body { font-family: sans-serif; background: #f9f9f9; margin: 0; }
+        .glass-tooltip {
+            background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
-
-<div id="profile" class="profile-container">
-    <p>Loading profile...</p>
-</div>
-
-<script type="module">
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.es.js";
-
-// ===============================
-// Supabase setup
-// ===============================
-const SUPABASE_URL = "https://snwwlewjriuqrodpjhry.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3dsZXdqcml1cXJvZHBqaHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDY3MDAsImV4cCI6MjA2ODE4MjcwMH0.WxOmEHxLcEHmMKFjsgrzcb22mPs-sJwW_G3GOuXX2c8";
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// ===============================
-// Utilities
-// ===============================
-function slugify(str) {
-    return (str || "user").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-}
-
-// Fetch user by ID from safe_users view
-async function fetchSafeUserById(userId) {
-    if (!userId) return null;
-    const { data, error } = await supabase
-        .from('safe_users')
-        .select(`
-            id, username, name, profile_image, cover_image, verified, is_online,
-            last_seen_at, bio, location, referral_code, created_at, role
-        `)
-        .eq('id', userId)
-        .single();
-    return error ? null : data;
-}
-
-// ===============================
-// Get slug from URL and convert to user
-// ===============================
-const pathParts = window.location.pathname.split("/");
-let userSlug = null;
-
-if (pathParts[1] === "p" && pathParts[2]) {
-    userSlug = pathParts[2];
-    if (!window.location.pathname.includes("store-profile.html")) {
-        window.history.replaceState({}, "", `/store-profile.html?user=${userSlug}`);
-    }
-}
-
-// Also read query parameter (redundant but safe)
-const params = new URLSearchParams(window.location.search);
-userSlug = userSlug || params.get("user");
-
-async function renderUserProfileBySlug(slug) {
-    const profileDiv = document.getElementById("profile");
-    profileDiv.innerHTML = "<p>Loading profile...</p>";
-
-    if (!slug) {
-        profileDiv.innerHTML = "<p>User not found</p>";
-        return;
-    }
-
-    // Fetch all users from safe_users view (optional: could optimize with server filtering)
-    const { data: users, error } = await supabase.from('safe_users').select("*");
-    if (error || !users) {
-        profileDiv.innerHTML = "<p>Error loading user data</p>";
-        return;
-    }
-
-    const user = users.find(u => slugify(u.username || u.name) === slug);
-    if (!user) {
-        profileDiv.innerHTML = "<p>User not found</p>";
-        return;
-    }
-
-    // Build profile HTML
-    profileDiv.innerHTML = `
-        <img src="${user.profile_image || 'https://via.placeholder.com/100'}" alt="${user.name}" class="avatar">
-        <div class="name">
-            ${user.name || "Admin"}
-            ${user.verified ? '<span class="badge" title="Verified">✔</span>' : ''}
-            ${user.role === "admin" ? '<span class="badge" title="Admin">A</span>' : ''}
-            ${user.role === "super_admin" ? '<span class="badge" title="Super Admin">S</span>' : ''}
-        </div>
-        <div class="username">@${user.username || slugify(user.name)}</div>
-        <div class="bio">${user.bio || 'No bio available.'}</div>
-        <div class="location">${user.location || ''}</div>
-    `;
-}
-
-// Render on page load
-renderUserProfileBySlug(userSlug);
-</script>
-
+    <div id="profile-container" class="max-w-2xl mx-auto mt-4 bg-white rounded shadow-md overflow-hidden p-4">
+        <!-- Profile will be rendered here -->
+        <p class="text-gray-500">Loading profile...</p>
+    </div>
 </body>
 </html>
