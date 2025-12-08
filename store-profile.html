@@ -3,168 +3,343 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Store Profile</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <title>Store Profile | NextGen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
+        
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .shimmer-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+            transform: skewX(-20deg) translateX(-150%);
+            animation: shimmer 3s infinite linear;
+        }
+
+        @keyframes shimmer {
+            100% { transform: skewX(-20deg) translateX(150%); }
+        }
+
+        /* SVG Gradients for Badges */
+        .badge-svg-defs { position: absolute; width: 0; height: 0; }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black overflow-x-hidden">
+
+    <svg class="badge-svg-defs">
+        <defs>
+            <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#FDB931;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#C6930A;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="superAdminBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#ff00cc;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#3333ff;stop-opacity:1" />
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <div id="loading-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 transition-opacity duration-500">
+        <div class="flex flex-col items-center">
+            <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p class="mt-4 text-blue-400 font-bold tracking-widest text-sm animate-pulse">LOADING PROFILE DATA</p>
+        </div>
+    </div>
+
+    <main id="profile-content" class="container mx-auto px-4 py-8 max-w-4xl opacity-0 transition-opacity duration-700">
+        
+        <div class="glass-panel rounded-3xl overflow-hidden relative shadow-2xl">
+            
+            <div class="h-48 md:h-64 bg-slate-700 relative overflow-hidden group">
+                <img id="user-cover" src="" alt="Cover" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-transparent"></div>
+            </div>
+
+            <div class="relative px-6 pb-8">
+                
+                <div class="absolute -top-16 left-6 md:left-10">
+                    <div class="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-slate-800 shadow-xl overflow-hidden bg-slate-800 relative z-10">
+                        <img id="user-avatar" src="" alt="Profile" class="w-full h-full object-cover">
+                    </div>
+                    <div id="online-status" class="hidden absolute bottom-4 right-4 w-5 h-5 bg-green-500 border-4 border-slate-800 rounded-full z-20" title="Online"></div>
+                </div>
+
+                <div class="flex justify-end pt-4 md:pt-6 gap-3">
+                    <button class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-semibold text-sm transition-all shadow-lg hover:shadow-blue-500/30">
+                        Follow
+                    </button>
+                    <button class="p-2 glass-panel rounded-full hover:bg-white/10 transition-colors">
+                        <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                    </button>
+                </div>
+
+                <div class="mt-16 md:mt-4 md:ml-48">
+                    <div class="flex flex-col md:flex-row md:items-center gap-2">
+                        <h1 id="user-name" class="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                            </h1>
+                        <div id="badge-container" class="flex items-center mt-1 md:mt-2"></div>
+                    </div>
+                    
+                    <p id="user-username" class="text-blue-400 font-mono text-sm mt-1">@username</p>
+                    
+                    <p id="user-bio" class="mt-4 text-gray-300 max-w-2xl leading-relaxed">
+                        Loading bio...
+                    </p>
+
+                    <div class="flex flex-wrap gap-4 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        <div class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span id="user-location">Unknown Location</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span id="user-joined">Joined Recently</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="glass-panel p-6 rounded-2xl flex flex-col items-center justify-center h-48 text-gray-500">
+                <p>No active listings</p>
+            </div>
+            </div>
+
+    </main>
+
     <script>
-        // ============================================================
+        // ===================================================================
         // CONFIG & INITIALIZATION
-        // ============================================================
+        // ===================================================================
         const SUPABASE_URL = "https://snwwlewjriuqrodpjhry.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3dsZXdqcml1cXJvZHBqaHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDY3MDAsImV4cCI6MjA2ODE4MjcwMH0.WxOmEHxLcEHmMKFjsgrzcb22mPs-sJwW_G3GOuXX2c8";
+
         const { createClient } = supabase;
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ============================================================
-        // Helper: fetch user by ID
-        // ============================================================
-        async function fetchSafeUserById(userId) {
-            if (!userId) return null;
-            try {
-                const { data, error } = await supabaseClient
-                    .from('safe_users')
-                    .select(`
-                        id, username, name, profile_image, cover_image,
-                        verified, is_online, last_seen_at, bio, location,
-                        referral_code, created_at, role
-                    `)
-                    .eq('id', userId)
-                    .single();
-                if (error) {
-                    if (error.code !== 'PGRST116') console.error("Error fetching user:", error.message);
-                    return null;
-                }
-                return data;
-            } catch (err) {
-                console.error("Error in fetchSafeUserById:", err.message);
-                return null;
-            }
+        // ===================================================================
+        // HELPERS
+        // ===================================================================
+        
+        function generateAvatar(name, wClass = 'w-full h-full', textClass = 'text-4xl') {
+            const initial = name ? name.charAt(0).toUpperCase() : '?';
+            const colors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-600'];
+            const color = colors[name.length % colors.length];
+            return `
+                <div class="${wClass} ${color} flex items-center justify-center text-white font-bold ${textClass}">
+                    ${initial}
+                </div>
+            `;
         }
 
-        // ============================================================
-        // Helper: Generate fallback avatar
-        // ============================================================
-        function generateAvatar(name, size='w-16 h-16', textSize='text-lg') {
-            const initials = (name || '?').split(' ').map(n => n[0]).join('').toUpperCase();
-            return `<div class="flex items-center justify-center bg-gray-300 rounded-full ${size}">
-                        <span class="${textSize} font-bold text-gray-800">${initials}</span>
-                    </div>`;
+        function formatDate(dateString) {
+            if (!dateString) return 'Unknown';
+            return new Date(dateString).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
         }
 
-        // ============================================================
-        // Helper: Render the user profile
-        // ============================================================
-        function renderUserProfile(user) {
-            const container = document.getElementById('profile-container');
+        // ===================================================================
+        // MAIN LOGIC
+        // ===================================================================
 
-            // Cover image
-            const cover = document.createElement('div');
-            cover.className = 'cover h-40 w-full bg-gray-200 relative overflow-hidden';
-            if (user.cover_image) {
-                cover.innerHTML = `<img src="${user.cover_image}" alt="Cover" class="w-full h-full object-cover">`;
-            }
-            container.appendChild(cover);
+        async function initProfile() {
+            // 1. STRATEGY: Check ID first (Transfer), then URL (Direct Link)
+            const transferredId = sessionStorage.getItem('profile_target_id');
+            let user = null;
 
-            // Avatar + name + badges
-            const avatarWrapper = document.createElement('div');
-            avatarWrapper.className = 'flex items-center mt-[-40px] ml-4';
+            // Debugging
+            console.log("Transferred ID:", transferredId);
+
+            if (transferredId) {
+                // Scenario A: User clicked from the store popup
+                user = await fetchUserById(transferredId);
+                // Clear it so refresh doesn't get stuck on old data if logic changes
+                // sessionStorage.removeItem('profile_target_id'); 
+            } 
             
-            // Avatar
-            const avatar = document.createElement('div');
-            avatar.className = 'avatar w-20 h-20 rounded-full border-4 border-white overflow-hidden';
-            if (user.profile_image) {
-                avatar.innerHTML = `<img src="${user.profile_image}" alt="${user.name}" class="w-full h-full object-cover">`;
+            if (!user) {
+                // Scenario B: Direct link, Refresh, or no ID found
+                // Extract username from URL: /p/username or ?u=username
+                let usernameParam = '';
+                
+                // Check Query Param first
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('u')) {
+                    usernameParam = urlParams.get('u');
+                } else {
+                    // Check Path: /p/username
+                    const pathSegments = window.location.pathname.split('/');
+                    const pIndex = pathSegments.indexOf('p');
+                    if (pIndex !== -1 && pathSegments[pIndex + 1]) {
+                        usernameParam = pathSegments[pIndex + 1];
+                    }
+                }
+
+                if (usernameParam) {
+                    console.log("Fetching by username:", usernameParam);
+                    user = await fetchUserByUsername(usernameParam);
+                }
+            }
+
+            // 2. RENDER
+            if (user) {
+                renderProfile(user);
             } else {
-                avatar.innerHTML = generateAvatar(user.name, 'w-20 h-20', 'text-2xl');
+                renderNotFound();
             }
-            avatarWrapper.appendChild(avatar);
+        }
 
-            // Name + badges
-            const info = document.createElement('div');
-            info.className = 'ml-4 flex items-center';
+        // --- FETCHERS ---
+
+        async function fetchUserById(userId) {
+            const { data, error } = await supabaseClient
+                .from('safe_users')
+                .select('*')
+                .eq('id', userId)
+                .single();
+            if (error) console.error("ID Fetch Error:", error);
+            return data;
+        }
+
+        async function fetchUserByUsername(username) {
+            // Logic to handle "john-doe" back to "John Doe" if needed, 
+            // but usually we query the 'username' column directly.
+            // If you save sanitized usernames in DB, query that. 
+            // Otherwise, we might need to use ILIKE.
             
-            const nameSpan = document.createElement('span');
-            nameSpan.textContent = user.name || 'Admin';
-            nameSpan.className = 'font-bold text-xl whitespace-nowrap';
-            info.appendChild(nameSpan);
-
-            if (user.verified) {
-                const verifiedBadge = document.createElement('span');
-                verifiedBadge.textContent = '✔️';
-                verifiedBadge.title = user.role === 'admin' ? 'Verified BRAND' : user.role === 'super_admin' ? 'Verified BRAND+' : 'Verified User';
-                verifiedBadge.className = 'ml-2 text-yellow-500';
-                info.appendChild(verifiedBadge);
-            }
-
-            if (user.role) {
-                const roleBadge = document.createElement('span');
-                roleBadge.textContent = user.role.toUpperCase();
-                roleBadge.className = 'ml-2 px-2 py-1 bg-gray-800 text-white rounded text-xs';
-                info.appendChild(roleBadge);
-            }
-
-            avatarWrapper.appendChild(info);
-            container.appendChild(avatarWrapper);
-
-            // Bio & location
-            const bioEl = document.createElement('p');
-            bioEl.textContent = user.bio || 'No bio available.';
-            bioEl.className = 'mt-4 ml-4 text-gray-700';
-            container.appendChild(bioEl);
-
-            const locationEl = document.createElement('p');
-            locationEl.textContent = user.location ? `Location: ${user.location}` : '';
-            locationEl.className = 'ml-4 mt-1 text-gray-500';
-            container.appendChild(locationEl);
+            const { data, error } = await supabaseClient
+                .from('safe_users')
+                .select('*')
+                .ilike('username', username) // Case insensitive match
+                .single();
+                
+            if (error) console.error("Username Fetch Error:", error);
+            return data;
         }
 
-        // ============================================================
-        // Main: Detect user ID from sessionStorage or slug
-        // ============================================================
-        async function loadProfile() {
-            let userId = sessionStorage.getItem('profile_target_id');
+        // --- RENDERER ---
 
-            // Optional: fallback to slug in URL (e.g., /p/john-doe)
-            if (!userId) {
-                const pathParts = window.location.pathname.split('/');
-                if (pathParts[1] === 'p' && pathParts[2]) {
-                    const slug = pathParts[2];
-                    // Search Supabase for user by username or fallback name
-                    const { data: users } = await supabaseClient
-                        .from('safe_users')
-                        .select('*');
-                    const matched = users.find(u => {
-                        const slugFromUser = (u.username || u.name || 'user')
-                            .trim().toLowerCase().replace(/\s+/g, '-');
-                        return slugFromUser === slug.toLowerCase();
-                    });
-                    if (matched) userId = matched.id;
-                }
+        function renderProfile(user) {
+            const { name, username, bio, location, created_at, profile_image, cover_image, role, verified, is_online } = user;
+
+            // Images
+            const avatarEl = document.getElementById('user-avatar');
+            const coverEl = document.getElementById('user-cover');
+            
+            if (profile_image) {
+                avatarEl.src = profile_image;
+            } else {
+                // Replace img tag with div generator logic if src fails, or just use parent
+                avatarEl.parentElement.innerHTML = generateAvatar(name || 'User');
             }
 
-            if (!userId) {
-                document.getElementById('profile-container').innerHTML = '<p class="text-red-600 mt-4 ml-4">User not found.</p>';
-                return;
+            if (cover_image) {
+                coverEl.src = cover_image;
+            } else {
+                // Default abstract gradient
+                coverEl.parentElement.classList.add('bg-gradient-to-r', 'from-blue-900', 'to-slate-900');
+                coverEl.style.display = 'none';
             }
 
-            const user = await fetchSafeUserById(userId);
-            if (user) renderUserProfile(user);
-            else document.getElementById('profile-container').innerHTML = '<p class="text-red-600 mt-4 ml-4">User not found.</p>';
+            // Text
+            document.getElementById('user-name').textContent = name || 'Anonymous';
+            document.getElementById('user-username').textContent = username ? `@${username}` : '';
+            document.getElementById('user-bio').textContent = bio || 'No bio provided.';
+            document.getElementById('user-location').textContent = location || 'Global';
+            document.getElementById('user-joined').textContent = `Joined ${formatDate(created_at)}`;
+
+            // Online Status
+            if (is_online) {
+                document.getElementById('online-status').classList.remove('hidden');
+            }
+
+            // --- BADGES (Exact logic from previous step) ---
+            const badgeContainer = document.getElementById('badge-container');
+            
+            // Verified Badge
+            if (verified) {
+                let tooltipText = 'Verified User';
+                if (role === 'admin') tooltipText = 'Verified BRAND';
+                else if (role === 'super_admin') tooltipText = 'Verified BRAND+';
+
+                const vBadge = document.createElement('div');
+                vBadge.innerHTML = `
+                <span class="inline-flex items-center relative group cursor-pointer ml-2" role="img">
+                    <div class="relative w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-600 shadow-lg">
+                        <div class="w-5 h-5 flex items-center justify-center rounded-full border border-gray-900/10 absolute inset-0 m-auto">
+                            <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.01 7.01a1 1 0 01-1.414 0l-3.01-3.01a1 1 0 011.414-1.414L9 11.586l6.293-6.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <span class="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 text-[10px] font-bold bg-white text-black rounded shadow opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">${tooltipText}</span>
+                </span>`;
+                badgeContainer.appendChild(vBadge);
+            }
+
+            // Role Badge
+            if (role === 'admin') {
+                const rBadge = document.createElement('div');
+                rBadge.innerHTML = `
+                <span class="inline-flex items-center relative group cursor-pointer ml-2">
+                    <div class="relative w-7 h-7 flex items-center justify-center">
+                        <svg class="w-full h-full drop-shadow-md" viewBox="0 0 24 24">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="url(#goldGradient)" stroke="#FF0000" stroke-width="1.5" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                     <span class="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 text-[10px] font-bold bg-red-600 text-white rounded shadow opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">BRAND</span>
+                </span>`;
+                badgeContainer.appendChild(rBadge);
+            } else if (role === 'super_admin') {
+                const rBadge = document.createElement('div');
+                rBadge.innerHTML = `
+                <span class="inline-flex items-center relative group cursor-pointer ml-2">
+                    <div class="relative w-8 h-8 flex items-center justify-center">
+                        <div class="absolute inset-0 bg-yellow-400/30 blur-md rounded-full"></div>
+                        <svg class="w-full h-full drop-shadow-lg z-10" viewBox="0 0 24 24">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="url(#goldGradient)" stroke="url(#superAdminBorder)" stroke-width="1.5" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <span class="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 text-[10px] font-bold bg-purple-600 text-white rounded shadow opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">BRAND+</span>
+                </span>`;
+                badgeContainer.appendChild(rBadge);
+            }
+
+            // Reveal Content
+            document.getElementById('loading-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('profile-content').style.opacity = '1';
+            }, 500);
         }
 
-        window.addEventListener('DOMContentLoaded', loadProfile);
+        function renderNotFound() {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('profile-content').innerHTML = `
+                <div class="text-center mt-20">
+                    <h2 class="text-3xl font-bold text-gray-500">User Not Found</h2>
+                    <p class="text-gray-400 mt-2">The profile you are looking for does not exist or has been removed.</p>
+                    <a href="/" class="mt-6 inline-block px-6 py-2 bg-blue-600 rounded-full text-white">Go Home</a>
+                </div>
+            `;
+            document.getElementById('profile-content').style.opacity = '1';
+        }
+
+        // Run Logic
+        initProfile();
+
     </script>
-
-    <style>
-        body { font-family: sans-serif; background: #f9f9f9; margin: 0; }
-        .glass-tooltip {
-            background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px;
-        }
-    </style>
-</head>
-<body>
-    <div id="profile-container" class="max-w-2xl mx-auto mt-4 bg-white rounded shadow-md overflow-hidden p-4">
-        <!-- Profile will be rendered here -->
-        <p class="text-gray-500">Loading profile...</p>
-    </div>
 </body>
 </html>
