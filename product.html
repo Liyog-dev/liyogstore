@@ -2566,41 +2566,39 @@ if (reviewsTabButton) {
     DOMElements.liyogxValue.textContent = lxcValue.toLocaleString(undefined, { minimumFractionDigits: 2 });
 
     
-// ✅ Always visible: Added By User (Enhanced with Verified & Role Badges + Username Link)
+
+         
+                
+    // ✅ Always visible: Added By User (Enhanced with Verified & Role Badges, + Profile URL Linking)
 if (p.added_by) {
     fetchSafeUserById(p.added_by).then(user => {
+
         const name = user?.name || 'Admin';
-        const username = user?.username || 'admin'; // fallback username
+        const username = user?.username || 'admin';
+        
         const usernameContainer = DOMElements.addedByName;
         const avatarContainer = DOMElements.addedByAvatar;
 
-        // **NEW ELEMENT:** Create a container for badges only
+        // Container for name + badges
         const infoContainer = document.createElement('div');
-        infoContainer.classList.add('flex', 'items-center', 'ml-2'); // spacing from avatar+name
+        infoContainer.classList.add('flex', 'items-center', 'ml-2');
 
-        // Show user's name
+        // User name
         const nameSpan = document.createElement('span');
         nameSpan.textContent = name;
         nameSpan.classList.add('whitespace-nowrap');
 
-        // Inject avatar or fallback
+        // Avatar or fallback
         if (user?.profile_image) {
             avatarContainer.innerHTML = `
                 <img src="${user.profile_image}" 
-                     alt="${name}'s profile" 
-                     class="w-full h-full object-cover rounded-full" 
+                     alt="${name}'s profile"
+                     class="w-full h-full object-cover rounded-full"
                      loading="lazy">
             `;
         } else {
             avatarContainer.innerHTML = generateAvatar(name, 'w-6 h-6', 'text-xs');
         }
-
-        // Wrap avatar + name in an <a> for SEO-friendly URL using username
-        const profileLink = document.createElement('a');
-        profileLink.href = `store-profile.html?user=${encodeURIComponent(username)}`;
-        profileLink.classList.add('flex', 'items-center', 'hover:underline');
-        profileLink.appendChild(avatarContainer);
-        profileLink.appendChild(nameSpan);
 
         // Generate Verified Badge HTML
         let verifiedBadgeHTML = '';
@@ -2608,14 +2606,14 @@ if (p.added_by) {
             let tooltipText = 'Verified User';
             if (user.role === 'admin') tooltipText = 'Verified BRAND';
             else if (user.role === 'super_admin') tooltipText = 'Verified BRAND+';
-
+            
             verifiedBadgeHTML = `
             <span class="inline-flex items-center relative group cursor-pointer ml-1" role="img" aria-label="Verified badge">
                 <div class="relative w-5 h-5 flex items-center justify-center rounded-full
-                            bg-gradient-to-tr from-yellow-400 to-yellow-600
-                            shadow-lg transition-transform duration-200 transform hover:scale-110">
+                             bg-gradient-to-tr from-yellow-400 to-yellow-600
+                             shadow-lg transition-transform duration-200 transform hover:scale-110">
                     <div class="verified-badge-core w-4 h-4 flex items-center justify-center
-                                rounded-full border border-gray-900/10 absolute inset-0 m-auto">
+                                 rounded-full border border-gray-900/10 absolute inset-0 m-auto">
                         <svg class="w-3 h-3 text-white" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd"
                                   d="M16.707 5.293a1 1 0 010 1.414l-7.01 7.01a1 1 0 01-1.414 0l-3.01-3.01a1 1 0 011.414-1.414L9 11.586l6.293-6.293a1 1 0 011.414 0z"
@@ -2632,25 +2630,103 @@ if (p.added_by) {
             </span>`;
         }
 
+
         // Generate Role Badge HTML
         let roleBadgeHTML = '';
         if (user?.role === 'admin') {
-            roleBadgeHTML = `<span class="inline-flex items-center ...">BRAND BADGE HTML</span>`;
-        } else if (user?.role === 'super_admin') {
-            roleBadgeHTML = `<span class="inline-flex items-center ...">BRAND+ BADGE HTML</span>`;
+            roleBadgeHTML = `
+            <span class="inline-flex items-center relative group cursor-pointer ml-1" role="img" aria-label="Admin role badge"><div class="relative w-6 h-6 flex items-center justify-center">
+            <!-- Layer 1: Base Star (Red Top Segment) -->
+            <svg class="w-full h-full drop-shadow-md transform transition-transform group-hover:scale-110 duration-300" viewBox="0 0 24 24">
+                <!-- Full star shape -->
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                         fill="url(#goldGradient)"
+                         stroke="#FF0000"
+                         stroke-width="1.5"
+                         stroke-linejoin="round"/>
+                <!-- Green border overlay (covers all except top point) -->
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                         fill="url(#goldGradient)"
+                         stroke="#28A428"
+                         stroke-width="1.5"
+                         stroke-linejoin="round"
+                         style="clip-path: polygon(0 35%, 100% 35%, 100% 100%, 0 100%);"/>
+            </svg>
+
+            <!-- Center Dot (Reactor) -->
+            <div class="absolute z-20 w-1 h-1 bg-liyog-orange border border-black rounded-full shadow-[0_0_3px_rgba(255,122,0,0.8)] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+
+            <!-- Glitter shimmer overlay -->
+            <div class="absolute inset-0 overflow-hidden pointer-events-none"
+                 style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);">
+                <div class="shimmer-overlay"></div>
+            </div>
+        </div>
+
+        <!-- Tooltip -->
+        <span class="glass-tooltip absolute -top-8 left-1/2 -translate-x-1/2 px-3 py-1 text-[10px] font-bold tracking-wider text-liyog-gold uppercase rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:-translate-y-1 z-50 whitespace-nowrap">
+            BRAND
+        </span>
+            </span>`;
+        } 
+
+
+else if (user?.role === 'super_admin') {
+            roleBadgeHTML = `
+            <span class="inline-flex items-center relative group cursor-pointer ml-1" role="img" aria-label="Super Admin role badge">
+                <div class="relative w-8 h-8 flex items-center justify-center">
+            <!-- Glow Aura -->
+            <div class="absolute inset-0 bg-yellow-400/30 blur-md rounded-full scale-0 group-hover:scale-150 transition-transform duration-500"></div>
+
+            <!-- Star SVG -->
+            <svg class="w-full h-full drop-shadow-lg z-10 transform transition-transform group-hover:rotate-12 duration-500 ease-out" viewBox="0 0 24 24">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                         fill="url(#goldGradient)"
+                         stroke="url(#superAdminBorder)"
+                         stroke-width="1.5"
+                         stroke-linejoin="round"/>
+            </svg>
+
+            <!-- Center Dot (Reactor) -->
+            <div class="absolute z-20 w-1.5 h-1.5 bg-liyog-orange border border-black rounded-full shadow-[0_0_4px_rgba(255,122,0,0.8)] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+
+            <!-- Glitter shimmer overlay -->
+            <div class="absolute inset-0 overflow-hidden pointer-events-none z-20"
+                 style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);">
+                <div class="shimmer-overlay" style="animation-duration: 2s;"></div>
+            </div>
+        </div>
+
+        <!-- Tooltip -->
+        <span class="glass-tooltip absolute -top-9 left-1/2 -translate-x-1/2 px-3 py-1 text-[10px] font-extrabold tracking-wider text-liyog-gold uppercase rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:-translate-y-1 whitespace-nowrap shadow-lg">
+            BRAND+
+        </span>
+
+            </span>`;
         }
 
-        // Append badges to infoContainer
+        // Assemble name + badges
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = verifiedBadgeHTML + roleBadgeHTML;
+
+        infoContainer.appendChild(nameSpan);
         while (tempDiv.firstChild) {
             infoContainer.appendChild(tempDiv.firstChild);
         }
 
-        // Clear main container and append everything
+        // ⭐ NEW: Wrap avatar + infoContainer in a clickable link ⭐
+        const profileLink = document.createElement('a');
+        profileLink.href = `store-profile.html?user=${encodeURIComponent(username)}`;
+        profileLink.classList.add('flex', 'items-center', 'hover:underline');
+
+        // Add avatar + info inside the link
+        profileLink.appendChild(avatarContainer);
+        profileLink.appendChild(infoContainer);
+
+        // Clear main container and replace with linked structure
         DOMElements.addedByUser.innerHTML = '';
-        DOMElements.addedByUser.appendChild(profileLink); // avatar+name link
-        DOMElements.addedByUser.appendChild(infoContainer); // badges outside link
+        DOMElements.addedByUser.appendChild(profileLink);
+
         DOMElements.addedByUser.classList.add('flex', 'items-center');
         DOMElements.addedByUser.style.display = 'flex';
         DOMElements.addedByUser.classList.remove('hidden');
@@ -2663,7 +2739,6 @@ if (p.added_by) {
         DOMElements.addedByUser.classList.add('flex', 'items-center');
     });
 } else {
-    // Placeholder when no added_by
     DOMElements.addedByName.textContent = 'Admin';
     DOMElements.addedByAvatar.innerHTML = generateAvatar('S', 'w-6 h-6', 'text-xs');
     DOMElements.addedByUser.style.display = 'flex';
@@ -2671,6 +2746,8 @@ if (p.added_by) {
     DOMElements.addedByUser.classList.add('flex', 'items-center');
 }
 
+
+    
     // Description
     DOMElements.descriptionContent.innerHTML = DOMPurify.sanitize(p.description_html || '<p class="text-gray-500">No detailed description available.</p>');
     
