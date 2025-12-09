@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Loading Profile...</title>
+    <script>
+        (function () {
+            const path = window.location.pathname; 
+            // Expected: /p/user/username
+
+            const parts = path.split("/").filter(Boolean);
+            // parts = ["p", "user", "username"]
+
+            if (parts.length === 3 && parts[0] === "p") {
+                const role = parts[1];
+                const username = decodeURIComponent(parts[2]);
+
+                // Load store-profile.html but KEEP the SEO URL
+                history.replaceState({}, "", path);
+
+                window.location.href = `/store-profile.html?user=${username}&role=${role}`;
+            }
+        })();
+    </script>
+</head>
+<body></body>
+</html>
