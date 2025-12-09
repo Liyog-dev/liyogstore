@@ -1452,7 +1452,7 @@ function getStoreProfileURL(username, role) {
     const prefix = rolePrefixes[role] || "user";
 
     // Return SEO-friendly URL under /p/
-    return `/p/${prefix}/${encodeURIComponent(username)}`;
+    return `/p/${prefix}/${encodeURIComponent(username.replace("@", ""))}`;
 }
 
 // === GENERATE USER VERIFIED BADGE (Optimized Circular Green/Gold UI and Dynamic Tooltip) ===
