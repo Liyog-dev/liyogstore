@@ -45,103 +45,92 @@
 
         const { createClient } = supabase;
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+/* -----------------------------------------
+   2️⃣ NEW URL PARSER
+----------------------------------------- */
+const rawQuery = window.location.search.replace("?", "");
+let username = null;
+let rolePath = null;
 
-        /* -----------------------------------------
-           2️⃣ Extract Username From URL
-        ----------------------------------------- */
-        const params = new URLSearchParams(window.location.search);
-        const username = params.get("user");
+if (rawQuery.includes("/")) {
+    const [roleSegment, userSegment] = rawQuery.split("/");
+    rolePath = roleSegment;
+    username = userSegment;
+}
 
-        /* -----------------------------------------
-           3️⃣ DOM Elements
-        ----------------------------------------- */
-        const avatarContainer = document.getElementById("profile-avatar");
-        const nameContainer = document.getElementById("profile-name");
-        const usernameContainer = document.getElementById("profile-username");
-        const badgesContainer = document.getElementById("profile-badges");
-        const extraContainer = document.getElementById("profile-extra");
+// Clean @john → john
+if (username) username = username.replace(/^@+/, "");
 
-        /* -----------------------------------------
-           4️⃣ Fetch Profile From safe_users View
-        ----------------------------------------- */
-        async function loadUser() {
-            if (!username) {
-                nameContainer.textContent = "Invalid User";
-                return;
-            }
+/* -----------------------------------------
+   3️⃣ DOM Elements
+----------------------------------------- */
+const avatarContainer = document.getElementById("profile-avatar");
+const nameContainer = document.getElementById("profile-name");
+const usernameContainer = document.getElementById("profile-username");
+const badgesContainer = document.getElementById("profile-badges");
+const extraContainer = document.getElementById("profile-extra");
 
-            const { data: user, error } = await supabaseClient
-                .from('safe_users')
-                .select('*')
-                .eq('username', username)
-                .single();
+/* -----------------------------------------
+   4️⃣ Fetch User From safe_users
+----------------------------------------- */
+async function loadUser() {
+    if (!username) {
+        nameContainer.textContent = "Invalid User";
+        return;
+    }
 
-            if (error || !user) {
-                nameContainer.textContent = "User Not Found";
-                return;
-            }
+    const { data: user, error } = await supabaseClient
+        .from("safe_users")
+        .select("*")
+        .eq("username", username)
+        .single();
 
-            /* -----------------------------------------
-               5️⃣ Avatar
-            ----------------------------------------- */
-            if (user.profile_image) {
-                avatarContainer.innerHTML = `
-                    <img src="${user.profile_image}"
-                        class="w-full h-full object-cover"
-                        alt="${user.name}">
-                `;
-            } else {
-                avatarContainer.innerHTML = `
-                    <div class="w-full h-full flex items-center justify-center bg-gray-300 text-3xl font-bold">
-                        ${user.name.charAt(0)}
-                    </div>
-                `;
-            }
+    if (error || !user) {
+        nameContainer.textContent = "User Not Found";
+        return;
+    }
 
-            /* -----------------------------------------
-               6️⃣ Name + Username
-            ----------------------------------------- */
-            nameContainer.textContent = user.name;
-            usernameContainer.textContent = '@' + user.username;
+    /* Avatar */
+    if (user.profile_image) {
+        avatarContainer.innerHTML = `<img src="${user.profile_image}" class="w-full h-full object-cover">`;
+    } else {
+        avatarContainer.innerHTML = `
+            <div class="w-full h-full flex items-center justify-center bg-gray-300 text-3xl font-bold">
+                ${user.name.charAt(0)}
+            </div>`;
+    }
 
-            /* -----------------------------------------
-               7️⃣ Verified Badge
-            ----------------------------------------- */
-            if (user.verified) {
-                badgesContainer.innerHTML += `
-                    <span class="px-2 py-1 bg-yellow-400 text-xs font-bold rounded-full flex items-center">
-                        ✔ Verified
-                    </span>
-                `;
-            }
+    /* Name + Username */
+    nameContainer.textContent = user.name;
+    usernameContainer.textContent = '@' + user.username;
 
-            /* -----------------------------------------
-               8️⃣ Role Badge
-            ----------------------------------------- */
-            if (user.role) {
-                let roleColor = "bg-gray-300";
-                if (user.role === "admin") roleColor = "bg-blue-500 text-white";
-                if (user.role === "super_admin") roleColor = "bg-purple-600 text-white";
+    /* Verified Badge */
+    if (user.verified) {
+        badgesContainer.innerHTML += `
+            <span class="px-2 py-1 bg-yellow-400 text-xs font-bold rounded-full">✔ Verified</span>
+        `;
+    }
 
-                badgesContainer.innerHTML += `
-                    <span class="px-2 py-1 ${roleColor} text-xs font-bold rounded-full uppercase">
-                        ${user.role}
-                    </span>
-                `;
-            }
+    /* Role Badge */
+    if (user.role) {
+        let roleColor = "bg-gray-300";
+        if (user.role === "admin") roleColor = "bg-blue-500 text-white";
+        if (user.role === "super_admin") roleColor = "bg-purple-600 text-white";
 
-            /* -----------------------------------------
-               9️⃣ Extra Information
-            ----------------------------------------- */
-            extraContainer.innerHTML = `
-                <p><strong>Status:</strong> ${user.is_online ? "Online 🟢" : "Offline 🔴"}</p>
-                <p><strong>Last Seen:</strong> ${user.last_seen_at || "N/A"}</p>
-            `;
-        }
+        badgesContainer.innerHTML += `
+            <span class="px-2 py-1 ${roleColor} text-xs font-bold rounded-full uppercase">${user.role}</span>
+        `;
+    }
 
-        loadUser();
-    </script>
+    /* Extra */
+    extraContainer.innerHTML = `
+        <p><strong>Status:</strong> ${user.is_online ? "Online 🟢" : "Offline 🔴"}</p>
+        <p><strong>Last Seen:</strong> ${user.last_seen_at || "N/A"}</p>
+    `;
+}
 
+loadUser();
+</script>
 </body>
-    </html>
-    
+</html>
