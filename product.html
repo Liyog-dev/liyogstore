@@ -1437,23 +1437,20 @@ function animateValue(obj, start, end, duration) {
     window.requestAnimationFrame(step);
 }
 
-// ⭐ Universal SEO-Friendly Profile URL Builder
-// Generates a clean, role-based URL for any user
+// ⭐ Universal Profile URL Builder
+// Pass username and role to generate SEO-friendly URL
 function getStoreProfileURL(username, role) {
-    if (!username || typeof username !== "string") return "/p/user";
+    if (!username || typeof username !== "string") return "store-profile.html";
 
-    // Define role-to-prefix mapping (easy to extend)
-    const rolePrefixes = {
-        admin: "brand",
-        super_admin: "brandplus"
-    };
+    // Determine URL prefix based on role
+    let prefix = "user"; // default
+    if (role === "admin") prefix = "brand";
+    else if (role === "super_admin") prefix = "brandplus";
 
-    // Default prefix is 'user', use mapping if role exists
-    const prefix = rolePrefixes[role] || "user";
-
-    // Return SEO-friendly URL under /p/
-    return `/p/${prefix}/${encodeURIComponent(username.replace("@", ""))}`;
-}
+    // Return SEO-friendly URL with '/' instead of '='
+    return `store-profile.html/${prefix}/${encodeURIComponent(username)}`;
+    }
+    
 
 // === GENERATE USER VERIFIED BADGE (Optimized Circular Green/Gold UI and Dynamic Tooltip) ===
 // NOTE: This function requires the 'glass-tooltip' (for the hover text) 
