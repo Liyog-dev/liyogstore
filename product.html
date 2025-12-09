@@ -1437,29 +1437,12 @@ function animateValue(obj, start, end, duration) {
     window.requestAnimationFrame(step);
 }
 
-
-  // ⭐ Universal Store Profile URL Builder (Role-Based SEO URLs)
-async function getStoreProfileURL(username) {
-    if (!username || typeof username !== "string") return "store-profile.html?user/";
-
-    // Remove @ if user enters "@john"
-    username = username.replace(/^@+/, "");
-
-    // Fetch role from safe_users
-    const { data: user } = await supabaseClient
-        .from("safe_users")
-        .select("role")
-        .eq("username", username)
-        .single();
-
-    // Default path
-    let path = "user/";
-
-    if (user?.role === "admin") path = "brand/";
-    if (user?.role === "super_admin") path = "brandplus/";
-
-    return `store-profile.html?${path}${encodeURIComponent(username)}`;
-    }  
+// ⭐ Universal Profile URL Builder
+function getStoreProfileURL(username) {
+    if (!username || typeof username !== "string") return "store-profile.html";
+    return `store-profile.html?user=${encodeURIComponent(username)}`;
+    }
+    
 
 // === GENERATE USER VERIFIED BADGE (Optimized Circular Green/Gold UI and Dynamic Tooltip) ===
 // NOTE: This function requires the 'glass-tooltip' (for the hover text) 
